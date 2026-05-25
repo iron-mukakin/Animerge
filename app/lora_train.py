@@ -1644,6 +1644,9 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
                 lf.write(f"CMD: {' '.join(cmd)}\n\n")
                 for line in proc.stdout:
                     line = line.rstrip()
+                    # ANSIエスケープシーケンスを除去（tqdmのカーソル制御コード等）
+                    import re as _re
+                    line = _re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', line)
                     s._log_queue.put(line)
                     lf.write(line + "\n")
                     lf.flush()

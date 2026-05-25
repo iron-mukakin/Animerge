@@ -96,13 +96,21 @@ class EarlyStopper:
         )
 
         if val_improved:
-            # Val Loss が改善または横ばい → カウントリセット
+            # Val Loss が改善または横ばい
             if self._count > 0:
+                # 悪化カウントが残っていた → 正常化通知
                 msg = (
                     f"[監視正常化] Val Loss が改善しました  "
                     f"val_loss: {self._prev_val_loss:.6f} → {val_loss:.6f}  "
                     f"train_loss: {train_loss:.6f}  "
                     f"悪化カウントをリセットします。通常監視へ移行します。"
+                )
+            else:
+                # 悪化カウントなし → 継続的な正常動作を通知
+                msg = (
+                    f"[正常] Val Loss は良好です  "
+                    f"val_loss: {self._prev_val_loss:.6f} → {val_loss:.6f}  "
+                    f"train_loss: {train_loss:.6f}"
                 )
             self._count = 0
         else:
@@ -1530,6 +1538,12 @@ class NetworkTrainer:
         for epoch in range(epoch_to_start, num_train_epochs):
             accelerator.print(f"\nepoch {epoch+1}/{num_train_epochs}\n")
             current_epoch.value = epoch + 1
+            # EarlyStopping用: epoch内 train loss 集計をリセット
+            _epoch_train_loss_sum   = 0.0
+            _epoch_train_loss_count = 0
+            # EarlyStopping用: epoch内 train loss 集計をリセット
+            _epoch_train_loss_sum   = 0.0
+            _epoch_train_loss_count = 0
 
             metadata["ss_epoch"] = str(epoch + 1)
 
@@ -1640,6 +1654,8 @@ class NetworkTrainer:
 
                 current_loss = loss.detach().item()
                 loss_recorder.add(epoch=epoch, step=step, loss=current_loss)
+                _epoch_train_loss_sum   += current_loss
+                _epoch_train_loss_count += 1
                 avr_loss: float = loss_recorder.moving_average
                 logs = {"avr_loss": avr_loss}  # , "lr": lr_scheduler.get_last_lr()[0]}
                 progress_bar.set_postfix(**{**max_mean_logs, **logs})
@@ -1726,12 +1742,13 @@ class NetworkTrainer:
 
                     # EarlyStopper (step モード)
                     if early_stopper is not None and _es_mode == 'step' and accelerator.is_main_process:
-                        _es_val  = val_step_loss_recorder.moving_average
-                        _es_train = loss_recorder.moving_average
+                        _es_val   = val_step_loss_recorder.moving_average
+                        _es_train = _epoch_train_loss_sum / max(_epoch_train_loss_count, 1)
                         _es_stop, _es_msg = early_stopper.step(_es_val, _es_train)
                         if _es_msg:
-                            logger.warning(_es_msg)
-                            accelerator.print(_es_msg)
+                            _es_log = logger.info if _es_msg.startswith(("[正常]", "[EarlyStopping]")) else logger.warning
+                            _es_log(_es_msg)
+                            accelerator.print("\n" + _es_msg)
                         if _es_stop:
                             _es_should_stop = True
 
@@ -1763,6 +1780,11 @@ class NetworkTrainer:
                 )
 
                 val_timesteps_step = 0
+                # EarlyStopping用: この epoch の val loss を集計
+                _epoch_val_loss_sum   = 0.0
+                _epoch_val_loss_count = 0
+                # epoch ごとに val_epoch_loss_recorder をリセット（二重表示解消）
+                val_epoch_loss_recorder = train_util.LossRecorder()
                 for val_step, batch in enumerate(val_dataloader):
                     if val_step >= validation_steps:
                         break
@@ -1793,6 +1815,8 @@ class NetworkTrainer:
 
                         current_loss = loss.detach().item()
                         val_epoch_loss_recorder.add(epoch=epoch, step=val_timesteps_step, loss=current_loss)
+                        _epoch_val_loss_sum   += current_loss
+                        _epoch_val_loss_count += 1
                         val_progress_bar.update(1)
                         val_progress_bar.set_postfix(
                             {"val_epoch_avg_loss": val_epoch_loss_recorder.moving_average, "timestep": timestep}
@@ -1816,12 +1840,13 @@ class NetworkTrainer:
 
                 # EarlyStopper (epoch モード)
                 if early_stopper is not None and _es_mode == 'epoch' and accelerator.is_main_process:
-                    _es_val  = val_epoch_loss_recorder.moving_average
-                    _es_train = loss_recorder.moving_average
+                    _es_val   = _epoch_val_loss_sum / max(_epoch_val_loss_count, 1)
+                    _es_train = _epoch_train_loss_sum / max(_epoch_train_loss_count, 1)
                     _es_stop, _es_msg = early_stopper.step(_es_val, _es_train)
                     if _es_msg:
-                        logger.warning(_es_msg)
-                        accelerator.print(_es_msg)
+                        _es_log = logger.info if _es_msg.startswith(("[正常]", "[EarlyStopping]")) else logger.warning
+                        _es_log(_es_msg)
+                        accelerator.print("\n" + _es_msg)
                     if _es_stop:
                         _es_should_stop = True
 
