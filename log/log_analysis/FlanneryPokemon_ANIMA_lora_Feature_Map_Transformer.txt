@@ -1,0 +1,862 @@
+[METADATA]
+========================================================================
+format_version: 2.0
+model_name: FlanneryPokemon_ANIMA
+model_type: lora
+method: Feature Map
+layer_mode: Transformer
+device: cuda
+sha256: 75b6777f93d381b749f7e711613af335037f05644d11d29321e38d01aaa73818
+timestamp: 2026-05-20T20:34:11
+record_count: 560
+warnings_count: 0
+========================================================================
+
+[AUTO_REPORT]
+========================================================================
+[自動レポート] 顕著な学習偏りや異常パターンは検出されませんでした。
+
+=== モデル特徴 ===
+[マージ優先(group)]
+  blocks.15
+  blocks.27
+  blocks.23
+  blocks.24
+  blocks.20
+  blocks.26
+  blocks.11
+  blocks.0
+  blocks.6
+[破棄候補(group)]
+  blocks.18
+  blocks.3
+  blocks.2
+  blocks.4
+  blocks.13
+  blocks.12
+  blocks.5
+  blocks.14
+  blocks.22
+
+[マージ優先(full)]
+  blocks.15.cross_attn_output_proj  (blocks.15)
+  blocks.27.self_attn_q_proj  (blocks.27)
+  blocks.23.self_attn_v_proj  (blocks.23)
+  blocks.24.cross_attn_v_proj  (blocks.24)
+  blocks.26.self_attn_k_proj  (blocks.26)
+  blocks.11.cross_attn_v_proj  (blocks.11)
+  blocks.20.cross_attn_v_proj  (blocks.20)
+  blocks.20.self_attn_output_proj  (blocks.20)
+  blocks.6.cross_attn_v_proj  (blocks.6)
+  blocks.17.cross_attn_output_proj  (blocks.17)
+  blocks.21.cross_attn_output_proj  (blocks.21)
+  blocks.9.cross_attn_q_proj  (blocks.9)
+  blocks.0.self_attn_output_proj  (blocks.0)
+  blocks.24.mlp_layer1  (blocks.24)
+  blocks.16.mlp_layer2  (blocks.16)
+  blocks.24.self_attn_k_proj  (blocks.24)
+  blocks.19.cross_attn_k_proj  (blocks.19)
+  blocks.7.self_attn_output_proj  (blocks.7)
+  blocks.24.cross_attn_output_proj  (blocks.24)
+  blocks.27.self_attn_k_proj  (blocks.27)
+  blocks.27.self_attn_k_proj  (blocks.27)
+  blocks.0.cross_attn_k_proj  (blocks.0)
+  blocks.20.cross_attn_output_proj  (blocks.20)
+  blocks.13.mlp_layer1  (blocks.13)
+  blocks.20.self_attn_k_proj  (blocks.20)
+  blocks.20.self_attn_v_proj  (blocks.20)
+  blocks.1.self_attn_output_proj  (blocks.1)
+  blocks.6.self_attn_v_proj  (blocks.6)
+  blocks.17.cross_attn_v_proj  (blocks.17)
+  blocks.24.mlp_layer1  (blocks.24)
+  blocks.5.cross_attn_k_proj  (blocks.5)
+  blocks.14.cross_attn_k_proj  (blocks.14)
+  blocks.16.self_attn_q_proj  (blocks.16)
+  blocks.8.self_attn_v_proj  (blocks.8)
+  blocks.25.cross_attn_q_proj  (blocks.25)
+  blocks.25.mlp_layer2  (blocks.25)
+  blocks.8.cross_attn_q_proj  (blocks.8)
+  blocks.10.cross_attn_v_proj  (blocks.10)
+  blocks.20.cross_attn_output_proj  (blocks.20)
+  blocks.8.cross_attn_v_proj  (blocks.8)
+  blocks.6.cross_attn_q_proj  (blocks.6)
+  blocks.22.self_attn_output_proj  (blocks.22)
+  blocks.9.cross_attn_v_proj  (blocks.9)
+  blocks.12.cross_attn_k_proj  (blocks.12)
+  blocks.11.self_attn_v_proj  (blocks.11)
+  blocks.0.self_attn_k_proj  (blocks.0)
+  blocks.26.self_attn_v_proj  (blocks.26)
+  blocks.2.cross_attn_k_proj  (blocks.2)
+  blocks.8.mlp_layer2  (blocks.8)
+  blocks.9.self_attn_k_proj  (blocks.9)
+  blocks.17.mlp_layer1  (blocks.17)
+  blocks.23.cross_attn_v_proj  (blocks.23)
+  blocks.7.cross_attn_k_proj  (blocks.7)
+  blocks.0.mlp_layer2  (blocks.0)
+  blocks.25.cross_attn_output_proj  (blocks.25)
+  blocks.26.cross_attn_q_proj  (blocks.26)
+[破棄候補(full)]
+  blocks.2.self_attn_q_proj  (blocks.2)
+  blocks.0.mlp_layer1  (blocks.0)
+  blocks.2.self_attn_k_proj  (blocks.2)
+  blocks.2.cross_attn_q_proj  (blocks.2)
+  blocks.1.mlp_layer1  (blocks.1)
+  blocks.21.mlp_layer2  (blocks.21)
+  blocks.3.mlp_layer2  (blocks.3)
+  blocks.27.cross_attn_k_proj  (blocks.27)
+  blocks.18.mlp_layer2  (blocks.18)
+  blocks.6.mlp_layer2  (blocks.6)
+  blocks.8.cross_attn_v_proj  (blocks.8)
+  blocks.2.mlp_layer1  (blocks.2)
+  blocks.8.self_attn_k_proj  (blocks.8)
+  blocks.26.cross_attn_output_proj  (blocks.26)
+  blocks.15.mlp_layer2  (blocks.15)
+  blocks.15.cross_attn_v_proj  (blocks.15)
+  blocks.22.self_attn_k_proj  (blocks.22)
+  blocks.8.mlp_layer2  (blocks.8)
+  blocks.4.cross_attn_v_proj  (blocks.4)
+  blocks.8.self_attn_q_proj  (blocks.8)
+  blocks.0.cross_attn_v_proj  (blocks.0)
+  blocks.13.cross_attn_q_proj  (blocks.13)
+  blocks.27.cross_attn_output_proj  (blocks.27)
+  blocks.27.mlp_layer2  (blocks.27)
+  blocks.25.mlp_layer2  (blocks.25)
+  blocks.16.mlp_layer2  (blocks.16)
+  blocks.2.self_attn_q_proj  (blocks.2)
+  blocks.23.cross_attn_v_proj  (blocks.23)
+  blocks.9.cross_attn_k_proj  (blocks.9)
+  blocks.4.mlp_layer1  (blocks.4)
+  blocks.1.self_attn_v_proj  (blocks.1)
+  blocks.2.self_attn_v_proj  (blocks.2)
+  blocks.24.cross_attn_q_proj  (blocks.24)
+  blocks.26.cross_attn_k_proj  (blocks.26)
+  blocks.15.self_attn_q_proj  (blocks.15)
+  blocks.18.self_attn_v_proj  (blocks.18)
+  blocks.17.mlp_layer2  (blocks.17)
+  blocks.4.mlp_layer2  (blocks.4)
+  blocks.26.cross_attn_q_proj  (blocks.26)
+  blocks.22.cross_attn_k_proj  (blocks.22)
+  blocks.3.self_attn_k_proj  (blocks.3)
+  blocks.3.cross_attn_v_proj  (blocks.3)
+  blocks.17.self_attn_k_proj  (blocks.17)
+  blocks.2.cross_attn_v_proj  (blocks.2)
+  blocks.23.mlp_layer2  (blocks.23)
+  blocks.27.cross_attn_q_proj  (blocks.27)
+  blocks.14.mlp_layer2  (blocks.14)
+  blocks.6.cross_attn_k_proj  (blocks.6)
+  blocks.10.self_attn_k_proj  (blocks.10)
+  blocks.24.self_attn_v_proj  (blocks.24)
+  blocks.9.self_attn_v_proj  (blocks.9)
+  blocks.26.self_attn_output_proj  (blocks.26)
+  blocks.26.self_attn_v_proj  (blocks.26)
+  blocks.24.self_attn_output_proj  (blocks.24)
+  blocks.15.self_attn_v_proj  (blocks.15)
+  blocks.15.cross_attn_v_proj  (blocks.15)
+========================================================================
+
+[GROUP_SUMMARY]
+========================================================================
+blocks.0	{"mean_feat_mean": 1.4174182831538929e-05, "mean_feat_var": 9.954754382306419e-05, "mean_feat_complexity": 1033.7978709968104, "layer_count": 20}
+blocks.1	{"mean_feat_mean": 5.138643120972119e-06, "mean_feat_var": 9.882802055471984e-05, "mean_feat_complexity": 598.0614865768064, "layer_count": 20}
+blocks.10	{"mean_feat_mean": -1.697669104032684e-05, "mean_feat_var": 0.0001044894622737047, "mean_feat_complexity": 544.103977387181, "layer_count": 20}
+blocks.11	{"mean_feat_mean": 2.5316093569927032e-06, "mean_feat_var": 0.00010386699545961164, "mean_feat_complexity": 1091.3494282513207, "layer_count": 20}
+blocks.12	{"mean_feat_mean": -2.378656154178316e-06, "mean_feat_var": 0.00010544173260313982, "mean_feat_complexity": 482.3763270799651, "layer_count": 20}
+blocks.13	{"mean_feat_mean": -3.646614743502141e-07, "mean_feat_var": 0.00010539878235249489, "mean_feat_complexity": 444.3283638296874, "layer_count": 20}
+blocks.14	{"mean_feat_mean": -8.615244274778888e-06, "mean_feat_var": 0.00010718488538259407, "mean_feat_complexity": 506.28765501978387, "layer_count": 20}
+blocks.15	{"mean_feat_mean": -2.049749308978832e-05, "mean_feat_var": 0.00011141846684949996, "mean_feat_complexity": 7648.967222517691, "layer_count": 20}
+blocks.16	{"mean_feat_mean": -2.281223230795604e-05, "mean_feat_var": 0.00011073711125391128, "mean_feat_complexity": 759.5088824771537, "layer_count": 20}
+blocks.17	{"mean_feat_mean": 1.8046321685005751e-06, "mean_feat_var": 0.0001131330312546197, "mean_feat_complexity": 948.9802823795511, "layer_count": 20}
+blocks.18	{"mean_feat_mean": -2.2517963884638448e-05, "mean_feat_var": 0.00010631126010594017, "mean_feat_complexity": 276.6033050134211, "layer_count": 20}
+blocks.19	{"mean_feat_mean": -1.6439031014670035e-06, "mean_feat_var": 0.00010678733738131996, "mean_feat_complexity": 615.4503425841433, "layer_count": 20}
+blocks.2	{"mean_feat_mean": -5.665290959768754e-05, "mean_feat_var": 0.0001003410721750697, "mean_feat_complexity": 357.81781573172964, "layer_count": 20}
+blocks.20	{"mean_feat_mean": -1.9254192421414017e-05, "mean_feat_var": 0.00010502822515263688, "mean_feat_complexity": 2201.3285193357333, "layer_count": 20}
+blocks.21	{"mean_feat_mean": 4.858691036702112e-06, "mean_feat_var": 0.00010374318853791919, "mean_feat_complexity": 736.757213790399, "layer_count": 20}
+blocks.22	{"mean_feat_mean": 1.0125473636435346e-06, "mean_feat_var": 0.00010468391174072167, "mean_feat_complexity": 541.7504606039886, "layer_count": 20}
+blocks.23	{"mean_feat_mean": 6.275055395832397e-06, "mean_feat_var": 0.00010764874323285767, "mean_feat_complexity": 3346.113509011848, "layer_count": 20}
+blocks.24	{"mean_feat_mean": 2.8889549923860615e-06, "mean_feat_var": 0.00010533206987020093, "mean_feat_complexity": 2844.385512966651, "layer_count": 20}
+blocks.25	{"mean_feat_mean": 1.1257635634365215e-05, "mean_feat_var": 0.00011023359891169094, "mean_feat_complexity": 730.5002037187141, "layer_count": 20}
+blocks.26	{"mean_feat_mean": -3.585087025044231e-05, "mean_feat_var": 0.00011501805397529097, "mean_feat_complexity": 1296.9844843403578, "layer_count": 20}
+blocks.27	{"mean_feat_mean": -3.672148217681581e-05, "mean_feat_var": 0.00010906532940282431, "mean_feat_complexity": 4188.932130516714, "layer_count": 20}
+blocks.3	{"mean_feat_mean": -1.58025655991878e-06, "mean_feat_var": 0.00010063462832476944, "mean_feat_complexity": 294.0529874617822, "layer_count": 20}
+blocks.4	{"mean_feat_mean": -1.0575286978564692e-06, "mean_feat_var": 0.00010343565959374246, "mean_feat_complexity": 368.7224808942763, "layer_count": 20}
+blocks.5	{"mean_feat_mean": -1.0901502150773013e-05, "mean_feat_var": 0.00010140800222870893, "mean_feat_complexity": 489.9310814212623, "layer_count": 20}
+blocks.6	{"mean_feat_mean": -1.6141530331026388e-05, "mean_feat_var": 0.00010229576223537151, "mean_feat_complexity": 993.8705785213078, "layer_count": 20}
+blocks.7	{"mean_feat_mean": 7.944500319467807e-06, "mean_feat_var": 0.00010311186429134978, "mean_feat_complexity": 627.220002083674, "layer_count": 20}
+blocks.8	{"mean_feat_mean": -1.172986110873353e-05, "mean_feat_var": 0.00010209255651716376, "mean_feat_complexity": 680.1318665755841, "layer_count": 20}
+blocks.9	{"mean_feat_mean": -1.3240975135886401e-05, "mean_feat_var": 0.00010221937814094417, "mean_feat_complexity": 850.5481840806573, "layer_count": 20}
+========================================================================
+
+[LAYER_RECORDS]
+========================================================================
+key	original_key	group	shape	feat_mean	feat_var	feat_complexity
+blocks.0.cross_attn_k_proj	lora_unet_blocks_0_cross_attn_k_proj.lora_down.weight	blocks.0	20x1024	0.000004	0.000335	4203.155957
+blocks.0.cross_attn_k_proj	lora_unet_blocks_0_cross_attn_k_proj.lora_up.weight	blocks.0	2048x20	0.000027	0.000015	146.598251
+blocks.0.cross_attn_output_proj	lora_unet_blocks_0_cross_attn_output_proj.lora_down.weight	blocks.0	20x2048	0.000019	0.000161	672.647165
+blocks.0.cross_attn_output_proj	lora_unet_blocks_0_cross_attn_output_proj.lora_up.weight	blocks.0	2048x20	0.000005	0.000011	648.674077
+blocks.0.cross_attn_q_proj	lora_unet_blocks_0_cross_attn_q_proj.lora_down.weight	blocks.0	20x2048	0.000029	0.000174	460.858197
+blocks.0.cross_attn_q_proj	lora_unet_blocks_0_cross_attn_q_proj.lora_up.weight	blocks.0	2048x20	0.000004	0.000016	1027.070433
+blocks.0.cross_attn_v_proj	lora_unet_blocks_0_cross_attn_v_proj.lora_down.weight	blocks.0	20x1024	0.000241	0.000327	74.983322
+blocks.0.cross_attn_v_proj	lora_unet_blocks_0_cross_attn_v_proj.lora_up.weight	blocks.0	2048x20	-0.000013	0.000014	276.089521
+blocks.0.mlp_layer1	lora_unet_blocks_0_mlp_layer1.lora_down.weight	blocks.0	20x2048	0.000052	0.000170	249.504007
+blocks.0.mlp_layer1	lora_unet_blocks_0_mlp_layer1.lora_up.weight	blocks.0	8192x20	-0.000120	0.000010	26.363821
+blocks.0.mlp_layer2	lora_unet_blocks_0_mlp_layer2.lora_down.weight	blocks.0	20x8192	-0.000005	0.000049	1497.608338
+blocks.0.mlp_layer2	lora_unet_blocks_0_mlp_layer2.lora_up.weight	blocks.0	2048x20	0.000011	0.000017	363.613736
+blocks.0.self_attn_k_proj	lora_unet_blocks_0_self_attn_k_proj.lora_down.weight	blocks.0	20x2048	0.000032	0.000160	400.969100
+blocks.0.self_attn_k_proj	lora_unet_blocks_0_self_attn_k_proj.lora_up.weight	blocks.0	2048x20	-0.000002	0.000009	1778.229203
+blocks.0.self_attn_output_proj	lora_unet_blocks_0_self_attn_output_proj.lora_down.weight	blocks.0	20x2048	-0.000002	0.000158	7387.466783
+blocks.0.self_attn_output_proj	lora_unet_blocks_0_self_attn_output_proj.lora_up.weight	blocks.0	2048x20	0.000009	0.000014	423.130439
+blocks.0.self_attn_q_proj	lora_unet_blocks_0_self_attn_q_proj.lora_down.weight	blocks.0	20x2048	-0.000032	0.000166	401.459583
+blocks.0.self_attn_q_proj	lora_unet_blocks_0_self_attn_q_proj.lora_up.weight	blocks.0	2048x20	-0.000022	0.000014	167.719623
+blocks.0.self_attn_v_proj	lora_unet_blocks_0_self_attn_v_proj.lora_down.weight	blocks.0	20x2048	0.000059	0.000161	215.051389
+blocks.0.self_attn_v_proj	lora_unet_blocks_0_self_attn_v_proj.lora_up.weight	blocks.0	2048x20	-0.000012	0.000010	254.764475
+blocks.10.cross_attn_k_proj	lora_unet_blocks_10_cross_attn_k_proj.lora_down.weight	blocks.10	20x1024	0.000015	0.000334	1224.523891
+blocks.10.cross_attn_k_proj	lora_unet_blocks_10_cross_attn_k_proj.lora_up.weight	blocks.10	2048x20	0.000011	0.000015	356.958250
+blocks.10.cross_attn_output_proj	lora_unet_blocks_10_cross_attn_output_proj.lora_down.weight	blocks.10	20x2048	-0.000116	0.000176	114.054000
+blocks.10.cross_attn_output_proj	lora_unet_blocks_10_cross_attn_output_proj.lora_up.weight	blocks.10	2048x20	-0.000006	0.000018	673.635096
+blocks.10.cross_attn_q_proj	lora_unet_blocks_10_cross_attn_q_proj.lora_down.weight	blocks.10	20x2048	-0.000047	0.000173	277.196219
+blocks.10.cross_attn_q_proj	lora_unet_blocks_10_cross_attn_q_proj.lora_up.weight	blocks.10	2048x20	0.000017	0.000015	230.018283
+blocks.10.cross_attn_v_proj	lora_unet_blocks_10_cross_attn_v_proj.lora_down.weight	blocks.10	20x1024	0.000007	0.000333	2442.954656
+blocks.10.cross_attn_v_proj	lora_unet_blocks_10_cross_attn_v_proj.lora_up.weight	blocks.10	2048x20	-0.000008	0.000015	476.696671
+blocks.10.mlp_layer1	lora_unet_blocks_10_mlp_layer1.lora_down.weight	blocks.10	20x2048	0.000023	0.000173	567.287569
+blocks.10.mlp_layer1	lora_unet_blocks_10_mlp_layer1.lora_up.weight	blocks.10	8192x20	-0.000008	0.000015	467.857882
+blocks.10.mlp_layer2	lora_unet_blocks_10_mlp_layer2.lora_down.weight	blocks.10	20x8192	-0.000026	0.000047	260.093945
+blocks.10.mlp_layer2	lora_unet_blocks_10_mlp_layer2.lora_up.weight	blocks.10	2048x20	0.000013	0.000012	256.476808
+blocks.10.self_attn_k_proj	lora_unet_blocks_10_self_attn_k_proj.lora_down.weight	blocks.10	20x2048	-0.000013	0.000177	1059.636454
+blocks.10.self_attn_k_proj	lora_unet_blocks_10_self_attn_k_proj.lora_up.weight	blocks.10	2048x20	-0.000041	0.000017	100.722325
+blocks.10.self_attn_output_proj	lora_unet_blocks_10_self_attn_output_proj.lora_down.weight	blocks.10	20x2048	-0.000054	0.000176	245.370997
+blocks.10.self_attn_output_proj	lora_unet_blocks_10_self_attn_output_proj.lora_up.weight	blocks.10	2048x20	-0.000011	0.000018	378.261797
+blocks.10.self_attn_q_proj	lora_unet_blocks_10_self_attn_q_proj.lora_down.weight	blocks.10	20x2048	-0.000014	0.000174	953.769473
+blocks.10.self_attn_q_proj	lora_unet_blocks_10_self_attn_q_proj.lora_up.weight	blocks.10	2048x20	-0.000010	0.000017	422.913355
+blocks.10.self_attn_v_proj	lora_unet_blocks_10_self_attn_v_proj.lora_down.weight	blocks.10	20x2048	-0.000088	0.000171	149.203935
+blocks.10.self_attn_v_proj	lora_unet_blocks_10_self_attn_v_proj.lora_up.weight	blocks.10	2048x20	0.000017	0.000014	224.447940
+blocks.11.cross_attn_k_proj	lora_unet_blocks_11_cross_attn_k_proj.lora_down.weight	blocks.11	20x1024	0.000041	0.000322	436.506056
+blocks.11.cross_attn_k_proj	lora_unet_blocks_11_cross_attn_k_proj.lora_up.weight	blocks.11	2048x20	-0.000025	0.000014	151.440698
+blocks.11.cross_attn_output_proj	lora_unet_blocks_11_cross_attn_output_proj.lora_down.weight	blocks.11	20x2048	-0.000029	0.000170	443.230755
+blocks.11.cross_attn_output_proj	lora_unet_blocks_11_cross_attn_output_proj.lora_up.weight	blocks.11	2048x20	-0.000015	0.000016	260.201679
+blocks.11.cross_attn_q_proj	lora_unet_blocks_11_cross_attn_q_proj.lora_down.weight	blocks.11	20x2048	-0.000020	0.000172	664.750047
+blocks.11.cross_attn_q_proj	lora_unet_blocks_11_cross_attn_q_proj.lora_up.weight	blocks.11	2048x20	-0.000017	0.000015	227.316505
+blocks.11.cross_attn_v_proj	lora_unet_blocks_11_cross_attn_v_proj.lora_down.weight	blocks.11	20x1024	0.000126	0.000333	145.272791
+blocks.11.cross_attn_v_proj	lora_unet_blocks_11_cross_attn_v_proj.lora_up.weight	blocks.11	2048x20	0.000000	0.000015	13718.505646
+blocks.11.mlp_layer1	lora_unet_blocks_11_mlp_layer1.lora_down.weight	blocks.11	20x2048	0.000035	0.000180	379.287311
+blocks.11.mlp_layer1	lora_unet_blocks_11_mlp_layer1.lora_up.weight	blocks.11	8192x20	-0.000015	0.000017	267.051884
+blocks.11.mlp_layer2	lora_unet_blocks_11_mlp_layer2.lora_down.weight	blocks.11	20x8192	0.000024	0.000046	281.590906
+blocks.11.mlp_layer2	lora_unet_blocks_11_mlp_layer2.lora_up.weight	blocks.11	2048x20	-0.000009	0.000011	352.548424
+blocks.11.self_attn_k_proj	lora_unet_blocks_11_self_attn_k_proj.lora_down.weight	blocks.11	20x2048	0.000036	0.000175	370.391888
+blocks.11.self_attn_k_proj	lora_unet_blocks_11_self_attn_k_proj.lora_up.weight	blocks.11	2048x20	0.000008	0.000017	497.972795
+blocks.11.self_attn_output_proj	lora_unet_blocks_11_self_attn_output_proj.lora_down.weight	blocks.11	20x2048	-0.000016	0.000178	857.511969
+blocks.11.self_attn_output_proj	lora_unet_blocks_11_self_attn_output_proj.lora_up.weight	blocks.11	2048x20	-0.000014	0.000019	315.624107
+blocks.11.self_attn_q_proj	lora_unet_blocks_11_self_attn_q_proj.lora_down.weight	blocks.11	20x2048	-0.000096	0.000173	137.560543
+blocks.11.self_attn_q_proj	lora_unet_blocks_11_self_attn_q_proj.lora_up.weight	blocks.11	2048x20	0.000011	0.000017	364.831673
+blocks.11.self_attn_v_proj	lora_unet_blocks_11_self_attn_v_proj.lora_down.weight	blocks.11	20x2048	-0.000007	0.000173	1834.190775
+blocks.11.self_attn_v_proj	lora_unet_blocks_11_self_attn_v_proj.lora_up.weight	blocks.11	2048x20	0.000032	0.000015	121.202111
+blocks.12.cross_attn_k_proj	lora_unet_blocks_12_cross_attn_k_proj.lora_down.weight	blocks.12	20x1024	-0.000016	0.000333	1105.727398
+blocks.12.cross_attn_k_proj	lora_unet_blocks_12_cross_attn_k_proj.lora_up.weight	blocks.12	2048x20	0.000002	0.000016	1987.829507
+blocks.12.cross_attn_output_proj	lora_unet_blocks_12_cross_attn_output_proj.lora_down.weight	blocks.12	20x2048	-0.000057	0.000176	233.680086
+blocks.12.cross_attn_output_proj	lora_unet_blocks_12_cross_attn_output_proj.lora_up.weight	blocks.12	2048x20	0.000007	0.000018	623.508285
+blocks.12.cross_attn_q_proj	lora_unet_blocks_12_cross_attn_q_proj.lora_down.weight	blocks.12	20x2048	-0.000090	0.000172	146.526350
+blocks.12.cross_attn_q_proj	lora_unet_blocks_12_cross_attn_q_proj.lora_up.weight	blocks.12	2048x20	-0.000020	0.000015	195.883893
+blocks.12.cross_attn_v_proj	lora_unet_blocks_12_cross_attn_v_proj.lora_down.weight	blocks.12	20x1024	0.000070	0.000341	264.727216
+blocks.12.cross_attn_v_proj	lora_unet_blocks_12_cross_attn_v_proj.lora_up.weight	blocks.12	2048x20	-0.000014	0.000016	288.654550
+blocks.12.mlp_layer1	lora_unet_blocks_12_mlp_layer1.lora_down.weight	blocks.12	20x2048	0.000026	0.000180	518.335662
+blocks.12.mlp_layer1	lora_unet_blocks_12_mlp_layer1.lora_up.weight	blocks.12	8192x20	-0.000028	0.000017	143.246805
+blocks.12.mlp_layer2	lora_unet_blocks_12_mlp_layer2.lora_down.weight	blocks.12	20x8192	0.000026	0.000046	265.667887
+blocks.12.mlp_layer2	lora_unet_blocks_12_mlp_layer2.lora_up.weight	blocks.12	2048x20	0.000007	0.000012	500.193753
+blocks.12.self_attn_k_proj	lora_unet_blocks_12_self_attn_k_proj.lora_down.weight	blocks.12	20x2048	0.000037	0.000175	353.085026
+blocks.12.self_attn_k_proj	lora_unet_blocks_12_self_attn_k_proj.lora_up.weight	blocks.12	2048x20	0.000005	0.000017	747.338902
+blocks.12.self_attn_output_proj	lora_unet_blocks_12_self_attn_output_proj.lora_down.weight	blocks.12	20x2048	-0.000063	0.000179	212.750421
+blocks.12.self_attn_output_proj	lora_unet_blocks_12_self_attn_output_proj.lora_up.weight	blocks.12	2048x20	0.000018	0.000018	230.649929
+blocks.12.self_attn_q_proj	lora_unet_blocks_12_self_attn_q_proj.lora_down.weight	blocks.12	20x2048	0.000055	0.000175	239.934578
+blocks.12.self_attn_q_proj	lora_unet_blocks_12_self_attn_q_proj.lora_up.weight	blocks.12	2048x20	0.000016	0.000017	254.907545
+blocks.12.self_attn_v_proj	lora_unet_blocks_12_self_attn_v_proj.lora_down.weight	blocks.12	20x2048	-0.000012	0.000172	1109.694364
+blocks.12.self_attn_v_proj	lora_unet_blocks_12_self_attn_v_proj.lora_up.weight	blocks.12	2048x20	-0.000017	0.000015	225.184385
+blocks.13.cross_attn_k_proj	lora_unet_blocks_13_cross_attn_k_proj.lora_down.weight	blocks.13	20x1024	0.000069	0.000328	263.134272
+blocks.13.cross_attn_k_proj	lora_unet_blocks_13_cross_attn_k_proj.lora_up.weight	blocks.13	2048x20	0.000011	0.000015	346.704182
+blocks.13.cross_attn_output_proj	lora_unet_blocks_13_cross_attn_output_proj.lora_down.weight	blocks.13	20x2048	-0.000015	0.000173	897.969559
+blocks.13.cross_attn_output_proj	lora_unet_blocks_13_cross_attn_output_proj.lora_up.weight	blocks.13	2048x20	-0.000013	0.000017	315.817198
+blocks.13.cross_attn_q_proj	lora_unet_blocks_13_cross_attn_q_proj.lora_down.weight	blocks.13	20x2048	-0.000170	0.000169	76.694109
+blocks.13.cross_attn_q_proj	lora_unet_blocks_13_cross_attn_q_proj.lora_up.weight	blocks.13	2048x20	-0.000028	0.000014	136.075263
+blocks.13.cross_attn_v_proj	lora_unet_blocks_13_cross_attn_v_proj.lora_down.weight	blocks.13	20x1024	0.000171	0.000340	107.960576
+blocks.13.cross_attn_v_proj	lora_unet_blocks_13_cross_attn_v_proj.lora_up.weight	blocks.13	2048x20	0.000024	0.000016	166.021158
+blocks.13.mlp_layer1	lora_unet_blocks_13_mlp_layer1.lora_down.weight	blocks.13	20x2048	0.000026	0.000186	525.077142
+blocks.13.mlp_layer1	lora_unet_blocks_13_mlp_layer1.lora_up.weight	blocks.13	8192x20	0.000001	0.000018	3625.142081
+blocks.13.mlp_layer2	lora_unet_blocks_13_mlp_layer2.lora_down.weight	blocks.13	20x8192	-0.000050	0.000047	137.078990
+blocks.13.mlp_layer2	lora_unet_blocks_13_mlp_layer2.lora_up.weight	blocks.13	2048x20	-0.000026	0.000011	127.947632
+blocks.13.self_attn_k_proj	lora_unet_blocks_13_self_attn_k_proj.lora_down.weight	blocks.13	20x2048	0.000102	0.000175	129.918129
+blocks.13.self_attn_k_proj	lora_unet_blocks_13_self_attn_k_proj.lora_up.weight	blocks.13	2048x20	-0.000021	0.000018	200.251934
+blocks.13.self_attn_output_proj	lora_unet_blocks_13_self_attn_output_proj.lora_down.weight	blocks.13	20x2048	0.000032	0.000181	417.310062
+blocks.13.self_attn_output_proj	lora_unet_blocks_13_self_attn_output_proj.lora_up.weight	blocks.13	2048x20	-0.000036	0.000020	124.147061
+blocks.13.self_attn_q_proj	lora_unet_blocks_13_self_attn_q_proj.lora_down.weight	blocks.13	20x2048	0.000026	0.000174	505.848650
+blocks.13.self_attn_q_proj	lora_unet_blocks_13_self_attn_q_proj.lora_up.weight	blocks.13	2048x20	0.000012	0.000017	337.946913
+blocks.13.self_attn_v_proj	lora_unet_blocks_13_self_attn_v_proj.lora_down.weight	blocks.13	20x2048	-0.000111	0.000173	118.153746
+blocks.13.self_attn_v_proj	lora_unet_blocks_13_self_attn_v_proj.lora_up.weight	blocks.13	2048x20	-0.000012	0.000016	327.368619
+blocks.14.cross_attn_k_proj	lora_unet_blocks_14_cross_attn_k_proj.lora_down.weight	blocks.14	20x1024	0.000054	0.000332	334.830323
+blocks.14.cross_attn_k_proj	lora_unet_blocks_14_cross_attn_k_proj.lora_up.weight	blocks.14	2048x20	0.000001	0.000015	3042.036637
+blocks.14.cross_attn_output_proj	lora_unet_blocks_14_cross_attn_output_proj.lora_down.weight	blocks.14	20x2048	0.000046	0.000176	285.409036
+blocks.14.cross_attn_output_proj	lora_unet_blocks_14_cross_attn_output_proj.lora_up.weight	blocks.14	2048x20	0.000009	0.000019	482.940040
+blocks.14.cross_attn_q_proj	lora_unet_blocks_14_cross_attn_q_proj.lora_down.weight	blocks.14	20x2048	0.000043	0.000171	304.291218
+blocks.14.cross_attn_q_proj	lora_unet_blocks_14_cross_attn_q_proj.lora_up.weight	blocks.14	2048x20	0.000004	0.000015	975.275806
+blocks.14.cross_attn_v_proj	lora_unet_blocks_14_cross_attn_v_proj.lora_down.weight	blocks.14	20x1024	-0.000026	0.000356	714.678182
+blocks.14.cross_attn_v_proj	lora_unet_blocks_14_cross_attn_v_proj.lora_up.weight	blocks.14	2048x20	0.000005	0.000017	837.436106
+blocks.14.mlp_layer1	lora_unet_blocks_14_mlp_layer1.lora_down.weight	blocks.14	20x2048	-0.000089	0.000184	152.328016
+blocks.14.mlp_layer1	lora_unet_blocks_14_mlp_layer1.lora_up.weight	blocks.14	8192x20	-0.000008	0.000018	554.370880
+blocks.14.mlp_layer2	lora_unet_blocks_14_mlp_layer2.lora_down.weight	blocks.14	20x8192	-0.000070	0.000049	99.777417
+blocks.14.mlp_layer2	lora_unet_blocks_14_mlp_layer2.lora_up.weight	blocks.14	2048x20	-0.000021	0.000013	168.487982
+blocks.14.self_attn_k_proj	lora_unet_blocks_14_self_attn_k_proj.lora_down.weight	blocks.14	20x2048	0.000099	0.000175	133.099369
+blocks.14.self_attn_k_proj	lora_unet_blocks_14_self_attn_k_proj.lora_up.weight	blocks.14	2048x20	-0.000028	0.000018	150.578291
+blocks.14.self_attn_output_proj	lora_unet_blocks_14_self_attn_output_proj.lora_down.weight	blocks.14	20x2048	-0.000033	0.000182	409.714979
+blocks.14.self_attn_output_proj	lora_unet_blocks_14_self_attn_output_proj.lora_up.weight	blocks.14	2048x20	-0.000020	0.000018	216.041992
+blocks.14.self_attn_q_proj	lora_unet_blocks_14_self_attn_q_proj.lora_down.weight	blocks.14	20x2048	-0.000120	0.000176	110.478852
+blocks.14.self_attn_q_proj	lora_unet_blocks_14_self_attn_q_proj.lora_up.weight	blocks.14	2048x20	-0.000010	0.000018	406.589968
+blocks.14.self_attn_v_proj	lora_unet_blocks_14_self_attn_v_proj.lora_down.weight	blocks.14	20x2048	0.000021	0.000176	618.487506
+blocks.14.self_attn_v_proj	lora_unet_blocks_14_self_attn_v_proj.lora_up.weight	blocks.14	2048x20	-0.000030	0.000015	128.900501
+blocks.15.cross_attn_k_proj	lora_unet_blocks_15_cross_attn_k_proj.lora_down.weight	blocks.15	20x1024	0.000054	0.000339	340.224669
+blocks.15.cross_attn_k_proj	lora_unet_blocks_15_cross_attn_k_proj.lora_up.weight	blocks.15	2048x20	-0.000030	0.000019	142.317961
+blocks.15.cross_attn_output_proj	lora_unet_blocks_15_cross_attn_output_proj.lora_down.weight	blocks.15	20x2048	-0.000094	0.000193	147.562756
+blocks.15.cross_attn_output_proj	lora_unet_blocks_15_cross_attn_output_proj.lora_up.weight	blocks.15	2048x20	-0.000000	0.000025	148593.906170
+blocks.15.cross_attn_q_proj	lora_unet_blocks_15_cross_attn_q_proj.lora_down.weight	blocks.15	20x2048	0.000094	0.000175	141.403725
+blocks.15.cross_attn_q_proj	lora_unet_blocks_15_cross_attn_q_proj.lora_up.weight	blocks.15	2048x20	-0.000034	0.000018	124.034001
+blocks.15.cross_attn_v_proj	lora_unet_blocks_15_cross_attn_v_proj.lora_down.weight	blocks.15	20x1024	-0.000289	0.000386	67.913546
+blocks.15.cross_attn_v_proj	lora_unet_blocks_15_cross_attn_v_proj.lora_up.weight	blocks.15	2048x20	-0.000042	0.000020	105.527949
+blocks.15.mlp_layer1	lora_unet_blocks_15_mlp_layer1.lora_down.weight	blocks.15	20x2048	-0.000086	0.000187	159.728153
+blocks.15.mlp_layer1	lora_unet_blocks_15_mlp_layer1.lora_up.weight	blocks.15	8192x20	-0.000022	0.000018	193.278938
+blocks.15.mlp_layer2	lora_unet_blocks_15_mlp_layer2.lora_down.weight	blocks.15	20x8192	0.000106	0.000049	66.367897
+blocks.15.mlp_layer2	lora_unet_blocks_15_mlp_layer2.lora_up.weight	blocks.15	2048x20	0.000007	0.000013	542.603450
+blocks.15.self_attn_k_proj	lora_unet_blocks_15_self_attn_k_proj.lora_down.weight	blocks.15	20x2048	-0.000114	0.000178	117.292448
+blocks.15.self_attn_k_proj	lora_unet_blocks_15_self_attn_k_proj.lora_up.weight	blocks.15	2048x20	-0.000022	0.000018	190.956750
+blocks.15.self_attn_output_proj	lora_unet_blocks_15_self_attn_output_proj.lora_down.weight	blocks.15	20x2048	-0.000093	0.000182	145.922652
+blocks.15.self_attn_output_proj	lora_unet_blocks_15_self_attn_output_proj.lora_up.weight	blocks.15	2048x20	-0.000003	0.000019	1455.484541
+blocks.15.self_attn_q_proj	lora_unet_blocks_15_self_attn_q_proj.lora_down.weight	blocks.15	20x2048	0.000111	0.000178	120.499228
+blocks.15.self_attn_q_proj	lora_unet_blocks_15_self_attn_q_proj.lora_up.weight	blocks.15	2048x20	-0.000048	0.000019	90.243424
+blocks.15.self_attn_v_proj	lora_unet_blocks_15_self_attn_v_proj.lora_down.weight	blocks.15	20x2048	0.000127	0.000175	104.151139
+blocks.15.self_attn_v_proj	lora_unet_blocks_15_self_attn_v_proj.lora_up.weight	blocks.15	2048x20	-0.000030	0.000016	129.925054
+blocks.16.cross_attn_k_proj	lora_unet_blocks_16_cross_attn_k_proj.lora_down.weight	blocks.16	20x1024	-0.000128	0.000335	143.501457
+blocks.16.cross_attn_k_proj	lora_unet_blocks_16_cross_attn_k_proj.lora_up.weight	blocks.16	2048x20	-0.000029	0.000017	144.123304
+blocks.16.cross_attn_output_proj	lora_unet_blocks_16_cross_attn_output_proj.lora_down.weight	blocks.16	20x2048	-0.000103	0.000189	133.742812
+blocks.16.cross_attn_output_proj	lora_unet_blocks_16_cross_attn_output_proj.lora_up.weight	blocks.16	2048x20	-0.000009	0.000022	522.404807
+blocks.16.cross_attn_q_proj	lora_unet_blocks_16_cross_attn_q_proj.lora_down.weight	blocks.16	20x2048	0.000015	0.000176	901.636912
+blocks.16.cross_attn_q_proj	lora_unet_blocks_16_cross_attn_q_proj.lora_up.weight	blocks.16	2048x20	-0.000009	0.000019	474.836205
+blocks.16.cross_attn_v_proj	lora_unet_blocks_16_cross_attn_v_proj.lora_down.weight	blocks.16	20x1024	-0.000109	0.000370	176.254121
+blocks.16.cross_attn_v_proj	lora_unet_blocks_16_cross_attn_v_proj.lora_up.weight	blocks.16	2048x20	-0.000006	0.000019	724.467663
+blocks.16.mlp_layer1	lora_unet_blocks_16_mlp_layer1.lora_down.weight	blocks.16	20x2048	0.000053	0.000194	260.872861
+blocks.16.mlp_layer1	lora_unet_blocks_16_mlp_layer1.lora_up.weight	blocks.16	8192x20	-0.000020	0.000020	219.529892
+blocks.16.mlp_layer2	lora_unet_blocks_16_mlp_layer2.lora_down.weight	blocks.16	20x8192	0.000092	0.000052	78.377642
+blocks.16.mlp_layer2	lora_unet_blocks_16_mlp_layer2.lora_up.weight	blocks.16	2048x20	-0.000001	0.000014	5924.767746
+blocks.16.self_attn_k_proj	lora_unet_blocks_16_self_attn_k_proj.lora_down.weight	blocks.16	20x2048	-0.000012	0.000176	1076.785637
+blocks.16.self_attn_k_proj	lora_unet_blocks_16_self_attn_k_proj.lora_up.weight	blocks.16	2048x20	-0.000019	0.000019	222.539021
+blocks.16.self_attn_output_proj	lora_unet_blocks_16_self_attn_output_proj.lora_down.weight	blocks.16	20x2048	0.000034	0.000185	398.441229
+blocks.16.self_attn_output_proj	lora_unet_blocks_16_self_attn_output_proj.lora_up.weight	blocks.16	2048x20	-0.000016	0.000019	268.100555
+blocks.16.self_attn_q_proj	lora_unet_blocks_16_self_attn_q_proj.lora_down.weight	blocks.16	20x2048	-0.000075	0.000178	178.869025
+blocks.16.self_attn_q_proj	lora_unet_blocks_16_self_attn_q_proj.lora_up.weight	blocks.16	2048x20	-0.000001	0.000019	3019.591842
+blocks.16.self_attn_v_proj	lora_unet_blocks_16_self_attn_v_proj.lora_down.weight	blocks.16	20x2048	-0.000090	0.000177	146.985696
+blocks.16.self_attn_v_proj	lora_unet_blocks_16_self_attn_v_proj.lora_up.weight	blocks.16	2048x20	-0.000023	0.000016	174.349220
+blocks.17.cross_attn_k_proj	lora_unet_blocks_17_cross_attn_k_proj.lora_down.weight	blocks.17	20x1024	0.000058	0.000331	315.500317
+blocks.17.cross_attn_k_proj	lora_unet_blocks_17_cross_attn_k_proj.lora_up.weight	blocks.17	2048x20	-0.000015	0.000016	276.142956
+blocks.17.cross_attn_output_proj	lora_unet_blocks_17_cross_attn_output_proj.lora_down.weight	blocks.17	20x2048	0.000124	0.000194	112.773640
+blocks.17.cross_attn_output_proj	lora_unet_blocks_17_cross_attn_output_proj.lora_up.weight	blocks.17	2048x20	0.000000	0.000022	9441.753464
+blocks.17.cross_attn_q_proj	lora_unet_blocks_17_cross_attn_q_proj.lora_down.weight	blocks.17	20x2048	-0.000072	0.000177	184.945994
+blocks.17.cross_attn_q_proj	lora_unet_blocks_17_cross_attn_q_proj.lora_up.weight	blocks.17	2048x20	0.000023	0.000020	192.324268
+blocks.17.cross_attn_v_proj	lora_unet_blocks_17_cross_attn_v_proj.lora_down.weight	blocks.17	20x1024	0.000099	0.000379	196.374569
+blocks.17.cross_attn_v_proj	lora_unet_blocks_17_cross_attn_v_proj.lora_up.weight	blocks.17	2048x20	-0.000001	0.000020	3333.270728
+blocks.17.mlp_layer1	lora_unet_blocks_17_mlp_layer1.lora_down.weight	blocks.17	20x2048	0.000009	0.000195	1603.265998
+blocks.17.mlp_layer1	lora_unet_blocks_17_mlp_layer1.lora_up.weight	blocks.17	8192x20	-0.000028	0.000021	160.722101
+blocks.17.mlp_layer2	lora_unet_blocks_17_mlp_layer2.lora_down.weight	blocks.17	20x8192	-0.000077	0.000052	93.391783
+blocks.17.mlp_layer2	lora_unet_blocks_17_mlp_layer2.lora_up.weight	blocks.17	2048x20	-0.000023	0.000014	165.743583
+blocks.17.self_attn_k_proj	lora_unet_blocks_17_self_attn_k_proj.lora_down.weight	blocks.17	20x2048	0.000017	0.000183	804.138816
+blocks.17.self_attn_k_proj	lora_unet_blocks_17_self_attn_k_proj.lora_up.weight	blocks.17	2048x20	-0.000047	0.000021	98.113305
+blocks.17.self_attn_output_proj	lora_unet_blocks_17_self_attn_output_proj.lora_down.weight	blocks.17	20x2048	0.000035	0.000188	389.821127
+blocks.17.self_attn_output_proj	lora_unet_blocks_17_self_attn_output_proj.lora_up.weight	blocks.17	2048x20	-0.000013	0.000021	350.708159
+blocks.17.self_attn_q_proj	lora_unet_blocks_17_self_attn_q_proj.lora_down.weight	blocks.17	20x2048	-0.000063	0.000184	216.648176
+blocks.17.self_attn_q_proj	lora_unet_blocks_17_self_attn_q_proj.lora_up.weight	blocks.17	2048x20	-0.000028	0.000023	170.979786
+blocks.17.self_attn_v_proj	lora_unet_blocks_17_self_attn_v_proj.lora_down.weight	blocks.17	20x2048	0.000045	0.000182	297.181729
+blocks.17.self_attn_v_proj	lora_unet_blocks_17_self_attn_v_proj.lora_up.weight	blocks.17	2048x20	-0.000007	0.000018	575.805148
+blocks.18.cross_attn_k_proj	lora_unet_blocks_18_cross_attn_k_proj.lora_down.weight	blocks.18	20x1024	0.000134	0.000318	133.460488
+blocks.18.cross_attn_k_proj	lora_unet_blocks_18_cross_attn_k_proj.lora_up.weight	blocks.18	2048x20	-0.000015	0.000014	246.181473
+blocks.18.cross_attn_output_proj	lora_unet_blocks_18_cross_attn_output_proj.lora_down.weight	blocks.18	20x2048	0.000054	0.000164	238.443861
+blocks.18.cross_attn_output_proj	lora_unet_blocks_18_cross_attn_output_proj.lora_up.weight	blocks.18	2048x20	-0.000015	0.000010	207.391509
+blocks.18.cross_attn_q_proj	lora_unet_blocks_18_cross_attn_q_proj.lora_down.weight	blocks.18	20x2048	-0.000025	0.000180	535.171488
+blocks.18.cross_attn_q_proj	lora_unet_blocks_18_cross_attn_q_proj.lora_up.weight	blocks.18	2048x20	-0.000008	0.000022	610.962171
+blocks.18.cross_attn_v_proj	lora_unet_blocks_18_cross_attn_v_proj.lora_down.weight	blocks.18	20x1024	-0.000152	0.000329	119.134173
+blocks.18.cross_attn_v_proj	lora_unet_blocks_18_cross_attn_v_proj.lora_up.weight	blocks.18	2048x20	-0.000015	0.000014	246.073537
+blocks.18.mlp_layer1	lora_unet_blocks_18_mlp_layer1.lora_down.weight	blocks.18	20x2048	0.000081	0.000192	172.100199
+blocks.18.mlp_layer1	lora_unet_blocks_18_mlp_layer1.lora_up.weight	blocks.18	8192x20	-0.000010	0.000021	439.816774
+blocks.18.mlp_layer2	lora_unet_blocks_18_mlp_layer2.lora_down.weight	blocks.18	20x8192	-0.000128	0.000050	55.002560
+blocks.18.mlp_layer2	lora_unet_blocks_18_mlp_layer2.lora_up.weight	blocks.18	2048x20	-0.000018	0.000013	200.709086
+blocks.18.self_attn_k_proj	lora_unet_blocks_18_self_attn_k_proj.lora_down.weight	blocks.18	20x2048	-0.000083	0.000181	161.588219
+blocks.18.self_attn_k_proj	lora_unet_blocks_18_self_attn_k_proj.lora_up.weight	blocks.18	2048x20	-0.000036	0.000021	126.474701
+blocks.18.self_attn_output_proj	lora_unet_blocks_18_self_attn_output_proj.lora_down.weight	blocks.18	20x2048	-0.000096	0.000182	140.655797
+blocks.18.self_attn_output_proj	lora_unet_blocks_18_self_attn_output_proj.lora_up.weight	blocks.18	2048x20	-0.000013	0.000020	345.761173
+blocks.18.self_attn_q_proj	lora_unet_blocks_18_self_attn_q_proj.lora_down.weight	blocks.18	20x2048	0.000034	0.000183	403.033997
+blocks.18.self_attn_q_proj	lora_unet_blocks_18_self_attn_q_proj.lora_up.weight	blocks.18	2048x20	-0.000007	0.000022	715.641625
+blocks.18.self_attn_v_proj	lora_unet_blocks_18_self_attn_v_proj.lora_down.weight	blocks.18	20x2048	-0.000142	0.000175	92.869254
+blocks.18.self_attn_v_proj	lora_unet_blocks_18_self_attn_v_proj.lora_up.weight	blocks.18	2048x20	0.000012	0.000017	341.594016
+blocks.19.cross_attn_k_proj	lora_unet_blocks_19_cross_attn_k_proj.lora_down.weight	blocks.19	20x1024	-0.000041	0.000323	440.464509
+blocks.19.cross_attn_k_proj	lora_unet_blocks_19_cross_attn_k_proj.lora_up.weight	blocks.19	2048x20	0.000001	0.000013	5195.251512
+blocks.19.cross_attn_output_proj	lora_unet_blocks_19_cross_attn_output_proj.lora_down.weight	blocks.19	20x2048	-0.000085	0.000166	151.574165
+blocks.19.cross_attn_output_proj	lora_unet_blocks_19_cross_attn_output_proj.lora_up.weight	blocks.19	2048x20	-0.000007	0.000010	475.046597
+blocks.19.cross_attn_q_proj	lora_unet_blocks_19_cross_attn_q_proj.lora_down.weight	blocks.19	20x2048	0.000037	0.000177	358.921523
+blocks.19.cross_attn_q_proj	lora_unet_blocks_19_cross_attn_q_proj.lora_up.weight	blocks.19	2048x20	0.000004	0.000023	1143.516387
+blocks.19.cross_attn_v_proj	lora_unet_blocks_19_cross_attn_v_proj.lora_down.weight	blocks.19	20x1024	0.000097	0.000323	184.435244
+blocks.19.cross_attn_v_proj	lora_unet_blocks_19_cross_attn_v_proj.lora_up.weight	blocks.19	2048x20	0.000017	0.000012	207.348647
+blocks.19.mlp_layer1	lora_unet_blocks_19_mlp_layer1.lora_down.weight	blocks.19	20x2048	-0.000053	0.000193	263.720500
+blocks.19.mlp_layer1	lora_unet_blocks_19_mlp_layer1.lora_up.weight	blocks.19	8192x20	-0.000006	0.000022	722.527691
+blocks.19.mlp_layer2	lora_unet_blocks_19_mlp_layer2.lora_down.weight	blocks.19	20x8192	-0.000048	0.000049	146.068629
+blocks.19.mlp_layer2	lora_unet_blocks_19_mlp_layer2.lora_up.weight	blocks.19	2048x20	-0.000011	0.000013	322.010134
+blocks.19.self_attn_k_proj	lora_unet_blocks_19_self_attn_k_proj.lora_down.weight	blocks.19	20x2048	0.000028	0.000188	482.061209
+blocks.19.self_attn_k_proj	lora_unet_blocks_19_self_attn_k_proj.lora_up.weight	blocks.19	2048x20	-0.000024	0.000022	194.528305
+blocks.19.self_attn_output_proj	lora_unet_blocks_19_self_attn_output_proj.lora_down.weight	blocks.19	20x2048	0.000021	0.000186	657.974531
+blocks.19.self_attn_output_proj	lora_unet_blocks_19_self_attn_output_proj.lora_up.weight	blocks.19	2048x20	0.000013	0.000020	347.197249
+blocks.19.self_attn_q_proj	lora_unet_blocks_19_self_attn_q_proj.lora_down.weight	blocks.19	20x2048	0.000105	0.000184	128.659573
+blocks.19.self_attn_q_proj	lora_unet_blocks_19_self_attn_q_proj.lora_up.weight	blocks.19	2048x20	-0.000032	0.000022	147.433261
+blocks.19.self_attn_v_proj	lora_unet_blocks_19_self_attn_v_proj.lora_down.weight	blocks.19	20x2048	-0.000058	0.000176	226.930790
+blocks.19.self_attn_v_proj	lora_unet_blocks_19_self_attn_v_proj.lora_up.weight	blocks.19	2048x20	0.000008	0.000017	513.336397
+blocks.1.cross_attn_k_proj	lora_unet_blocks_1_cross_attn_k_proj.lora_down.weight	blocks.1	20x1024	-0.000034	0.000326	531.662942
+blocks.1.cross_attn_k_proj	lora_unet_blocks_1_cross_attn_k_proj.lora_up.weight	blocks.1	2048x20	0.000003	0.000012	1177.288373
+blocks.1.cross_attn_output_proj	lora_unet_blocks_1_cross_attn_output_proj.lora_down.weight	blocks.1	20x2048	0.000022	0.000164	583.991134
+blocks.1.cross_attn_output_proj	lora_unet_blocks_1_cross_attn_output_proj.lora_up.weight	blocks.1	2048x20	-0.000009	0.000012	369.757017
+blocks.1.cross_attn_q_proj	lora_unet_blocks_1_cross_attn_q_proj.lora_down.weight	blocks.1	20x2048	0.000076	0.000167	169.342381
+blocks.1.cross_attn_q_proj	lora_unet_blocks_1_cross_attn_q_proj.lora_up.weight	blocks.1	2048x20	-0.000021	0.000012	164.895605
+blocks.1.cross_attn_v_proj	lora_unet_blocks_1_cross_attn_v_proj.lora_down.weight	blocks.1	20x1024	0.000148	0.000319	120.264061
+blocks.1.cross_attn_v_proj	lora_unet_blocks_1_cross_attn_v_proj.lora_up.weight	blocks.1	2048x20	-0.000007	0.000011	484.014141
+blocks.1.mlp_layer1	lora_unet_blocks_1_mlp_layer1.lora_down.weight	blocks.1	20x2048	-0.000051	0.000161	248.493630
+blocks.1.mlp_layer1	lora_unet_blocks_1_mlp_layer1.lora_up.weight	blocks.1	8192x20	0.000052	0.000006	46.761270
+blocks.1.mlp_layer2	lora_unet_blocks_1_mlp_layer2.lora_down.weight	blocks.1	20x8192	0.000060	0.000055	124.245014
+blocks.1.mlp_layer2	lora_unet_blocks_1_mlp_layer2.lora_up.weight	blocks.1	2048x20	0.000014	0.000020	311.894237
+blocks.1.self_attn_k_proj	lora_unet_blocks_1_self_attn_k_proj.lora_down.weight	blocks.1	20x2048	0.000018	0.000168	731.192603
+blocks.1.self_attn_k_proj	lora_unet_blocks_1_self_attn_k_proj.lora_up.weight	blocks.1	2048x20	-0.000009	0.000015	431.320749
+blocks.1.self_attn_output_proj	lora_unet_blocks_1_self_attn_output_proj.lora_down.weight	blocks.1	20x2048	0.000004	0.000163	3452.996733
+blocks.1.self_attn_output_proj	lora_unet_blocks_1_self_attn_output_proj.lora_up.weight	blocks.1	2048x20	0.000003	0.000012	1077.979175
+blocks.1.self_attn_q_proj	lora_unet_blocks_1_self_attn_q_proj.lora_down.weight	blocks.1	20x2048	0.000009	0.000167	1365.121908
+blocks.1.self_attn_q_proj	lora_unet_blocks_1_self_attn_q_proj.lora_up.weight	blocks.1	2048x20	-0.000021	0.000015	183.800536
+blocks.1.self_attn_v_proj	lora_unet_blocks_1_self_attn_v_proj.lora_down.weight	blocks.1	20x2048	-0.000144	0.000161	88.038319
+blocks.1.self_attn_v_proj	lora_unet_blocks_1_self_attn_v_proj.lora_up.weight	blocks.1	2048x20	-0.000011	0.000011	298.169904
+blocks.20.cross_attn_k_proj	lora_unet_blocks_20_cross_attn_k_proj.lora_down.weight	blocks.20	20x1024	-0.000099	0.000316	179.567568
+blocks.20.cross_attn_k_proj	lora_unet_blocks_20_cross_attn_k_proj.lora_up.weight	blocks.20	2048x20	0.000006	0.000014	616.243565
+blocks.20.cross_attn_output_proj	lora_unet_blocks_20_cross_attn_output_proj.lora_down.weight	blocks.20	20x2048	0.000003	0.000162	3829.001883
+blocks.20.cross_attn_output_proj	lora_unet_blocks_20_cross_attn_output_proj.lora_up.weight	blocks.20	2048x20	-0.000001	0.000009	2432.634461
+blocks.20.cross_attn_q_proj	lora_unet_blocks_20_cross_attn_q_proj.lora_down.weight	blocks.20	20x2048	-0.000012	0.000176	1078.512360
+blocks.20.cross_attn_q_proj	lora_unet_blocks_20_cross_attn_q_proj.lora_up.weight	blocks.20	2048x20	0.000015	0.000020	293.816356
+blocks.20.cross_attn_v_proj	lora_unet_blocks_20_cross_attn_v_proj.lora_down.weight	blocks.20	20x1024	-0.000130	0.000321	137.339260
+blocks.20.cross_attn_v_proj	lora_unet_blocks_20_cross_attn_v_proj.lora_up.weight	blocks.20	2048x20	-0.000000	0.000009	13232.755712
+blocks.20.mlp_layer1	lora_unet_blocks_20_mlp_layer1.lora_down.weight	blocks.20	20x2048	-0.000039	0.000188	353.854594
+blocks.20.mlp_layer1	lora_unet_blocks_20_mlp_layer1.lora_up.weight	blocks.20	8192x20	-0.000011	0.000021	422.926370
+blocks.20.mlp_layer2	lora_unet_blocks_20_mlp_layer2.lora_down.weight	blocks.20	20x8192	-0.000012	0.000047	575.389283
+blocks.20.mlp_layer2	lora_unet_blocks_20_mlp_layer2.lora_up.weight	blocks.20	2048x20	-0.000015	0.000012	234.711876
+blocks.20.self_attn_k_proj	lora_unet_blocks_20_self_attn_k_proj.lora_down.weight	blocks.20	20x2048	0.000013	0.000184	1045.925380
+blocks.20.self_attn_k_proj	lora_unet_blocks_20_self_attn_k_proj.lora_up.weight	blocks.20	2048x20	0.000001	0.000021	3483.977531
+blocks.20.self_attn_output_proj	lora_unet_blocks_20_self_attn_output_proj.lora_down.weight	blocks.20	20x2048	-0.000117	0.000182	115.273810
+blocks.20.self_attn_output_proj	lora_unet_blocks_20_self_attn_output_proj.lora_up.weight	blocks.20	2048x20	-0.000000	0.000019	11633.886670
+blocks.20.self_attn_q_proj	lora_unet_blocks_20_self_attn_q_proj.lora_down.weight	blocks.20	20x2048	0.000067	0.000183	200.760079
+blocks.20.self_attn_q_proj	lora_unet_blocks_20_self_attn_q_proj.lora_up.weight	blocks.20	2048x20	-0.000032	0.000022	147.570693
+blocks.20.self_attn_v_proj	lora_unet_blocks_20_self_attn_v_proj.lora_down.weight	blocks.20	20x2048	-0.000024	0.000176	556.356735
+blocks.20.self_attn_v_proj	lora_unet_blocks_20_self_attn_v_proj.lora_up.weight	blocks.20	2048x20	0.000001	0.000017	3456.066200
+blocks.21.cross_attn_k_proj	lora_unet_blocks_21_cross_attn_k_proj.lora_down.weight	blocks.21	20x1024	-0.000052	0.000321	347.151116
+blocks.21.cross_attn_k_proj	lora_unet_blocks_21_cross_attn_k_proj.lora_up.weight	blocks.21	2048x20	0.000017	0.000014	220.592839
+blocks.21.cross_attn_output_proj	lora_unet_blocks_21_cross_attn_output_proj.lora_down.weight	blocks.21	20x2048	0.000048	0.000156	260.935784
+blocks.21.cross_attn_output_proj	lora_unet_blocks_21_cross_attn_output_proj.lora_up.weight	blocks.21	2048x20	0.000000	0.000008	9130.856742
+blocks.21.cross_attn_q_proj	lora_unet_blocks_21_cross_attn_q_proj.lora_down.weight	blocks.21	20x2048	-0.000018	0.000175	722.492235
+blocks.21.cross_attn_q_proj	lora_unet_blocks_21_cross_attn_q_proj.lora_up.weight	blocks.21	2048x20	0.000029	0.000020	154.743209
+blocks.21.cross_attn_v_proj	lora_unet_blocks_21_cross_attn_v_proj.lora_down.weight	blocks.21	20x1024	0.000097	0.000317	184.415833
+blocks.21.cross_attn_v_proj	lora_unet_blocks_21_cross_attn_v_proj.lora_up.weight	blocks.21	2048x20	-0.000018	0.000006	137.385390
+blocks.21.mlp_layer1	lora_unet_blocks_21_mlp_layer1.lora_down.weight	blocks.21	20x2048	-0.000027	0.000187	513.004905
+blocks.21.mlp_layer1	lora_unet_blocks_21_mlp_layer1.lora_up.weight	blocks.21	8192x20	-0.000019	0.000021	236.366432
+blocks.21.mlp_layer2	lora_unet_blocks_21_mlp_layer2.lora_down.weight	blocks.21	20x8192	0.000139	0.000048	49.666930
+blocks.21.mlp_layer2	lora_unet_blocks_21_mlp_layer2.lora_up.weight	blocks.21	2048x20	-0.000016	0.000012	206.625568
+blocks.21.self_attn_k_proj	lora_unet_blocks_21_self_attn_k_proj.lora_down.weight	blocks.21	20x2048	-0.000066	0.000178	202.383644
+blocks.21.self_attn_k_proj	lora_unet_blocks_21_self_attn_k_proj.lora_up.weight	blocks.21	2048x20	-0.000032	0.000020	139.895918
+blocks.21.self_attn_output_proj	lora_unet_blocks_21_self_attn_output_proj.lora_down.weight	blocks.21	20x2048	0.000015	0.000180	895.941629
+blocks.21.self_attn_output_proj	lora_unet_blocks_21_self_attn_output_proj.lora_up.weight	blocks.21	2048x20	-0.000035	0.000019	125.378592
+blocks.21.self_attn_q_proj	lora_unet_blocks_21_self_attn_q_proj.lora_down.weight	blocks.21	20x2048	-0.000050	0.000179	267.626572
+blocks.21.self_attn_q_proj	lora_unet_blocks_21_self_attn_q_proj.lora_up.weight	blocks.21	2048x20	-0.000007	0.000022	660.377339
+blocks.21.self_attn_v_proj	lora_unet_blocks_21_self_attn_v_proj.lora_down.weight	blocks.21	20x2048	0.000117	0.000176	113.634787
+blocks.21.self_attn_v_proj	lora_unet_blocks_21_self_attn_v_proj.lora_up.weight	blocks.21	2048x20	-0.000024	0.000016	165.668811
+blocks.22.cross_attn_k_proj	lora_unet_blocks_22_cross_attn_k_proj.lora_down.weight	blocks.22	20x1024	-0.000188	0.000317	94.623993
+blocks.22.cross_attn_k_proj	lora_unet_blocks_22_cross_attn_k_proj.lora_up.weight	blocks.22	2048x20	0.000006	0.000011	593.278465
+blocks.22.cross_attn_output_proj	lora_unet_blocks_22_cross_attn_output_proj.lora_down.weight	blocks.22	20x2048	0.000018	0.000158	712.172799
+blocks.22.cross_attn_output_proj	lora_unet_blocks_22_cross_attn_output_proj.lora_up.weight	blocks.22	2048x20	-0.000009	0.000009	343.928023
+blocks.22.cross_attn_q_proj	lora_unet_blocks_22_cross_attn_q_proj.lora_down.weight	blocks.22	20x2048	-0.000024	0.000176	554.962671
+blocks.22.cross_attn_q_proj	lora_unet_blocks_22_cross_attn_q_proj.lora_up.weight	blocks.22	2048x20	-0.000018	0.000022	255.465366
+blocks.22.cross_attn_v_proj	lora_unet_blocks_22_cross_attn_v_proj.lora_down.weight	blocks.22	20x1024	0.000106	0.000314	166.539340
+blocks.22.cross_attn_v_proj	lora_unet_blocks_22_cross_attn_v_proj.lora_up.weight	blocks.22	2048x20	-0.000009	0.000006	277.733750
+blocks.22.mlp_layer1	lora_unet_blocks_22_mlp_layer1.lora_down.weight	blocks.22	20x2048	0.000041	0.000193	336.755252
+blocks.22.mlp_layer1	lora_unet_blocks_22_mlp_layer1.lora_up.weight	blocks.22	8192x20	-0.000012	0.000022	386.726177
+blocks.22.mlp_layer2	lora_unet_blocks_22_mlp_layer2.lora_down.weight	blocks.22	20x8192	-0.000012	0.000047	557.351327
+blocks.22.mlp_layer2	lora_unet_blocks_22_mlp_layer2.lora_up.weight	blocks.22	2048x20	-0.000011	0.000010	292.227083
+blocks.22.self_attn_k_proj	lora_unet_blocks_22_self_attn_k_proj.lora_down.weight	blocks.22	20x2048	0.000194	0.000186	70.285798
+blocks.22.self_attn_k_proj	lora_unet_blocks_22_self_attn_k_proj.lora_up.weight	blocks.22	2048x20	-0.000010	0.000022	453.115109
+blocks.22.self_attn_output_proj	lora_unet_blocks_22_self_attn_output_proj.lora_down.weight	blocks.22	20x2048	-0.000006	0.000181	2183.151695
+blocks.22.self_attn_output_proj	lora_unet_blocks_22_self_attn_output_proj.lora_up.weight	blocks.22	2048x20	0.000016	0.000020	286.866088
+blocks.22.self_attn_q_proj	lora_unet_blocks_22_self_attn_q_proj.lora_down.weight	blocks.22	20x2048	-0.000021	0.000186	646.157291
+blocks.22.self_attn_q_proj	lora_unet_blocks_22_self_attn_q_proj.lora_up.weight	blocks.22	2048x20	0.000004	0.000023	1332.304381
+blocks.22.self_attn_v_proj	lora_unet_blocks_22_self_attn_v_proj.lora_down.weight	blocks.22	20x2048	-0.000011	0.000173	1164.991564
+blocks.22.self_attn_v_proj	lora_unet_blocks_22_self_attn_v_proj.lora_up.weight	blocks.22	2048x20	-0.000032	0.000016	126.373039
+blocks.23.cross_attn_k_proj	lora_unet_blocks_23_cross_attn_k_proj.lora_down.weight	blocks.23	20x1024	-0.000078	0.000327	231.870745
+blocks.23.cross_attn_k_proj	lora_unet_blocks_23_cross_attn_k_proj.lora_up.weight	blocks.23	2048x20	-0.000027	0.000017	154.154961
+blocks.23.cross_attn_output_proj	lora_unet_blocks_23_cross_attn_output_proj.lora_down.weight	blocks.23	20x2048	0.000012	0.000159	1012.043117
+blocks.23.cross_attn_output_proj	lora_unet_blocks_23_cross_attn_output_proj.lora_up.weight	blocks.23	2048x20	-0.000027	0.000008	105.968161
+blocks.23.cross_attn_q_proj	lora_unet_blocks_23_cross_attn_q_proj.lora_down.weight	blocks.23	20x2048	-0.000076	0.000178	175.661408
+blocks.23.cross_attn_q_proj	lora_unet_blocks_23_cross_attn_q_proj.lora_up.weight	blocks.23	2048x20	0.000013	0.000021	346.077382
+blocks.23.cross_attn_v_proj	lora_unet_blocks_23_cross_attn_v_proj.lora_down.weight	blocks.23	20x1024	0.000213	0.000328	84.946037
+blocks.23.cross_attn_v_proj	lora_unet_blocks_23_cross_attn_v_proj.lora_up.weight	blocks.23	2048x20	-0.000002	0.000009	1595.190330
+blocks.23.mlp_layer1	lora_unet_blocks_23_mlp_layer1.lora_down.weight	blocks.23	20x2048	0.000043	0.000206	331.115990
+blocks.23.mlp_layer1	lora_unet_blocks_23_mlp_layer1.lora_up.weight	blocks.23	8192x20	-0.000016	0.000024	310.138275
+blocks.23.mlp_layer2	lora_unet_blocks_23_mlp_layer2.lora_down.weight	blocks.23	20x8192	0.000020	0.000048	349.851247
+blocks.23.mlp_layer2	lora_unet_blocks_23_mlp_layer2.lora_up.weight	blocks.23	2048x20	0.000035	0.000012	98.357823
+blocks.23.self_attn_k_proj	lora_unet_blocks_23_self_attn_k_proj.lora_down.weight	blocks.23	20x2048	0.000036	0.000181	371.575812
+blocks.23.self_attn_k_proj	lora_unet_blocks_23_self_attn_k_proj.lora_up.weight	blocks.23	2048x20	-0.000017	0.000022	272.846102
+blocks.23.self_attn_output_proj	lora_unet_blocks_23_self_attn_output_proj.lora_down.weight	blocks.23	20x2048	0.000016	0.000182	837.199830
+blocks.23.self_attn_output_proj	lora_unet_blocks_23_self_attn_output_proj.lora_up.weight	blocks.23	2048x20	0.000012	0.000020	379.441236
+blocks.23.self_attn_q_proj	lora_unet_blocks_23_self_attn_q_proj.lora_down.weight	blocks.23	20x2048	-0.000013	0.000189	1070.749895
+blocks.23.self_attn_q_proj	lora_unet_blocks_23_self_attn_q_proj.lora_up.weight	blocks.23	2048x20	-0.000035	0.000025	140.702276
+blocks.23.self_attn_v_proj	lora_unet_blocks_23_self_attn_v_proj.lora_down.weight	blocks.23	20x2048	0.000016	0.000178	834.678289
+blocks.23.self_attn_v_proj	lora_unet_blocks_23_self_attn_v_proj.lora_up.weight	blocks.23	2048x20	0.000000	0.000019	58219.701264
+blocks.24.cross_attn_k_proj	lora_unet_blocks_24_cross_attn_k_proj.lora_down.weight	blocks.24	20x1024	0.000069	0.000313	256.598792
+blocks.24.cross_attn_k_proj	lora_unet_blocks_24_cross_attn_k_proj.lora_up.weight	blocks.24	2048x20	-0.000017	0.000010	185.974171
+blocks.24.cross_attn_output_proj	lora_unet_blocks_24_cross_attn_output_proj.lora_down.weight	blocks.24	20x2048	0.000010	0.000159	1286.120823
+blocks.24.cross_attn_output_proj	lora_unet_blocks_24_cross_attn_output_proj.lora_up.weight	blocks.24	2048x20	0.000001	0.000007	4792.790066
+blocks.24.cross_attn_q_proj	lora_unet_blocks_24_cross_attn_q_proj.lora_down.weight	blocks.24	20x2048	-0.000038	0.000173	347.932859
+blocks.24.cross_attn_q_proj	lora_unet_blocks_24_cross_attn_q_proj.lora_up.weight	blocks.24	2048x20	-0.000053	0.000022	88.765876
+blocks.24.cross_attn_v_proj	lora_unet_blocks_24_cross_attn_v_proj.lora_down.weight	blocks.24	20x1024	-0.000001	0.000315	31057.479417
+blocks.24.cross_attn_v_proj	lora_unet_blocks_24_cross_attn_v_proj.lora_up.weight	blocks.24	2048x20	-0.000007	0.000006	365.569837
+blocks.24.mlp_layer1	lora_unet_blocks_24_mlp_layer1.lora_down.weight	blocks.24	20x2048	0.000005	0.000213	3234.538210
+blocks.24.mlp_layer1	lora_unet_blocks_24_mlp_layer1.lora_up.weight	blocks.24	8192x20	-0.000001	0.000028	6579.242075
+blocks.24.mlp_layer2	lora_unet_blocks_24_mlp_layer2.lora_down.weight	blocks.24	20x8192	0.000041	0.000049	171.259691
+blocks.24.mlp_layer2	lora_unet_blocks_24_mlp_layer2.lora_up.weight	blocks.24	2048x20	-0.000033	0.000013	112.872774
+blocks.24.self_attn_k_proj	lora_unet_blocks_24_self_attn_k_proj.lora_down.weight	blocks.24	20x2048	-0.000003	0.000190	5489.490642
+blocks.24.self_attn_k_proj	lora_unet_blocks_24_self_attn_k_proj.lora_up.weight	blocks.24	2048x20	-0.000008	0.000024	626.665731
+blocks.24.self_attn_output_proj	lora_unet_blocks_24_self_attn_output_proj.lora_down.weight	blocks.24	20x2048	0.000046	0.000177	288.713533
+blocks.24.self_attn_output_proj	lora_unet_blocks_24_self_attn_output_proj.lora_up.weight	blocks.24	2048x20	0.000042	0.000018	103.141746
+blocks.24.self_attn_q_proj	lora_unet_blocks_24_self_attn_q_proj.lora_down.weight	blocks.24	20x2048	0.000022	0.000179	622.056176
+blocks.24.self_attn_q_proj	lora_unet_blocks_24_self_attn_q_proj.lora_up.weight	blocks.24	2048x20	-0.000007	0.000023	700.261198
+blocks.24.self_attn_v_proj	lora_unet_blocks_24_self_attn_v_proj.lora_down.weight	blocks.24	20x2048	0.000027	0.000172	477.010602
+blocks.24.self_attn_v_proj	lora_unet_blocks_24_self_attn_v_proj.lora_up.weight	blocks.24	2048x20	-0.000038	0.000015	101.226040
+blocks.25.cross_attn_k_proj	lora_unet_blocks_25_cross_attn_k_proj.lora_down.weight	blocks.25	20x1024	0.000068	0.000318	262.182356
+blocks.25.cross_attn_k_proj	lora_unet_blocks_25_cross_attn_k_proj.lora_up.weight	blocks.25	2048x20	-0.000022	0.000013	168.255197
+blocks.25.cross_attn_output_proj	lora_unet_blocks_25_cross_attn_output_proj.lora_down.weight	blocks.25	20x2048	0.000008	0.000158	1491.842418
+blocks.25.cross_attn_output_proj	lora_unet_blocks_25_cross_attn_output_proj.lora_up.weight	blocks.25	2048x20	0.000023	0.000010	131.792457
+blocks.25.cross_attn_q_proj	lora_unet_blocks_25_cross_attn_q_proj.lora_down.weight	blocks.25	20x2048	0.000022	0.000181	614.081621
+blocks.25.cross_attn_q_proj	lora_unet_blocks_25_cross_attn_q_proj.lora_up.weight	blocks.25	2048x20	-0.000002	0.000024	2912.445383
+blocks.25.cross_attn_v_proj	lora_unet_blocks_25_cross_attn_v_proj.lora_down.weight	blocks.25	20x1024	0.000138	0.000320	129.733315
+blocks.25.cross_attn_v_proj	lora_unet_blocks_25_cross_attn_v_proj.lora_up.weight	blocks.25	2048x20	-0.000007	0.000007	393.985820
+blocks.25.mlp_layer1	lora_unet_blocks_25_mlp_layer1.lora_down.weight	blocks.25	20x2048	0.000071	0.000229	212.499517
+blocks.25.mlp_layer1	lora_unet_blocks_25_mlp_layer1.lora_up.weight	blocks.25	8192x20	-0.000013	0.000030	406.551215
+blocks.25.mlp_layer2	lora_unet_blocks_25_mlp_layer2.lora_down.weight	blocks.25	20x8192	-0.000094	0.000054	78.371308
+blocks.25.mlp_layer2	lora_unet_blocks_25_mlp_layer2.lora_up.weight	blocks.25	2048x20	-0.000001	0.000015	2580.041092
+blocks.25.self_attn_k_proj	lora_unet_blocks_25_self_attn_k_proj.lora_down.weight	blocks.25	20x2048	-0.000056	0.000188	246.306695
+blocks.25.self_attn_k_proj	lora_unet_blocks_25_self_attn_k_proj.lora_up.weight	blocks.25	2048x20	0.000004	0.000025	1210.398835
+blocks.25.self_attn_output_proj	lora_unet_blocks_25_self_attn_output_proj.lora_down.weight	blocks.25	20x2048	0.000020	0.000189	671.720521
+blocks.25.self_attn_output_proj	lora_unet_blocks_25_self_attn_output_proj.lora_up.weight	blocks.25	2048x20	0.000021	0.000023	229.554118
+blocks.25.self_attn_q_proj	lora_unet_blocks_25_self_attn_q_proj.lora_down.weight	blocks.25	20x2048	0.000038	0.000193	362.946702
+blocks.25.self_attn_q_proj	lora_unet_blocks_25_self_attn_q_proj.lora_up.weight	blocks.25	2048x20	0.000011	0.000026	466.472172
+blocks.25.self_attn_v_proj	lora_unet_blocks_25_self_attn_v_proj.lora_down.weight	blocks.25	20x2048	-0.000011	0.000181	1181.418221
+blocks.25.self_attn_v_proj	lora_unet_blocks_25_self_attn_v_proj.lora_up.weight	blocks.25	2048x20	0.000005	0.000021	859.405109
+blocks.26.cross_attn_k_proj	lora_unet_blocks_26_cross_attn_k_proj.lora_down.weight	blocks.26	20x1024	-0.000200	0.000322	89.852097
+blocks.26.cross_attn_k_proj	lora_unet_blocks_26_cross_attn_k_proj.lora_up.weight	blocks.26	2048x20	-0.000016	0.000017	253.489003
+blocks.26.cross_attn_output_proj	lora_unet_blocks_26_cross_attn_output_proj.lora_down.weight	blocks.26	20x2048	0.000105	0.000158	119.705082
+blocks.26.cross_attn_output_proj	lora_unet_blocks_26_cross_attn_output_proj.lora_up.weight	blocks.26	2048x20	-0.000045	0.000009	64.559642
+blocks.26.cross_attn_q_proj	lora_unet_blocks_26_cross_attn_q_proj.lora_down.weight	blocks.26	20x2048	0.000009	0.000182	1461.321090
+blocks.26.cross_attn_q_proj	lora_unet_blocks_26_cross_attn_q_proj.lora_up.weight	blocks.26	2048x20	-0.000058	0.000030	94.584211
+blocks.26.cross_attn_v_proj	lora_unet_blocks_26_cross_attn_v_proj.lora_down.weight	blocks.26	20x1024	-0.000121	0.000321	148.161587
+blocks.26.cross_attn_v_proj	lora_unet_blocks_26_cross_attn_v_proj.lora_up.weight	blocks.26	2048x20	0.000011	0.000010	278.063130
+blocks.26.mlp_layer1	lora_unet_blocks_26_mlp_layer1.lora_down.weight	blocks.26	20x2048	-0.000047	0.000235	323.300552
+blocks.26.mlp_layer1	lora_unet_blocks_26_mlp_layer1.lora_up.weight	blocks.26	8192x20	-0.000032	0.000036	183.894728
+blocks.26.mlp_layer2	lora_unet_blocks_26_mlp_layer2.lora_down.weight	blocks.26	20x8192	-0.000055	0.000057	138.048805
+blocks.26.mlp_layer2	lora_unet_blocks_26_mlp_layer2.lora_up.weight	blocks.26	2048x20	0.000005	0.000018	930.265341
+blocks.26.self_attn_k_proj	lora_unet_blocks_26_self_attn_k_proj.lora_down.weight	blocks.26	20x2048	-0.000001	0.000214	18551.351714
+blocks.26.self_attn_k_proj	lora_unet_blocks_26_self_attn_k_proj.lora_up.weight	blocks.26	2048x20	-0.000007	0.000030	776.801030
+blocks.26.self_attn_output_proj	lora_unet_blocks_26_self_attn_output_proj.lora_down.weight	blocks.26	20x2048	-0.000078	0.000196	180.446340
+blocks.26.self_attn_output_proj	lora_unet_blocks_26_self_attn_output_proj.lora_up.weight	blocks.26	2048x20	-0.000050	0.000026	101.958412
+blocks.26.self_attn_q_proj	lora_unet_blocks_26_self_attn_q_proj.lora_down.weight	blocks.26	20x2048	-0.000070	0.000196	199.135953
+blocks.26.self_attn_q_proj	lora_unet_blocks_26_self_attn_q_proj.lora_up.weight	blocks.26	2048x20	-0.000027	0.000031	208.803574
+blocks.26.self_attn_v_proj	lora_unet_blocks_26_self_attn_v_proj.lora_down.weight	blocks.26	20x2048	0.000008	0.000187	1733.063594
+blocks.26.self_attn_v_proj	lora_unet_blocks_26_self_attn_v_proj.lora_up.weight	blocks.26	2048x20	-0.000047	0.000024	102.883804
+blocks.27.cross_attn_k_proj	lora_unet_blocks_27_cross_attn_k_proj.lora_down.weight	blocks.27	20x1024	-0.000108	0.000313	163.739883
+blocks.27.cross_attn_k_proj	lora_unet_blocks_27_cross_attn_k_proj.lora_up.weight	blocks.27	2048x20	-0.000042	0.000005	53.326675
+blocks.27.cross_attn_output_proj	lora_unet_blocks_27_cross_attn_output_proj.lora_down.weight	blocks.27	20x2048	-0.000163	0.000157	76.806534
+blocks.27.cross_attn_output_proj	lora_unet_blocks_27_cross_attn_output_proj.lora_up.weight	blocks.27	2048x20	-0.000004	0.000006	662.757105
+blocks.27.cross_attn_q_proj	lora_unet_blocks_27_cross_attn_q_proj.lora_down.weight	blocks.27	20x2048	-0.000061	0.000196	229.101375
+blocks.27.cross_attn_q_proj	lora_unet_blocks_27_cross_attn_q_proj.lora_up.weight	blocks.27	2048x20	-0.000058	0.000033	99.658747
+blocks.27.cross_attn_v_proj	lora_unet_blocks_27_cross_attn_v_proj.lora_down.weight	blocks.27	20x1024	0.000035	0.000313	510.122232
+blocks.27.cross_attn_v_proj	lora_unet_blocks_27_cross_attn_v_proj.lora_up.weight	blocks.27	2048x20	-0.000007	0.000001	118.645328
+blocks.27.mlp_layer1	lora_unet_blocks_27_mlp_layer1.lora_down.weight	blocks.27	20x2048	-0.000058	0.000201	243.717870
+blocks.27.mlp_layer1	lora_unet_blocks_27_mlp_layer1.lora_up.weight	blocks.27	8192x20	-0.000028	0.000028	187.355828
+blocks.27.mlp_layer2	lora_unet_blocks_27_mlp_layer2.lora_down.weight	blocks.27	20x8192	-0.000087	0.000045	77.671264
+blocks.27.mlp_layer2	lora_unet_blocks_27_mlp_layer2.lora_up.weight	blocks.27	2048x20	0.000018	0.000009	163.281279
+blocks.27.self_attn_k_proj	lora_unet_blocks_27_self_attn_k_proj.lora_down.weight	blocks.27	20x2048	0.000003	0.000197	4515.052410
+blocks.27.self_attn_k_proj	lora_unet_blocks_27_self_attn_k_proj.lora_up.weight	blocks.27	2048x20	-0.000001	0.000028	4211.421382
+blocks.27.self_attn_output_proj	lora_unet_blocks_27_self_attn_output_proj.lora_down.weight	blocks.27	20x2048	-0.000037	0.000183	366.343164
+blocks.27.self_attn_output_proj	lora_unet_blocks_27_self_attn_output_proj.lora_up.weight	blocks.27	2048x20	0.000021	0.000026	237.705056
+blocks.27.self_attn_q_proj	lora_unet_blocks_27_self_attn_q_proj.lora_down.weight	blocks.27	20x2048	-0.000088	0.000198	159.762934
+blocks.27.self_attn_q_proj	lora_unet_blocks_27_self_attn_q_proj.lora_up.weight	blocks.27	2048x20	-0.000000	0.000035	71207.884853
+blocks.27.self_attn_v_proj	lora_unet_blocks_27_self_attn_v_proj.lora_down.weight	blocks.27	20x2048	-0.000043	0.000183	311.494999
+blocks.27.self_attn_v_proj	lora_unet_blocks_27_self_attn_v_proj.lora_up.weight	blocks.27	2048x20	-0.000026	0.000022	182.793694
+blocks.2.cross_attn_k_proj	lora_unet_blocks_2_cross_attn_k_proj.lora_down.weight	blocks.2	20x1024	-0.000011	0.000331	1700.304326
+blocks.2.cross_attn_k_proj	lora_unet_blocks_2_cross_attn_k_proj.lora_up.weight	blocks.2	2048x20	0.000007	0.000014	530.641829
+blocks.2.cross_attn_output_proj	lora_unet_blocks_2_cross_attn_output_proj.lora_down.weight	blocks.2	20x2048	0.000012	0.000167	1079.689022
+blocks.2.cross_attn_output_proj	lora_unet_blocks_2_cross_attn_output_proj.lora_up.weight	blocks.2	2048x20	-0.000018	0.000014	213.385860
+blocks.2.cross_attn_q_proj	lora_unet_blocks_2_cross_attn_q_proj.lora_down.weight	blocks.2	20x2048	0.000378	0.000166	34.014455
+blocks.2.cross_attn_q_proj	lora_unet_blocks_2_cross_attn_q_proj.lora_up.weight	blocks.2	2048x20	-0.000020	0.000012	168.529187
+blocks.2.cross_attn_v_proj	lora_unet_blocks_2_cross_attn_v_proj.lora_down.weight	blocks.2	20x1024	-0.000025	0.000324	733.406575
+blocks.2.cross_attn_v_proj	lora_unet_blocks_2_cross_attn_v_proj.lora_up.weight	blocks.2	2048x20	-0.000038	0.000014	98.195051
+blocks.2.mlp_layer1	lora_unet_blocks_2_mlp_layer1.lora_down.weight	blocks.2	20x2048	-0.000224	0.000169	57.977624
+blocks.2.mlp_layer1	lora_unet_blocks_2_mlp_layer1.lora_up.weight	blocks.2	8192x20	-0.000021	0.000013	172.533910
+blocks.2.mlp_layer2	lora_unet_blocks_2_mlp_layer2.lora_down.weight	blocks.2	20x8192	0.000051	0.000051	139.987948
+blocks.2.mlp_layer2	lora_unet_blocks_2_mlp_layer2.lora_up.weight	blocks.2	2048x20	-0.000017	0.000014	217.036696
+blocks.2.self_attn_k_proj	lora_unet_blocks_2_self_attn_k_proj.lora_down.weight	blocks.2	20x2048	-0.000406	0.000164	31.514332
+blocks.2.self_attn_k_proj	lora_unet_blocks_2_self_attn_k_proj.lora_up.weight	blocks.2	2048x20	0.000005	0.000013	659.128859
+blocks.2.self_attn_output_proj	lora_unet_blocks_2_self_attn_output_proj.lora_down.weight	blocks.2	20x2048	-0.000064	0.000166	200.533156
+blocks.2.self_attn_output_proj	lora_unet_blocks_2_self_attn_output_proj.lora_up.weight	blocks.2	2048x20	-0.000021	0.000014	183.122340
+blocks.2.self_attn_q_proj	lora_unet_blocks_2_self_attn_q_proj.lora_down.weight	blocks.2	20x2048	-0.000749	0.000174	17.602608
+blocks.2.self_attn_q_proj	lora_unet_blocks_2_self_attn_q_proj.lora_up.weight	blocks.2	2048x20	0.000048	0.000015	79.349999
+blocks.2.self_attn_v_proj	lora_unet_blocks_2_self_attn_v_proj.lora_down.weight	blocks.2	20x2048	0.000017	0.000162	751.260277
+blocks.2.self_attn_v_proj	lora_unet_blocks_2_self_attn_v_proj.lora_up.weight	blocks.2	2048x20	-0.000038	0.000011	88.142260
+blocks.3.cross_attn_k_proj	lora_unet_blocks_3_cross_attn_k_proj.lora_down.weight	blocks.3	20x1024	-0.000087	0.000322	206.472280
+blocks.3.cross_attn_k_proj	lora_unet_blocks_3_cross_attn_k_proj.lora_up.weight	blocks.3	2048x20	-0.000009	0.000012	378.003174
+blocks.3.cross_attn_output_proj	lora_unet_blocks_3_cross_attn_output_proj.lora_down.weight	blocks.3	20x2048	-0.000047	0.000169	274.003539
+blocks.3.cross_attn_output_proj	lora_unet_blocks_3_cross_attn_output_proj.lora_up.weight	blocks.3	2048x20	0.000004	0.000014	841.593077
+blocks.3.cross_attn_q_proj	lora_unet_blocks_3_cross_attn_q_proj.lora_down.weight	blocks.3	20x2048	0.000039	0.000168	335.825582
+blocks.3.cross_attn_q_proj	lora_unet_blocks_3_cross_attn_q_proj.lora_up.weight	blocks.3	2048x20	-0.000017	0.000013	209.611067
+blocks.3.cross_attn_v_proj	lora_unet_blocks_3_cross_attn_v_proj.lora_down.weight	blocks.3	20x1024	-0.000032	0.000325	557.670287
+blocks.3.cross_attn_v_proj	lora_unet_blocks_3_cross_attn_v_proj.lora_up.weight	blocks.3	2048x20	-0.000041	0.000015	95.253164
+blocks.3.mlp_layer1	lora_unet_blocks_3_mlp_layer1.lora_down.weight	blocks.3	20x2048	0.000068	0.000169	192.281324
+blocks.3.mlp_layer1	lora_unet_blocks_3_mlp_layer1.lora_up.weight	blocks.3	8192x20	-0.000003	0.000014	1088.734183
+blocks.3.mlp_layer2	lora_unet_blocks_3_mlp_layer2.lora_down.weight	blocks.3	20x8192	0.000133	0.000049	52.417161
+blocks.3.mlp_layer2	lora_unet_blocks_3_mlp_layer2.lora_up.weight	blocks.3	2048x20	0.000022	0.000014	172.778961
+blocks.3.self_attn_k_proj	lora_unet_blocks_3_self_attn_k_proj.lora_down.weight	blocks.3	20x2048	-0.000137	0.000169	94.879100
+blocks.3.self_attn_k_proj	lora_unet_blocks_3_self_attn_k_proj.lora_up.weight	blocks.3	2048x20	-0.000029	0.000015	132.654948
+blocks.3.self_attn_output_proj	lora_unet_blocks_3_self_attn_output_proj.lora_down.weight	blocks.3	20x2048	-0.000057	0.000169	230.176941
+blocks.3.self_attn_output_proj	lora_unet_blocks_3_self_attn_output_proj.lora_up.weight	blocks.3	2048x20	-0.000012	0.000015	328.249893
+blocks.3.self_attn_q_proj	lora_unet_blocks_3_self_attn_q_proj.lora_down.weight	blocks.3	20x2048	0.000109	0.000168	119.421572
+blocks.3.self_attn_q_proj	lora_unet_blocks_3_self_attn_q_proj.lora_up.weight	blocks.3	2048x20	-0.000013	0.000016	299.648359
+blocks.3.self_attn_v_proj	lora_unet_blocks_3_self_attn_v_proj.lora_down.weight	blocks.3	20x2048	0.000103	0.000164	124.115740
+blocks.3.self_attn_v_proj	lora_unet_blocks_3_self_attn_v_proj.lora_up.weight	blocks.3	2048x20	-0.000024	0.000012	147.269397
+blocks.4.cross_attn_k_proj	lora_unet_blocks_4_cross_attn_k_proj.lora_down.weight	blocks.4	20x1024	-0.000121	0.000342	152.261640
+blocks.4.cross_attn_k_proj	lora_unet_blocks_4_cross_attn_k_proj.lora_up.weight	blocks.4	2048x20	-0.000023	0.000015	169.918338
+blocks.4.cross_attn_output_proj	lora_unet_blocks_4_cross_attn_output_proj.lora_down.weight	blocks.4	20x2048	0.000042	0.000169	308.703874
+blocks.4.cross_attn_output_proj	lora_unet_blocks_4_cross_attn_output_proj.lora_up.weight	blocks.4	2048x20	-0.000021	0.000016	191.540906
+blocks.4.cross_attn_q_proj	lora_unet_blocks_4_cross_attn_q_proj.lora_down.weight	blocks.4	20x2048	0.000028	0.000177	471.965710
+blocks.4.cross_attn_q_proj	lora_unet_blocks_4_cross_attn_q_proj.lora_up.weight	blocks.4	2048x20	-0.000007	0.000013	525.451197
+blocks.4.cross_attn_v_proj	lora_unet_blocks_4_cross_attn_v_proj.lora_down.weight	blocks.4	20x1024	0.000250	0.000338	73.449666
+blocks.4.cross_attn_v_proj	lora_unet_blocks_4_cross_attn_v_proj.lora_up.weight	blocks.4	2048x20	-0.000037	0.000017	112.896718
+blocks.4.mlp_layer1	lora_unet_blocks_4_mlp_layer1.lora_down.weight	blocks.4	20x2048	-0.000102	0.000167	127.026448
+blocks.4.mlp_layer1	lora_unet_blocks_4_mlp_layer1.lora_up.weight	blocks.4	8192x20	-0.000043	0.000014	87.083379
+blocks.4.mlp_layer2	lora_unet_blocks_4_mlp_layer2.lora_down.weight	blocks.4	20x8192	-0.000073	0.000047	94.320660
+blocks.4.mlp_layer2	lora_unet_blocks_4_mlp_layer2.lora_up.weight	blocks.4	2048x20	-0.000022	0.000012	155.411193
+blocks.4.self_attn_k_proj	lora_unet_blocks_4_self_attn_k_proj.lora_down.weight	blocks.4	20x2048	0.000094	0.000173	139.917744
+blocks.4.self_attn_k_proj	lora_unet_blocks_4_self_attn_k_proj.lora_up.weight	blocks.4	2048x20	-0.000024	0.000016	165.070491
+blocks.4.self_attn_output_proj	lora_unet_blocks_4_self_attn_output_proj.lora_down.weight	blocks.4	20x2048	0.000010	0.000171	1295.386966
+blocks.4.self_attn_output_proj	lora_unet_blocks_4_self_attn_output_proj.lora_up.weight	blocks.4	2048x20	-0.000005	0.000016	813.158238
+blocks.4.self_attn_q_proj	lora_unet_blocks_4_self_attn_q_proj.lora_down.weight	blocks.4	20x2048	0.000058	0.000168	223.710133
+blocks.4.self_attn_q_proj	lora_unet_blocks_4_self_attn_q_proj.lora_up.weight	blocks.4	2048x20	-0.000010	0.000016	403.146050
+blocks.4.self_attn_v_proj	lora_unet_blocks_4_self_attn_v_proj.lora_down.weight	blocks.4	20x2048	-0.000011	0.000169	1167.155705
+blocks.4.self_attn_v_proj	lora_unet_blocks_4_self_attn_v_proj.lora_up.weight	blocks.4	2048x20	-0.000005	0.000014	696.874563
+blocks.5.cross_attn_k_proj	lora_unet_blocks_5_cross_attn_k_proj.lora_down.weight	blocks.5	20x1024	-0.000006	0.000320	3146.211062
+blocks.5.cross_attn_k_proj	lora_unet_blocks_5_cross_attn_k_proj.lora_up.weight	blocks.5	2048x20	-0.000013	0.000011	265.976688
+blocks.5.cross_attn_output_proj	lora_unet_blocks_5_cross_attn_output_proj.lora_down.weight	blocks.5	20x2048	-0.000060	0.000167	214.757183
+blocks.5.cross_attn_output_proj	lora_unet_blocks_5_cross_attn_output_proj.lora_up.weight	blocks.5	2048x20	-0.000006	0.000014	655.010877
+blocks.5.cross_attn_q_proj	lora_unet_blocks_5_cross_attn_q_proj.lora_down.weight	blocks.5	20x2048	0.000120	0.000171	109.257218
+blocks.5.cross_attn_q_proj	lora_unet_blocks_5_cross_attn_q_proj.lora_up.weight	blocks.5	2048x20	-0.000014	0.000013	251.579841
+blocks.5.cross_attn_v_proj	lora_unet_blocks_5_cross_attn_v_proj.lora_down.weight	blocks.5	20x1024	-0.000166	0.000329	109.067157
+blocks.5.cross_attn_v_proj	lora_unet_blocks_5_cross_attn_v_proj.lora_up.weight	blocks.5	2048x20	-0.000015	0.000015	258.496060
+blocks.5.mlp_layer1	lora_unet_blocks_5_mlp_layer1.lora_down.weight	blocks.5	20x2048	0.000064	0.000172	205.147359
+blocks.5.mlp_layer1	lora_unet_blocks_5_mlp_layer1.lora_up.weight	blocks.5	8192x20	0.000006	0.000015	645.588951
+blocks.5.mlp_layer2	lora_unet_blocks_5_mlp_layer2.lora_down.weight	blocks.5	20x8192	-0.000057	0.000047	120.097697
+blocks.5.mlp_layer2	lora_unet_blocks_5_mlp_layer2.lora_up.weight	blocks.5	2048x20	-0.000015	0.000012	235.896798
+blocks.5.self_attn_k_proj	lora_unet_blocks_5_self_attn_k_proj.lora_down.weight	blocks.5	20x2048	0.000042	0.000172	311.048808
+blocks.5.self_attn_k_proj	lora_unet_blocks_5_self_attn_k_proj.lora_up.weight	blocks.5	2048x20	-0.000006	0.000016	678.460018
+blocks.5.self_attn_output_proj	lora_unet_blocks_5_self_attn_output_proj.lora_down.weight	blocks.5	20x2048	-0.000101	0.000171	129.578836
+blocks.5.self_attn_output_proj	lora_unet_blocks_5_self_attn_output_proj.lora_up.weight	blocks.5	2048x20	-0.000010	0.000016	407.489748
+blocks.5.self_attn_q_proj	lora_unet_blocks_5_self_attn_q_proj.lora_down.weight	blocks.5	20x2048	0.000050	0.000172	260.344776
+blocks.5.self_attn_q_proj	lora_unet_blocks_5_self_attn_q_proj.lora_up.weight	blocks.5	2048x20	-0.000007	0.000015	588.386981
+blocks.5.self_attn_v_proj	lora_unet_blocks_5_self_attn_v_proj.lora_down.weight	blocks.5	20x2048	-0.000017	0.000167	758.470972
+blocks.5.self_attn_v_proj	lora_unet_blocks_5_self_attn_v_proj.lora_up.weight	blocks.5	2048x20	-0.000008	0.000013	447.754597
+blocks.6.cross_attn_k_proj	lora_unet_blocks_6_cross_attn_k_proj.lora_down.weight	blocks.6	20x1024	-0.000180	0.000327	100.288874
+blocks.6.cross_attn_k_proj	lora_unet_blocks_6_cross_attn_k_proj.lora_up.weight	blocks.6	2048x20	-0.000011	0.000013	317.382882
+blocks.6.cross_attn_output_proj	lora_unet_blocks_6_cross_attn_output_proj.lora_down.weight	blocks.6	20x2048	0.000045	0.000171	293.079256
+blocks.6.cross_attn_output_proj	lora_unet_blocks_6_cross_attn_output_proj.lora_up.weight	blocks.6	2048x20	-0.000031	0.000016	128.208171
+blocks.6.cross_attn_q_proj	lora_unet_blocks_6_cross_attn_q_proj.lora_down.weight	blocks.6	20x2048	0.000060	0.000171	217.462312
+blocks.6.cross_attn_q_proj	lora_unet_blocks_6_cross_attn_q_proj.lora_up.weight	blocks.6	2048x20	0.000002	0.000013	2286.265599
+blocks.6.cross_attn_v_proj	lora_unet_blocks_6_cross_attn_v_proj.lora_down.weight	blocks.6	20x1024	0.000073	0.000324	245.010858
+blocks.6.cross_attn_v_proj	lora_unet_blocks_6_cross_attn_v_proj.lora_up.weight	blocks.6	2048x20	-0.000000	0.000016	10515.996080
+blocks.6.mlp_layer1	lora_unet_blocks_6_mlp_layer1.lora_down.weight	blocks.6	20x2048	-0.000068	0.000172	193.232455
+blocks.6.mlp_layer1	lora_unet_blocks_6_mlp_layer1.lora_up.weight	blocks.6	8192x20	-0.000027	0.000015	143.385223
+blocks.6.mlp_layer2	lora_unet_blocks_6_mlp_layer2.lora_down.weight	blocks.6	20x8192	-0.000124	0.000047	55.392526
+blocks.6.mlp_layer2	lora_unet_blocks_6_mlp_layer2.lora_up.weight	blocks.6	2048x20	-0.000020	0.000012	178.967100
+blocks.6.self_attn_k_proj	lora_unet_blocks_6_self_attn_k_proj.lora_down.weight	blocks.6	20x2048	-0.000090	0.000174	146.657783
+blocks.6.self_attn_k_proj	lora_unet_blocks_6_self_attn_k_proj.lora_up.weight	blocks.6	2048x20	-0.000017	0.000016	231.080069
+blocks.6.self_attn_output_proj	lora_unet_blocks_6_self_attn_output_proj.lora_down.weight	blocks.6	20x2048	0.000039	0.000171	334.198128
+blocks.6.self_attn_output_proj	lora_unet_blocks_6_self_attn_output_proj.lora_up.weight	blocks.6	2048x20	-0.000023	0.000016	172.194906
+blocks.6.self_attn_q_proj	lora_unet_blocks_6_self_attn_q_proj.lora_down.weight	blocks.6	20x2048	0.000072	0.000174	182.779512
+blocks.6.self_attn_q_proj	lora_unet_blocks_6_self_attn_q_proj.lora_up.weight	blocks.6	2048x20	-0.000025	0.000018	171.060914
+blocks.6.self_attn_v_proj	lora_unet_blocks_6_self_attn_v_proj.lora_down.weight	blocks.6	20x2048	-0.000004	0.000168	3343.657476
+blocks.6.self_attn_v_proj	lora_unet_blocks_6_self_attn_v_proj.lora_up.weight	blocks.6	2048x20	0.000006	0.000013	621.111448
+blocks.7.cross_attn_k_proj	lora_unet_blocks_7_cross_attn_k_proj.lora_down.weight	blocks.7	20x1024	0.000083	0.000322	216.741530
+blocks.7.cross_attn_k_proj	lora_unet_blocks_7_cross_attn_k_proj.lora_up.weight	blocks.7	2048x20	0.000002	0.000012	1502.488611
+blocks.7.cross_attn_output_proj	lora_unet_blocks_7_cross_attn_output_proj.lora_down.weight	blocks.7	20x2048	0.000069	0.000170	188.320183
+blocks.7.cross_attn_output_proj	lora_unet_blocks_7_cross_attn_output_proj.lora_up.weight	blocks.7	2048x20	0.000008	0.000015	471.736478
+blocks.7.cross_attn_q_proj	lora_unet_blocks_7_cross_attn_q_proj.lora_down.weight	blocks.7	20x2048	0.000069	0.000167	187.936523
+blocks.7.cross_attn_q_proj	lora_unet_blocks_7_cross_attn_q_proj.lora_up.weight	blocks.7	2048x20	-0.000015	0.000012	232.067151
+blocks.7.cross_attn_v_proj	lora_unet_blocks_7_cross_attn_v_proj.lora_down.weight	blocks.7	20x1024	0.000041	0.000327	443.086686
+blocks.7.cross_attn_v_proj	lora_unet_blocks_7_cross_attn_v_proj.lora_up.weight	blocks.7	2048x20	-0.000017	0.000014	224.696077
+blocks.7.mlp_layer1	lora_unet_blocks_7_mlp_layer1.lora_down.weight	blocks.7	20x2048	0.000049	0.000170	264.916942
+blocks.7.mlp_layer1	lora_unet_blocks_7_mlp_layer1.lora_up.weight	blocks.7	8192x20	-0.000023	0.000015	169.979021
+blocks.7.mlp_layer2	lora_unet_blocks_7_mlp_layer2.lora_down.weight	blocks.7	20x8192	0.000013	0.000048	530.918181
+blocks.7.mlp_layer2	lora_unet_blocks_7_mlp_layer2.lora_up.weight	blocks.7	2048x20	-0.000019	0.000012	181.523793
+blocks.7.self_attn_k_proj	lora_unet_blocks_7_self_attn_k_proj.lora_down.weight	blocks.7	20x2048	-0.000035	0.000183	390.159071
+blocks.7.self_attn_k_proj	lora_unet_blocks_7_self_attn_k_proj.lora_up.weight	blocks.7	2048x20	0.000007	0.000018	646.908952
+blocks.7.self_attn_output_proj	lora_unet_blocks_7_self_attn_output_proj.lora_down.weight	blocks.7	20x2048	-0.000116	0.000173	113.107411
+blocks.7.self_attn_output_proj	lora_unet_blocks_7_self_attn_output_proj.lora_up.weight	blocks.7	2048x20	-0.000001	0.000017	4851.530361
+blocks.7.self_attn_q_proj	lora_unet_blocks_7_self_attn_q_proj.lora_down.weight	blocks.7	20x2048	0.000067	0.000183	202.224314
+blocks.7.self_attn_q_proj	lora_unet_blocks_7_self_attn_q_proj.lora_up.weight	blocks.7	2048x20	0.000007	0.000020	618.482803
+blocks.7.self_attn_v_proj	lora_unet_blocks_7_self_attn_v_proj.lora_down.weight	blocks.7	20x2048	-0.000015	0.000171	873.219232
+blocks.7.self_attn_v_proj	lora_unet_blocks_7_self_attn_v_proj.lora_up.weight	blocks.7	2048x20	-0.000016	0.000014	234.356720
+blocks.8.cross_attn_k_proj	lora_unet_blocks_8_cross_attn_k_proj.lora_down.weight	blocks.8	20x1024	0.000082	0.000328	220.874531
+blocks.8.cross_attn_k_proj	lora_unet_blocks_8_cross_attn_k_proj.lora_up.weight	blocks.8	2048x20	0.000006	0.000013	609.647685
+blocks.8.cross_attn_output_proj	lora_unet_blocks_8_cross_attn_output_proj.lora_down.weight	blocks.8	20x2048	-0.000070	0.000172	187.633836
+blocks.8.cross_attn_output_proj	lora_unet_blocks_8_cross_attn_output_proj.lora_up.weight	blocks.8	2048x20	-0.000037	0.000017	110.681780
+blocks.8.cross_attn_q_proj	lora_unet_blocks_8_cross_attn_q_proj.lora_down.weight	blocks.8	20x2048	-0.000062	0.000169	209.276799
+blocks.8.cross_attn_q_proj	lora_unet_blocks_8_cross_attn_q_proj.lora_up.weight	blocks.8	2048x20	-0.000001	0.000014	2469.891674
+blocks.8.cross_attn_v_proj	lora_unet_blocks_8_cross_attn_v_proj.lora_down.weight	blocks.8	20x1024	0.000318	0.000325	56.647660
+blocks.8.cross_attn_v_proj	lora_unet_blocks_8_cross_attn_v_proj.lora_up.weight	blocks.8	2048x20	0.000002	0.000014	2338.659549
+blocks.8.mlp_layer1	lora_unet_blocks_8_mlp_layer1.lora_down.weight	blocks.8	20x2048	-0.000025	0.000171	532.419420
+blocks.8.mlp_layer1	lora_unet_blocks_8_mlp_layer1.lora_up.weight	blocks.8	8192x20	0.000027	0.000014	138.243866
+blocks.8.mlp_layer2	lora_unet_blocks_8_mlp_layer2.lora_down.weight	blocks.8	20x8192	-0.000097	0.000046	70.459357
+blocks.8.mlp_layer2	lora_unet_blocks_8_mlp_layer2.lora_up.weight	blocks.8	2048x20	0.000002	0.000011	1663.367832
+blocks.8.self_attn_k_proj	lora_unet_blocks_8_self_attn_k_proj.lora_down.weight	blocks.8	20x2048	-0.000214	0.000173	61.536532
+blocks.8.self_attn_k_proj	lora_unet_blocks_8_self_attn_k_proj.lora_up.weight	blocks.8	2048x20	-0.000016	0.000016	247.794328
+blocks.8.self_attn_output_proj	lora_unet_blocks_8_self_attn_output_proj.lora_down.weight	blocks.8	20x2048	-0.000034	0.000172	388.468182
+blocks.8.self_attn_output_proj	lora_unet_blocks_8_self_attn_output_proj.lora_up.weight	blocks.8	2048x20	-0.000006	0.000016	655.505370
+blocks.8.self_attn_q_proj	lora_unet_blocks_8_self_attn_q_proj.lora_down.weight	blocks.8	20x2048	-0.000028	0.000173	468.621764
+blocks.8.self_attn_q_proj	lora_unet_blocks_8_self_attn_q_proj.lora_up.weight	blocks.8	2048x20	-0.000053	0.000016	74.579640
+blocks.8.self_attn_v_proj	lora_unet_blocks_8_self_attn_v_proj.lora_down.weight	blocks.8	20x2048	-0.000004	0.000169	2951.662154
+blocks.8.self_attn_v_proj	lora_unet_blocks_8_self_attn_v_proj.lora_up.weight	blocks.8	2048x20	-0.000025	0.000013	146.665374
+blocks.9.cross_attn_k_proj	lora_unet_blocks_9_cross_attn_k_proj.lora_down.weight	blocks.9	20x1024	-0.000209	0.000321	85.820999
+blocks.9.cross_attn_k_proj	lora_unet_blocks_9_cross_attn_k_proj.lora_up.weight	blocks.9	2048x20	-0.000015	0.000014	256.852013
+blocks.9.cross_attn_output_proj	lora_unet_blocks_9_cross_attn_output_proj.lora_down.weight	blocks.9	20x2048	0.000080	0.000171	164.388221
+blocks.9.cross_attn_output_proj	lora_unet_blocks_9_cross_attn_output_proj.lora_up.weight	blocks.9	2048x20	-0.000025	0.000016	163.012640
+blocks.9.cross_attn_q_proj	lora_unet_blocks_9_cross_attn_q_proj.lora_down.weight	blocks.9	20x2048	-0.000002	0.000170	8454.996138
+blocks.9.cross_attn_q_proj	lora_unet_blocks_9_cross_attn_q_proj.lora_up.weight	blocks.9	2048x20	0.000012	0.000014	312.378637
+blocks.9.cross_attn_v_proj	lora_unet_blocks_9_cross_attn_v_proj.lora_down.weight	blocks.9	20x1024	0.000009	0.000323	2006.648123
+blocks.9.cross_attn_v_proj	lora_unet_blocks_9_cross_attn_v_proj.lora_up.weight	blocks.9	2048x20	-0.000022	0.000014	170.774759
+blocks.9.mlp_layer1	lora_unet_blocks_9_mlp_layer1.lora_down.weight	blocks.9	20x2048	0.000070	0.000174	187.678214
+blocks.9.mlp_layer1	lora_unet_blocks_9_mlp_layer1.lora_up.weight	blocks.9	8192x20	-0.000009	0.000015	430.009484
+blocks.9.mlp_layer2	lora_unet_blocks_9_mlp_layer2.lora_down.weight	blocks.9	20x8192	-0.000011	0.000048	648.123295
+blocks.9.mlp_layer2	lora_unet_blocks_9_mlp_layer2.lora_up.weight	blocks.9	2048x20	-0.000022	0.000012	156.635551
+blocks.9.self_attn_k_proj	lora_unet_blocks_9_self_attn_k_proj.lora_down.weight	blocks.9	20x2048	0.000008	0.000174	1630.358174
+blocks.9.self_attn_k_proj	lora_unet_blocks_9_self_attn_k_proj.lora_up.weight	blocks.9	2048x20	-0.000024	0.000016	167.122578
+blocks.9.self_attn_output_proj	lora_unet_blocks_9_self_attn_output_proj.lora_down.weight	blocks.9	20x2048	-0.000024	0.000173	541.396044
+blocks.9.self_attn_output_proj	lora_unet_blocks_9_self_attn_output_proj.lora_up.weight	blocks.9	2048x20	0.000013	0.000017	325.862757
+blocks.9.self_attn_q_proj	lora_unet_blocks_9_self_attn_q_proj.lora_down.weight	blocks.9	20x2048	0.000057	0.000174	231.973116
+blocks.9.self_attn_q_proj	lora_unet_blocks_9_self_attn_q_proj.lora_up.weight	blocks.9	2048x20	-0.000029	0.000016	138.398362
+blocks.9.self_attn_v_proj	lora_unet_blocks_9_self_attn_v_proj.lora_down.weight	blocks.9	20x2048	-0.000127	0.000167	101.916798
+blocks.9.self_attn_v_proj	lora_unet_blocks_9_self_attn_v_proj.lora_up.weight	blocks.9	2048x20	0.000004	0.000013	836.617780
+========================================================================
+[MERGE_HINTS]
+========================================================================
+# マージ優先(full) - 高情報密度・表現寄与大
+PRIORITY(full): blocks.15.cross_attn_output_proj
+PRIORITY(full): blocks.27.self_attn_q_proj
+PRIORITY(full): blocks.23.self_attn_v_proj
+PRIORITY(full): blocks.24.cross_attn_v_proj
+PRIORITY(full): blocks.26.self_attn_k_proj
+PRIORITY(full): blocks.11.cross_attn_v_proj
+PRIORITY(full): blocks.20.cross_attn_v_proj
+PRIORITY(full): blocks.20.self_attn_output_proj
+PRIORITY(full): blocks.6.cross_attn_v_proj
+PRIORITY(full): blocks.17.cross_attn_output_proj
+PRIORITY(full): blocks.21.cross_attn_output_proj
+PRIORITY(full): blocks.9.cross_attn_q_proj
+PRIORITY(full): blocks.0.self_attn_output_proj
+PRIORITY(full): blocks.24.mlp_layer1
+PRIORITY(full): blocks.16.mlp_layer2
+PRIORITY(full): blocks.24.self_attn_k_proj
+PRIORITY(full): blocks.19.cross_attn_k_proj
+PRIORITY(full): blocks.7.self_attn_output_proj
+PRIORITY(full): blocks.24.cross_attn_output_proj
+PRIORITY(full): blocks.27.self_attn_k_proj
+PRIORITY(full): blocks.27.self_attn_k_proj
+PRIORITY(full): blocks.0.cross_attn_k_proj
+PRIORITY(full): blocks.20.cross_attn_output_proj
+PRIORITY(full): blocks.13.mlp_layer1
+PRIORITY(full): blocks.20.self_attn_k_proj
+PRIORITY(full): blocks.20.self_attn_v_proj
+PRIORITY(full): blocks.1.self_attn_output_proj
+PRIORITY(full): blocks.6.self_attn_v_proj
+PRIORITY(full): blocks.17.cross_attn_v_proj
+PRIORITY(full): blocks.24.mlp_layer1
+PRIORITY(full): blocks.5.cross_attn_k_proj
+PRIORITY(full): blocks.14.cross_attn_k_proj
+PRIORITY(full): blocks.16.self_attn_q_proj
+PRIORITY(full): blocks.8.self_attn_v_proj
+PRIORITY(full): blocks.25.cross_attn_q_proj
+PRIORITY(full): blocks.25.mlp_layer2
+PRIORITY(full): blocks.8.cross_attn_q_proj
+PRIORITY(full): blocks.10.cross_attn_v_proj
+PRIORITY(full): blocks.20.cross_attn_output_proj
+PRIORITY(full): blocks.8.cross_attn_v_proj
+PRIORITY(full): blocks.6.cross_attn_q_proj
+PRIORITY(full): blocks.22.self_attn_output_proj
+PRIORITY(full): blocks.9.cross_attn_v_proj
+PRIORITY(full): blocks.12.cross_attn_k_proj
+PRIORITY(full): blocks.11.self_attn_v_proj
+PRIORITY(full): blocks.0.self_attn_k_proj
+PRIORITY(full): blocks.26.self_attn_v_proj
+PRIORITY(full): blocks.2.cross_attn_k_proj
+PRIORITY(full): blocks.8.mlp_layer2
+PRIORITY(full): blocks.9.self_attn_k_proj
+PRIORITY(full): blocks.17.mlp_layer1
+PRIORITY(full): blocks.23.cross_attn_v_proj
+PRIORITY(full): blocks.7.cross_attn_k_proj
+PRIORITY(full): blocks.0.mlp_layer2
+PRIORITY(full): blocks.25.cross_attn_output_proj
+PRIORITY(full): blocks.26.cross_attn_q_proj
+# 破棄候補(full) - 低情報密度・高冗長
+DISCARD(full):  blocks.2.self_attn_q_proj
+DISCARD(full):  blocks.0.mlp_layer1
+DISCARD(full):  blocks.2.self_attn_k_proj
+DISCARD(full):  blocks.2.cross_attn_q_proj
+DISCARD(full):  blocks.1.mlp_layer1
+DISCARD(full):  blocks.21.mlp_layer2
+DISCARD(full):  blocks.3.mlp_layer2
+DISCARD(full):  blocks.27.cross_attn_k_proj
+DISCARD(full):  blocks.18.mlp_layer2
+DISCARD(full):  blocks.6.mlp_layer2
+DISCARD(full):  blocks.2.mlp_layer1
+DISCARD(full):  blocks.8.self_attn_k_proj
+DISCARD(full):  blocks.26.cross_attn_output_proj
+DISCARD(full):  blocks.15.mlp_layer2
+DISCARD(full):  blocks.15.cross_attn_v_proj
+DISCARD(full):  blocks.22.self_attn_k_proj
+DISCARD(full):  blocks.4.cross_attn_v_proj
+DISCARD(full):  blocks.8.self_attn_q_proj
+DISCARD(full):  blocks.0.cross_attn_v_proj
+DISCARD(full):  blocks.13.cross_attn_q_proj
+DISCARD(full):  blocks.27.cross_attn_output_proj
+DISCARD(full):  blocks.27.mlp_layer2
+DISCARD(full):  blocks.2.self_attn_q_proj
+DISCARD(full):  blocks.9.cross_attn_k_proj
+DISCARD(full):  blocks.4.mlp_layer1
+DISCARD(full):  blocks.1.self_attn_v_proj
+DISCARD(full):  blocks.2.self_attn_v_proj
+DISCARD(full):  blocks.24.cross_attn_q_proj
+DISCARD(full):  blocks.26.cross_attn_k_proj
+DISCARD(full):  blocks.15.self_attn_q_proj
+DISCARD(full):  blocks.18.self_attn_v_proj
+DISCARD(full):  blocks.17.mlp_layer2
+DISCARD(full):  blocks.4.mlp_layer2
+DISCARD(full):  blocks.22.cross_attn_k_proj
+DISCARD(full):  blocks.3.self_attn_k_proj
+DISCARD(full):  blocks.3.cross_attn_v_proj
+DISCARD(full):  blocks.17.self_attn_k_proj
+DISCARD(full):  blocks.2.cross_attn_v_proj
+DISCARD(full):  blocks.23.mlp_layer2
+DISCARD(full):  blocks.27.cross_attn_q_proj
+DISCARD(full):  blocks.14.mlp_layer2
+DISCARD(full):  blocks.6.cross_attn_k_proj
+DISCARD(full):  blocks.10.self_attn_k_proj
+DISCARD(full):  blocks.24.self_attn_v_proj
+DISCARD(full):  blocks.9.self_attn_v_proj
+DISCARD(full):  blocks.26.self_attn_output_proj
+DISCARD(full):  blocks.24.self_attn_output_proj
+DISCARD(full):  blocks.15.self_attn_v_proj
+DISCARD(full):  blocks.15.cross_attn_v_proj
+========================================================================

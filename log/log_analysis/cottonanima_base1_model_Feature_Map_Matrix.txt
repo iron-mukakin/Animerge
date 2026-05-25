@@ -1,0 +1,1008 @@
+[METADATA]
+========================================================================
+format_version: 2.0
+model_name: cottonanima_base1
+model_type: model
+method: Feature Map
+layer_mode: Matrix
+device: cuda
+sha256: 82f58e69ef0c040dd48f461bf4d9234774e3bad85ca5c4c87b7f2e4b7db03f18
+timestamp: 2026-05-21T13:59:28
+record_count: 685
+warnings_count: 0
+========================================================================
+
+[AUTO_REPORT]
+========================================================================
+[自動レポート] 顕著な学習偏りや異常パターンは検出されませんでした。
+
+=== モデル特徴 ===
+[マージ優先(group)]
+  Middle_Attention
+  Output_Attention
+[破棄候補(group)]
+  Other_Norm
+  Other_Other
+
+[マージ優先(full)]
+  blocks.16.adaln_modulation_cross_attn.2.weight  (Middle_Attention)
+  blocks.18.cross_attn.k_proj.weight  (Middle_Attention)
+  blocks.16.self_attn.output_proj.weight  (Output_Attention)
+  blocks.15.self_attn.output_proj.weight  (Output_Attention)
+  blocks.20.cross_attn.q_proj.weight  (Output_Attention)
+  blocks.23.cross_attn.v_proj.weight  (Output_Attention)
+  blocks.21.self_attn.output_proj.weight  (Output_Attention)
+  blocks.21.self_attn.v_proj.weight  (Output_Attention)
+  blocks.13.self_attn.output_proj.weight  (Output_Attention)
+  blocks.15.cross_attn.q_proj.weight  (Middle_Attention)
+  blocks.16.self_attn.q_proj.weight  (Middle_Attention)
+  blocks.15.self_attn.q_proj.weight  (Middle_Attention)
+  blocks.23.mlp.layer2.weight  (Output_MLP)
+  blocks.22.self_attn.v_proj.weight  (Output_Attention)
+  llm_adapter.blocks.0.self_attn.q_proj.weight  (Input_Attention)
+  blocks.19.self_attn.v_proj.weight  (Output_Attention)
+  blocks.4.cross_attn.q_proj.weight  (Input_Attention)
+  blocks.16.cross_attn.output_proj.weight  (Output_Attention)
+  llm_adapter.blocks.1.mlp.0.weight  (Input_MLP)
+  llm_adapter.blocks.1.self_attn.o_proj.weight  (Input_Attention)
+  blocks.8.cross_attn.q_proj.weight  (Input_Attention)
+  blocks.27.cross_attn.v_proj.weight  (Output_Attention)
+  blocks.14.cross_attn.q_proj.weight  (Middle_Attention)
+  blocks.23.self_attn.v_proj.weight  (Output_Attention)
+  blocks.10.cross_attn.v_proj.weight  (Middle_Attention)
+  blocks.15.adaln_modulation_mlp.2.weight  (Middle_MLP)
+  blocks.11.self_attn.v_proj.weight  (Middle_Attention)
+  llm_adapter.blocks.4.self_attn.k_proj.weight  (Input_Attention)
+  llm_adapter.blocks.3.cross_attn.o_proj.weight  (Input_Attention)
+  blocks.1.self_attn.q_proj.weight  (Input_Attention)
+  blocks.11.self_attn.output_proj.weight  (Output_Attention)
+  llm_adapter.blocks.1.self_attn.q_proj.weight  (Input_Attention)
+  blocks.1.self_attn.k_proj.weight  (Input_Attention)
+  blocks.7.mlp.layer2.weight  (Input_MLP)
+  llm_adapter.blocks.4.self_attn.q_proj.weight  (Input_Attention)
+  blocks.18.self_attn.output_proj.weight  (Output_Attention)
+  blocks.24.cross_attn.q_proj.weight  (Output_Attention)
+  blocks.14.cross_attn.k_proj.weight  (Middle_Attention)
+  blocks.1.cross_attn.q_proj.weight  (Input_Attention)
+  blocks.11.mlp.layer2.weight  (Middle_MLP)
+  blocks.13.self_attn.v_proj.weight  (Middle_Attention)
+  blocks.3.mlp.layer2.weight  (Input_MLP)
+  blocks.8.cross_attn.v_proj.weight  (Input_Attention)
+  blocks.19.adaln_modulation_mlp.2.weight  (Output_MLP)
+  llm_adapter.blocks.2.cross_attn.q_proj.weight  (Input_Attention)
+  blocks.6.cross_attn.output_proj.weight  (Output_Attention)
+  blocks.20.self_attn.k_proj.weight  (Output_Attention)
+  llm_adapter.blocks.2.self_attn.q_proj.weight  (Input_Attention)
+  blocks.21.self_attn.k_proj.weight  (Output_Attention)
+  llm_adapter.blocks.3.self_attn.v_proj.weight  (Input_Attention)
+  llm_adapter.blocks.0.self_attn.k_proj.weight  (Input_Attention)
+  blocks.20.cross_attn.k_proj.weight  (Output_Attention)
+  blocks.15.mlp.layer2.weight  (Middle_MLP)
+  blocks.7.cross_attn.k_proj.weight  (Input_Attention)
+  blocks.10.self_attn.q_proj.weight  (Middle_Attention)
+  blocks.12.self_attn.q_proj.weight  (Middle_Attention)
+  blocks.17.mlp.layer2.weight  (Middle_MLP)
+  blocks.10.self_attn.output_proj.weight  (Output_Attention)
+  blocks.10.self_attn.k_proj.weight  (Middle_Attention)
+  blocks.13.self_attn.k_proj.weight  (Middle_Attention)
+  blocks.11.cross_attn.output_proj.weight  (Output_Attention)
+  blocks.5.mlp.layer2.weight  (Input_MLP)
+  blocks.18.adaln_modulation_mlp.2.weight  (Middle_MLP)
+  blocks.9.cross_attn.q_proj.weight  (Middle_Attention)
+  llm_adapter.blocks.1.mlp.2.weight  (Input_MLP)
+  blocks.20.self_attn.q_proj.weight  (Output_Attention)
+  blocks.11.cross_attn.q_proj.weight  (Middle_Attention)
+  blocks.2.self_attn.output_proj.weight  (Output_Attention)
+[破棄候補(full)]
+  llm_adapter.blocks.3.norm_mlp.weight  (Input_MLP)
+  llm_adapter.blocks.2.norm_mlp.weight  (Input_MLP)
+  llm_adapter.blocks.4.norm_mlp.weight  (Input_MLP)
+  llm_adapter.blocks.1.norm_mlp.weight  (Input_MLP)
+  llm_adapter.blocks.5.norm_mlp.weight  (Input_MLP)
+  llm_adapter.blocks.0.norm_mlp.weight  (Input_MLP)
+  llm_adapter.blocks.3.norm_self_attn.weight  (Input_Attention)
+  llm_adapter.blocks.2.norm_self_attn.weight  (Input_Attention)
+  llm_adapter.blocks.1.norm_self_attn.weight  (Input_Attention)
+  llm_adapter.blocks.4.norm_self_attn.weight  (Input_Attention)
+  llm_adapter.blocks.0.norm_cross_attn.weight  (Input_Attention)
+  llm_adapter.blocks.3.norm_cross_attn.weight  (Input_Attention)
+  llm_adapter.blocks.5.norm_cross_attn.weight  (Input_Attention)
+  llm_adapter.blocks.4.norm_cross_attn.weight  (Input_Attention)
+  llm_adapter.blocks.0.norm_self_attn.weight  (Input_Attention)
+  llm_adapter.blocks.5.norm_self_attn.weight  (Input_Attention)
+  llm_adapter.blocks.2.norm_cross_attn.weight  (Input_Attention)
+  llm_adapter.blocks.1.norm_cross_attn.weight  (Input_Attention)
+  llm_adapter.blocks.3.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.blocks.4.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.blocks.3.self_attn.q_norm.weight  (Input_Attention)
+  llm_adapter.blocks.2.self_attn.q_norm.weight  (Input_Attention)
+  llm_adapter.blocks.2.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.blocks.1.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.blocks.4.self_attn.q_norm.weight  (Input_Attention)
+  llm_adapter.blocks.1.self_attn.q_norm.weight  (Input_Attention)
+  llm_adapter.blocks.5.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.blocks.5.self_attn.q_norm.weight  (Input_Attention)
+  llm_adapter.blocks.0.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.blocks.0.self_attn.q_norm.weight  (Input_Attention)
+  blocks.15.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.13.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.13.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.15.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.19.self_attn.k_norm.weight  (Output_Attention)
+  blocks.16.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.14.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.17.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.14.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.20.self_attn.k_norm.weight  (Output_Attention)
+  blocks.18.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.16.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.18.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.19.self_attn.q_norm.weight  (Output_Attention)
+  blocks.20.self_attn.q_norm.weight  (Output_Attention)
+  blocks.17.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.21.self_attn.k_norm.weight  (Output_Attention)
+  blocks.26.self_attn.q_norm.weight  (Output_Attention)
+  blocks.22.self_attn.k_norm.weight  (Output_Attention)
+  blocks.26.self_attn.k_norm.weight  (Output_Attention)
+  blocks.21.self_attn.q_norm.weight  (Output_Attention)
+  blocks.22.self_attn.q_norm.weight  (Output_Attention)
+  blocks.24.self_attn.k_norm.weight  (Output_Attention)
+  blocks.24.self_attn.q_norm.weight  (Output_Attention)
+  blocks.8.self_attn.k_norm.weight  (Input_Attention)
+  llm_adapter.norm.weight  (Other_Norm)
+  blocks.8.self_attn.q_norm.weight  (Input_Attention)
+  blocks.10.self_attn.q_norm.weight  (Middle_Attention)
+  blocks.23.self_attn.k_norm.weight  (Output_Attention)
+  blocks.10.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.23.self_attn.q_norm.weight  (Output_Attention)
+  llm_adapter.blocks.0.cross_attn.q_norm.weight  (Input_Attention)
+  llm_adapter.blocks.0.cross_attn.k_norm.weight  (Input_Attention)
+  blocks.25.self_attn.k_norm.weight  (Output_Attention)
+  blocks.25.self_attn.q_norm.weight  (Output_Attention)
+  blocks.12.self_attn.k_norm.weight  (Middle_Attention)
+  blocks.13.cross_attn.q_norm.weight  (Middle_Attention)
+  blocks.13.cross_attn.k_norm.weight  (Middle_Attention)
+========================================================================
+
+[GROUP_SUMMARY]
+========================================================================
+Input_Attention	{"mean_feat_mean": 0.2570939780473349, "mean_feat_var": 0.032589664959923104, "mean_feat_complexity": 1943.4476588889627, "layer_count": 210}
+Input_MLP	{"mean_feat_mean": 0.10904243961681459, "mean_feat_var": 0.0006066485591625017, "mean_feat_complexity": 1215.4914663122079, "layer_count": 66}
+Middle_Attention	{"mean_feat_mean": 0.24663626135016514, "mean_feat_var": 0.025911510834287454, "mean_feat_complexity": 10374.420043448637, "layer_count": 140}
+Middle_MLP	{"mean_feat_mean": -6.163691546134942e-05, "mean_feat_var": 0.00046235251320467794, "mean_feat_complexity": 1773.4387846754144, "layer_count": 40}
+Other_Norm	{"mean_feat_mean": 0.11296806322206976, "mean_feat_var": 0.003112246049568057, "mean_feat_complexity": 31.35383084944575, "layer_count": 4}
+Other_Other	{"mean_feat_mean": 0.003475848904729771, "mean_feat_var": 6.456041125251171, "mean_feat_complexity": 432.6473127345771, "layer_count": 7}
+Output_Attention	{"mean_feat_mean": 0.11366425697770986, "mean_feat_var": 0.01104523296590332, "mean_feat_complexity": 6805.442554410667, "layer_count": 182}
+Output_MLP	{"mean_feat_mean": -0.00011060905202637312, "mean_feat_var": 0.001316139540196875, "mean_feat_complexity": 2358.4585729328055, "layer_count": 36}
+========================================================================
+
+[LAYER_RECORDS]
+========================================================================
+key	original_key	group	shape	feat_mean	feat_var	feat_complexity
+blocks.0.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.0.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	-0.000651	0.000239	23.744003
+blocks.0.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.0.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000055	0.000072	152.878542
+blocks.0.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.0.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000391	0.000349	47.820918
+blocks.0.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.0.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	-0.000018	0.000409	1134.582557
+blocks.0.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.0.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	-0.002226	0.000374	8.684013
+blocks.0.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.0.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	0.000603	0.000548	38.854510
+blocks.0.cross_attn.k_norm.weight	model.diffusion_model.blocks.0.cross_attn.k_norm.weight	Input_Attention	128	0.049587	0.011307	2.144384
+blocks.0.cross_attn.k_proj.weight	model.diffusion_model.blocks.0.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000001	0.000037	4483.303276
+blocks.0.cross_attn.output_proj.weight	model.diffusion_model.blocks.0.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000003	0.000047	2731.308166
+blocks.0.cross_attn.q_norm.weight	model.diffusion_model.blocks.0.cross_attn.q_norm.weight	Input_Attention	128	0.049740	0.011377	2.144395
+blocks.0.cross_attn.q_proj.weight	model.diffusion_model.blocks.0.cross_attn.q_proj.weight	Input_Attention	2048x2048	-0.000003	0.000011	1179.333186
+blocks.0.cross_attn.v_proj.weight	model.diffusion_model.blocks.0.cross_attn.v_proj.weight	Input_Attention	2048x1024	0.000019	0.000087	480.812062
+blocks.0.mlp.layer1.weight	model.diffusion_model.blocks.0.mlp.layer1.weight	Input_MLP	8192x2048	-0.000004	0.000009	717.712173
+blocks.0.mlp.layer2.weight	model.diffusion_model.blocks.0.mlp.layer2.weight	Input_MLP	2048x8192	-0.000002	0.000018	2076.226434
+blocks.0.self_attn.k_norm.weight	model.diffusion_model.blocks.0.self_attn.k_norm.weight	Input_Attention	128	0.020762	0.004226	3.130982
+blocks.0.self_attn.k_proj.weight	model.diffusion_model.blocks.0.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000001	0.000007	3178.180098
+blocks.0.self_attn.output_proj.weight	model.diffusion_model.blocks.0.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000002	0.000015	1969.417702
+blocks.0.self_attn.q_norm.weight	model.diffusion_model.blocks.0.self_attn.q_norm.weight	Input_Attention	128	0.019221	0.004058	3.314244
+blocks.0.self_attn.q_proj.weight	model.diffusion_model.blocks.0.self_attn.q_proj.weight	Input_Attention	2048x2048	0.000002	0.000010	1776.955304
+blocks.0.self_attn.v_proj.weight	model.diffusion_model.blocks.0.self_attn.v_proj.weight	Input_Attention	2048x2048	0.000001	0.000009	2570.727835
+blocks.1.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.1.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	0.000735	0.000723	36.608780
+blocks.1.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.1.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	-0.000020	0.000105	517.291948
+blocks.1.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.1.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000806	0.001051	40.211685
+blocks.1.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.1.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	-0.000019	0.000222	799.710260
+blocks.1.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.1.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	0.000824	0.000571	28.979195
+blocks.1.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.1.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	0.000049	0.000509	459.370923
+blocks.1.cross_attn.k_norm.weight	model.diffusion_model.blocks.1.cross_attn.k_norm.weight	Input_Attention	128	0.056713	0.010255	1.785638
+blocks.1.cross_attn.k_proj.weight	model.diffusion_model.blocks.1.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000001	0.000033	4130.580934
+blocks.1.cross_attn.output_proj.weight	model.diffusion_model.blocks.1.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000002	0.000068	4540.692815
+blocks.1.cross_attn.q_norm.weight	model.diffusion_model.blocks.1.cross_attn.q_norm.weight	Input_Attention	128	0.056812	0.010303	1.786663
+blocks.1.cross_attn.q_proj.weight	model.diffusion_model.blocks.1.cross_attn.q_proj.weight	Input_Attention	2048x2048	-0.000001	0.000029	9685.661947
+blocks.1.cross_attn.v_proj.weight	model.diffusion_model.blocks.1.cross_attn.v_proj.weight	Input_Attention	2048x1024	0.000006	0.000130	1855.223802
+blocks.1.mlp.layer1.weight	model.diffusion_model.blocks.1.mlp.layer1.weight	Input_MLP	8192x2048	-0.000005	0.000018	819.970424
+blocks.1.mlp.layer2.weight	model.diffusion_model.blocks.1.mlp.layer2.weight	Input_MLP	2048x8192	0.000012	0.000041	552.071125
+blocks.1.self_attn.k_norm.weight	model.diffusion_model.blocks.1.self_attn.k_norm.weight	Input_Attention	128	0.100119	0.046668	2.157691
+blocks.1.self_attn.k_proj.weight	model.diffusion_model.blocks.1.self_attn.k_proj.weight	Input_Attention	2048x2048	0.000000	0.000022	14088.716148
+blocks.1.self_attn.output_proj.weight	model.diffusion_model.blocks.1.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000004	0.000049	1958.957544
+blocks.1.self_attn.q_norm.weight	model.diffusion_model.blocks.1.self_attn.q_norm.weight	Input_Attention	128	0.094696	0.045166	2.244247
+blocks.1.self_attn.q_proj.weight	model.diffusion_model.blocks.1.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000000	0.000024	14710.957574
+blocks.1.self_attn.v_proj.weight	model.diffusion_model.blocks.1.self_attn.v_proj.weight	Input_Attention	2048x2048	-0.000004	0.000031	1281.337914
+blocks.10.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.10.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.007537	0.007674	11.622803
+blocks.10.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.10.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000792	0.000937	38.641193
+blocks.10.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.10.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	-0.000641	0.000767	43.181439
+blocks.10.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.10.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000321	0.000417	63.658632
+blocks.10.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.10.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.000923	0.000687	28.380827
+blocks.10.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.10.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000818	0.000449	25.889015
+blocks.10.cross_attn.k_norm.weight	model.diffusion_model.blocks.10.cross_attn.k_norm.weight	Middle_Attention	128	0.635439	0.117364	0.539131
+blocks.10.cross_attn.k_proj.weight	model.diffusion_model.blocks.10.cross_attn.k_proj.weight	Middle_Attention	2048x1024	-0.000017	0.000123	669.530169
+blocks.10.cross_attn.output_proj.weight	model.diffusion_model.blocks.10.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000009	0.000148	1382.811575
+blocks.10.cross_attn.q_norm.weight	model.diffusion_model.blocks.10.cross_attn.q_norm.weight	Middle_Attention	128	0.635460	0.117314	0.538997
+blocks.10.cross_attn.q_proj.weight	model.diffusion_model.blocks.10.cross_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000003	0.000100	3297.335322
+blocks.10.cross_attn.v_proj.weight	model.diffusion_model.blocks.10.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000001	0.000178	18463.205875
+blocks.10.mlp.layer1.weight	model.diffusion_model.blocks.10.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000070	0.000150	176.067941
+blocks.10.mlp.layer2.weight	model.diffusion_model.blocks.10.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000004	0.000146	3064.532202
+blocks.10.self_attn.k_norm.weight	model.diffusion_model.blocks.10.self_attn.k_norm.weight	Middle_Attention	128	0.966141	0.067137	0.268190
+blocks.10.self_attn.k_proj.weight	model.diffusion_model.blocks.10.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000002	0.000124	6700.998715
+blocks.10.self_attn.output_proj.weight	model.diffusion_model.blocks.10.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000002	0.000141	6858.493486
+blocks.10.self_attn.q_norm.weight	model.diffusion_model.blocks.10.self_attn.q_norm.weight	Middle_Attention	128	0.974380	0.063805	0.259239
+blocks.10.self_attn.q_proj.weight	model.diffusion_model.blocks.10.self_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000002	0.000125	7022.611435
+blocks.10.self_attn.v_proj.weight	model.diffusion_model.blocks.10.self_attn.v_proj.weight	Middle_Attention	2048x2048	0.000003	0.000150	4127.000780
+blocks.11.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.11.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	-0.009044	0.007394	9.508381
+blocks.11.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.11.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	-0.001029	0.000877	28.771696
+blocks.11.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.11.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	-0.000582	0.000601	42.155491
+blocks.11.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.11.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000312	0.000400	64.202823
+blocks.11.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.11.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.000126	0.000653	202.825113
+blocks.11.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.11.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000104	0.000464	207.917980
+blocks.11.cross_attn.k_norm.weight	model.diffusion_model.blocks.11.cross_attn.k_norm.weight	Middle_Attention	128	0.547512	0.135077	0.671270
+blocks.11.cross_attn.k_proj.weight	model.diffusion_model.blocks.11.cross_attn.k_proj.weight	Middle_Attention	2048x1024	0.000003	0.000120	3513.672232
+blocks.11.cross_attn.output_proj.weight	model.diffusion_model.blocks.11.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000002	0.000150	6535.495655
+blocks.11.cross_attn.q_norm.weight	model.diffusion_model.blocks.11.cross_attn.q_norm.weight	Middle_Attention	128	0.547462	0.134849	0.670764
+blocks.11.cross_attn.q_proj.weight	model.diffusion_model.blocks.11.cross_attn.q_proj.weight	Middle_Attention	2048x2048	0.000002	0.000108	6038.712236
+blocks.11.cross_attn.v_proj.weight	model.diffusion_model.blocks.11.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000006	0.000182	2211.970569
+blocks.11.mlp.layer1.weight	model.diffusion_model.blocks.11.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000028	0.000145	424.738894
+blocks.11.mlp.layer2.weight	model.diffusion_model.blocks.11.mlp.layer2.weight	Middle_MLP	2048x8192	0.000001	0.000141	9676.282015
+blocks.11.self_attn.k_norm.weight	model.diffusion_model.blocks.11.self_attn.k_norm.weight	Middle_Attention	128	0.765445	0.136823	0.483243
+blocks.11.self_attn.k_proj.weight	model.diffusion_model.blocks.11.self_attn.k_proj.weight	Middle_Attention	2048x2048	-0.000006	0.000109	1701.264799
+blocks.11.self_attn.output_proj.weight	model.diffusion_model.blocks.11.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000001	0.000140	14422.920141
+blocks.11.self_attn.q_norm.weight	model.diffusion_model.blocks.11.self_attn.q_norm.weight	Middle_Attention	128	0.763670	0.137208	0.485048
+blocks.11.self_attn.q_proj.weight	model.diffusion_model.blocks.11.self_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000003	0.000110	4165.563997
+blocks.11.self_attn.v_proj.weight	model.diffusion_model.blocks.11.self_attn.v_proj.weight	Middle_Attention	2048x2048	-0.000001	0.000153	16318.987447
+blocks.12.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.12.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.001311	0.011012	80.049324
+blocks.12.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.12.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000124	0.001160	275.140525
+blocks.12.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.12.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	0.000322	0.000737	84.377488
+blocks.12.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.12.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000054	0.000346	343.461114
+blocks.12.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.12.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.000529	0.000620	47.075480
+blocks.12.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.12.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000393	0.000423	52.264023
+blocks.12.cross_attn.k_norm.weight	model.diffusion_model.blocks.12.cross_attn.k_norm.weight	Middle_Attention	128	0.729374	0.110092	0.454913
+blocks.12.cross_attn.k_proj.weight	model.diffusion_model.blocks.12.cross_attn.k_proj.weight	Middle_Attention	2048x1024	0.000004	0.000135	2971.097243
+blocks.12.cross_attn.output_proj.weight	model.diffusion_model.blocks.12.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000156	3438.042298
+blocks.12.cross_attn.q_norm.weight	model.diffusion_model.blocks.12.cross_attn.q_norm.weight	Middle_Attention	128	0.729382	0.110025	0.454770
+blocks.12.cross_attn.q_proj.weight	model.diffusion_model.blocks.12.cross_attn.q_proj.weight	Middle_Attention	2048x2048	0.000008	0.000112	1324.792750
+blocks.12.cross_attn.v_proj.weight	model.diffusion_model.blocks.12.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000020	0.000183	660.080093
+blocks.12.mlp.layer1.weight	model.diffusion_model.blocks.12.mlp.layer1.weight	Middle_MLP	8192x2048	0.000029	0.000141	415.914263
+blocks.12.mlp.layer2.weight	model.diffusion_model.blocks.12.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000003	0.000140	4297.030369
+blocks.12.self_attn.k_norm.weight	model.diffusion_model.blocks.12.self_attn.k_norm.weight	Middle_Attention	128	0.953587	0.104369	0.338786
+blocks.12.self_attn.k_proj.weight	model.diffusion_model.blocks.12.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000006	0.000127	1962.349855
+blocks.12.self_attn.output_proj.weight	model.diffusion_model.blocks.12.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000002	0.000140	5445.443964
+blocks.12.self_attn.q_norm.weight	model.diffusion_model.blocks.12.self_attn.q_norm.weight	Middle_Attention	128	0.956837	0.108259	0.343869
+blocks.12.self_attn.q_proj.weight	model.diffusion_model.blocks.12.self_attn.q_proj.weight	Middle_Attention	2048x2048	0.000002	0.000125	6944.064377
+blocks.12.self_attn.v_proj.weight	model.diffusion_model.blocks.12.self_attn.v_proj.weight	Middle_Attention	2048x2048	0.000007	0.000147	1742.940798
+blocks.13.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.13.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.002231	0.012177	49.470699
+blocks.13.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.13.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000153	0.001167	223.881781
+blocks.13.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.13.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	0.000769	0.001190	44.855949
+blocks.13.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.13.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000061	0.000430	339.357809
+blocks.13.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.13.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	0.000437	0.000725	61.601561
+blocks.13.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.13.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000593	0.000403	33.823545
+blocks.13.cross_attn.k_norm.weight	model.diffusion_model.blocks.13.cross_attn.k_norm.weight	Middle_Attention	128	0.874294	0.089268	0.341736
+blocks.13.cross_attn.k_proj.weight	model.diffusion_model.blocks.13.cross_attn.k_proj.weight	Middle_Attention	2048x1024	0.000003	0.000144	3922.597967
+blocks.13.cross_attn.output_proj.weight	model.diffusion_model.blocks.13.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000002	0.000159	5260.247070
+blocks.13.cross_attn.q_norm.weight	model.diffusion_model.blocks.13.cross_attn.q_norm.weight	Middle_Attention	128	0.874165	0.089227	0.341707
+blocks.13.cross_attn.q_proj.weight	model.diffusion_model.blocks.13.cross_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000009	0.000123	1283.370640
+blocks.13.cross_attn.v_proj.weight	model.diffusion_model.blocks.13.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000005	0.000190	2798.454866
+blocks.13.mlp.layer1.weight	model.diffusion_model.blocks.13.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000101	0.000138	116.120387
+blocks.13.mlp.layer2.weight	model.diffusion_model.blocks.13.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000009	0.000140	1339.781776
+blocks.13.self_attn.k_norm.weight	model.diffusion_model.blocks.13.self_attn.k_norm.weight	Middle_Attention	128	1.087769	0.023893	0.142103
+blocks.13.self_attn.k_proj.weight	model.diffusion_model.blocks.13.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000002	0.000129	6637.855040
+blocks.13.self_attn.output_proj.weight	model.diffusion_model.blocks.13.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000000	0.000136	74425.677782
+blocks.13.self_attn.q_norm.weight	model.diffusion_model.blocks.13.self_attn.q_norm.weight	Middle_Attention	128	1.082748	0.026931	0.151564
+blocks.13.self_attn.q_proj.weight	model.diffusion_model.blocks.13.self_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000012	0.000124	931.971555
+blocks.13.self_attn.v_proj.weight	model.diffusion_model.blocks.13.self_attn.v_proj.weight	Middle_Attention	2048x2048	-0.000001	0.000143	9433.573624
+blocks.14.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.14.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.006372	0.012262	17.378105
+blocks.14.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.14.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000447	0.001244	78.988383
+blocks.14.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.14.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	-0.003654	0.001385	10.187420
+blocks.14.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.14.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000104	0.000456	204.823727
+blocks.14.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.14.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.001305	0.000765	21.196623
+blocks.14.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.14.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000120	0.000352	156.095051
+blocks.14.cross_attn.k_norm.weight	model.diffusion_model.blocks.14.cross_attn.k_norm.weight	Middle_Attention	128	0.837692	0.096945	0.371687
+blocks.14.cross_attn.k_proj.weight	model.diffusion_model.blocks.14.cross_attn.k_proj.weight	Middle_Attention	2048x1024	-0.000001	0.000140	10978.185712
+blocks.14.cross_attn.output_proj.weight	model.diffusion_model.blocks.14.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000019	0.000163	670.861878
+blocks.14.cross_attn.q_norm.weight	model.diffusion_model.blocks.14.cross_attn.q_norm.weight	Middle_Attention	128	0.838104	0.096961	0.371535
+blocks.14.cross_attn.q_proj.weight	model.diffusion_model.blocks.14.cross_attn.q_proj.weight	Middle_Attention	2048x2048	0.000001	0.000125	19388.040682
+blocks.14.cross_attn.v_proj.weight	model.diffusion_model.blocks.14.cross_attn.v_proj.weight	Middle_Attention	2048x1024	0.000004	0.000200	3336.847323
+blocks.14.mlp.layer1.weight	model.diffusion_model.blocks.14.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000107	0.000134	108.047663
+blocks.14.mlp.layer2.weight	model.diffusion_model.blocks.14.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000010	0.000137	1215.051307
+blocks.14.self_attn.k_norm.weight	model.diffusion_model.blocks.14.self_attn.k_norm.weight	Middle_Attention	128	1.095322	0.034310	0.169111
+blocks.14.self_attn.k_proj.weight	model.diffusion_model.blocks.14.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000003	0.000129	3585.087261
+blocks.14.self_attn.output_proj.weight	model.diffusion_model.blocks.14.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000006	0.000136	1833.499773
+blocks.14.self_attn.q_norm.weight	model.diffusion_model.blocks.14.self_attn.q_norm.weight	Middle_Attention	128	1.095238	0.033726	0.167678
+blocks.14.self_attn.q_proj.weight	model.diffusion_model.blocks.14.self_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000005	0.000126	2386.174042
+blocks.14.self_attn.v_proj.weight	model.diffusion_model.blocks.14.self_attn.v_proj.weight	Middle_Attention	2048x2048	-0.000002	0.000139	5119.711374
+blocks.15.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.15.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.004341	0.014910	28.126822
+blocks.15.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.15.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000236	0.001763	177.881653
+blocks.15.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.15.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	-0.001145	0.001490	33.706729
+blocks.15.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.15.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000001	0.000499	18050.932504
+blocks.15.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.15.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.000510	0.000787	54.974150
+blocks.15.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.15.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000902	0.000315	19.659202
+blocks.15.cross_attn.k_norm.weight	model.diffusion_model.blocks.15.cross_attn.k_norm.weight	Middle_Attention	128	0.912281	0.106156	0.357143
+blocks.15.cross_attn.k_proj.weight	model.diffusion_model.blocks.15.cross_attn.k_proj.weight	Middle_Attention	2048x1024	0.000018	0.000142	650.092386
+blocks.15.cross_attn.output_proj.weight	model.diffusion_model.blocks.15.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000005	0.000168	2705.992019
+blocks.15.cross_attn.q_norm.weight	model.diffusion_model.blocks.15.cross_attn.q_norm.weight	Middle_Attention	128	0.912312	0.106029	0.356919
+blocks.15.cross_attn.q_proj.weight	model.diffusion_model.blocks.15.cross_attn.q_proj.weight	Middle_Attention	2048x2048	0.000000	0.000129	68630.113233
+blocks.15.cross_attn.v_proj.weight	model.diffusion_model.blocks.15.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000006	0.000216	2507.906001
+blocks.15.mlp.layer1.weight	model.diffusion_model.blocks.15.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000151	0.000130	75.810976
+blocks.15.mlp.layer2.weight	model.diffusion_model.blocks.15.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000002	0.000132	7166.001719
+blocks.15.self_attn.k_norm.weight	model.diffusion_model.blocks.15.self_attn.k_norm.weight	Middle_Attention	128	1.157410	0.026593	0.140895
+blocks.15.self_attn.k_proj.weight	model.diffusion_model.blocks.15.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000006	0.000129	1950.635730
+blocks.15.self_attn.output_proj.weight	model.diffusion_model.blocks.15.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000000	0.000133	106868.745475
+blocks.15.self_attn.q_norm.weight	model.diffusion_model.blocks.15.self_attn.q_norm.weight	Middle_Attention	128	1.152985	0.031169	0.153123
+blocks.15.self_attn.q_proj.weight	model.diffusion_model.blocks.15.self_attn.q_proj.weight	Middle_Attention	2048x2048	0.000000	0.000129	50000.307666
+blocks.15.self_attn.v_proj.weight	model.diffusion_model.blocks.15.self_attn.v_proj.weight	Middle_Attention	2048x2048	-0.000003	0.000139	4567.081448
+blocks.16.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.16.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.001305	0.011214	81.172244
+blocks.16.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.16.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000000	0.001325	730632.514332
+blocks.16.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.16.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	0.001055	0.001441	35.962059
+blocks.16.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.16.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000007	0.000509	3186.025065
+blocks.16.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.16.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.000920	0.000821	31.128639
+blocks.16.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.16.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000181	0.000290	94.071210
+blocks.16.cross_attn.k_norm.weight	model.diffusion_model.blocks.16.cross_attn.k_norm.weight	Middle_Attention	128	0.765661	0.155165	0.514471
+blocks.16.cross_attn.k_proj.weight	model.diffusion_model.blocks.16.cross_attn.k_proj.weight	Middle_Attention	2048x1024	0.000002	0.000132	5092.725550
+blocks.16.cross_attn.output_proj.weight	model.diffusion_model.blocks.16.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000001	0.000174	21285.396601
+blocks.16.cross_attn.q_norm.weight	model.diffusion_model.blocks.16.cross_attn.q_norm.weight	Middle_Attention	128	0.765740	0.155409	0.514822
+blocks.16.cross_attn.q_proj.weight	model.diffusion_model.blocks.16.cross_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000004	0.000130	2874.223613
+blocks.16.cross_attn.v_proj.weight	model.diffusion_model.blocks.16.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000004	0.000228	3397.379200
+blocks.16.mlp.layer1.weight	model.diffusion_model.blocks.16.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000151	0.000130	75.393778
+blocks.16.mlp.layer2.weight	model.diffusion_model.blocks.16.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000005	0.000129	2455.525958
+blocks.16.self_attn.k_norm.weight	model.diffusion_model.blocks.16.self_attn.k_norm.weight	Middle_Attention	128	1.056976	0.031380	0.167595
+blocks.16.self_attn.k_proj.weight	model.diffusion_model.blocks.16.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000012	0.000126	952.973184
+blocks.16.self_attn.output_proj.weight	model.diffusion_model.blocks.16.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000000	0.000134	269085.657191
+blocks.16.self_attn.q_norm.weight	model.diffusion_model.blocks.16.self_attn.q_norm.weight	Middle_Attention	128	1.053802	0.033046	0.172504
+blocks.16.self_attn.q_proj.weight	model.diffusion_model.blocks.16.self_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000000	0.000124	68391.039507
+blocks.16.self_attn.v_proj.weight	model.diffusion_model.blocks.16.self_attn.v_proj.weight	Middle_Attention	2048x2048	0.000003	0.000142	3595.585068
+blocks.17.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.17.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	-0.001321	0.011041	79.572920
+blocks.17.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.17.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	-0.000091	0.001547	430.699622
+blocks.17.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.17.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	0.002452	0.001314	14.782131
+blocks.17.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.17.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000058	0.000660	439.704685
+blocks.17.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.17.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.000186	0.000894	160.625607
+blocks.17.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.17.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	0.000115	0.000266	142.446963
+blocks.17.cross_attn.k_norm.weight	model.diffusion_model.blocks.17.cross_attn.k_norm.weight	Middle_Attention	128	0.866314	0.122039	0.403250
+blocks.17.cross_attn.k_proj.weight	model.diffusion_model.blocks.17.cross_attn.k_proj.weight	Middle_Attention	2048x1024	-0.000009	0.000140	1248.204716
+blocks.17.cross_attn.output_proj.weight	model.diffusion_model.blocks.17.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000010	0.000182	1413.312356
+blocks.17.cross_attn.q_norm.weight	model.diffusion_model.blocks.17.cross_attn.q_norm.weight	Middle_Attention	128	0.866098	0.121945	0.403195
+blocks.17.cross_attn.q_proj.weight	model.diffusion_model.blocks.17.cross_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000007	0.000137	1699.062292
+blocks.17.cross_attn.v_proj.weight	model.diffusion_model.blocks.17.cross_attn.v_proj.weight	Middle_Attention	2048x1024	0.000004	0.000245	4067.323272
+blocks.17.mlp.layer1.weight	model.diffusion_model.blocks.17.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000161	0.000129	70.687948
+blocks.17.mlp.layer2.weight	model.diffusion_model.blocks.17.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000002	0.000127	6933.873975
+blocks.17.self_attn.k_norm.weight	model.diffusion_model.blocks.17.self_attn.k_norm.weight	Middle_Attention	128	1.187878	0.039943	0.168248
+blocks.17.self_attn.k_proj.weight	model.diffusion_model.blocks.17.self_attn.k_proj.weight	Middle_Attention	2048x2048	-0.000002	0.000122	5422.219441
+blocks.17.self_attn.output_proj.weight	model.diffusion_model.blocks.17.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000011	0.000132	1026.616985
+blocks.17.self_attn.q_norm.weight	model.diffusion_model.blocks.17.self_attn.q_norm.weight	Middle_Attention	128	1.190437	0.043679	0.175562
+blocks.17.self_attn.q_proj.weight	model.diffusion_model.blocks.17.self_attn.q_proj.weight	Middle_Attention	2048x2048	0.000005	0.000127	2498.828185
+blocks.17.self_attn.v_proj.weight	model.diffusion_model.blocks.17.self_attn.v_proj.weight	Middle_Attention	2048x2048	0.000009	0.000143	1341.913926
+blocks.18.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.18.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	-0.002086	0.007651	41.926147
+blocks.18.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.18.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	-0.000129	0.001155	262.600784
+blocks.18.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.18.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	0.000394	0.001330	92.529202
+blocks.18.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.18.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	-0.000004	0.000698	6308.201153
+blocks.18.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.18.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	-0.001678	0.001042	19.233372
+blocks.18.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.18.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	-0.000724	0.000272	22.792277
+blocks.18.cross_attn.k_norm.weight	model.diffusion_model.blocks.18.cross_attn.k_norm.weight	Middle_Attention	128	0.373944	0.121858	0.933511
+blocks.18.cross_attn.k_proj.weight	model.diffusion_model.blocks.18.cross_attn.k_proj.weight	Middle_Attention	2048x1024	0.000000	0.000089	302225.165769
+blocks.18.cross_attn.output_proj.weight	model.diffusion_model.blocks.18.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000002	0.000172	5518.400843
+blocks.18.cross_attn.q_norm.weight	model.diffusion_model.blocks.18.cross_attn.q_norm.weight	Middle_Attention	128	0.373777	0.121723	0.933414
+blocks.18.cross_attn.q_proj.weight	model.diffusion_model.blocks.18.cross_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000005	0.000130	2105.405842
+blocks.18.cross_attn.v_proj.weight	model.diffusion_model.blocks.18.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000009	0.000250	1664.331387
+blocks.18.mlp.layer1.weight	model.diffusion_model.blocks.18.mlp.layer1.weight	Middle_MLP	8192x2048	-0.000165	0.000129	68.775468
+blocks.18.mlp.layer2.weight	model.diffusion_model.blocks.18.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000007	0.000124	1703.557277
+blocks.18.self_attn.k_norm.weight	model.diffusion_model.blocks.18.self_attn.k_norm.weight	Middle_Attention	128	1.140005	0.038764	0.172705
+blocks.18.self_attn.k_proj.weight	model.diffusion_model.blocks.18.self_attn.k_proj.weight	Middle_Attention	2048x2048	-0.000008	0.000122	1405.968937
+blocks.18.self_attn.output_proj.weight	model.diffusion_model.blocks.18.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000001	0.000131	13186.391709
+blocks.18.self_attn.q_norm.weight	model.diffusion_model.blocks.18.self_attn.q_norm.weight	Middle_Attention	128	1.147472	0.038403	0.170782
+blocks.18.self_attn.q_proj.weight	model.diffusion_model.blocks.18.self_attn.q_proj.weight	Middle_Attention	2048x2048	0.000006	0.000126	1776.620189
+blocks.18.self_attn.v_proj.weight	model.diffusion_model.blocks.18.self_attn.v_proj.weight	Middle_Attention	2048x2048	0.000004	0.000144	2851.734938
+blocks.19.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.19.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	0.001380	0.006059	56.416027
+blocks.19.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.19.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	0.000070	0.000871	423.822616
+blocks.19.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.19.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	0.002262	0.001477	16.989114
+blocks.19.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.19.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	-0.000003	0.000811	8388.162818
+blocks.19.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.19.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	-0.002353	0.000972	13.247166
+blocks.19.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.19.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	-0.000463	0.000287	36.590272
+blocks.19.cross_attn.k_norm.weight	model.diffusion_model.blocks.19.cross_attn.k_norm.weight	Output_Attention	128	0.357358	0.105858	0.910455
+blocks.19.cross_attn.k_proj.weight	model.diffusion_model.blocks.19.cross_attn.k_proj.weight	Output_Attention	2048x1024	-0.000003	0.000089	3047.532959
+blocks.19.cross_attn.output_proj.weight	model.diffusion_model.blocks.19.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000006	0.000169	2157.840994
+blocks.19.cross_attn.q_norm.weight	model.diffusion_model.blocks.19.cross_attn.q_norm.weight	Output_Attention	128	0.357431	0.105808	0.910054
+blocks.19.cross_attn.q_proj.weight	model.diffusion_model.blocks.19.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000010	0.000129	1147.421053
+blocks.19.cross_attn.v_proj.weight	model.diffusion_model.blocks.19.cross_attn.v_proj.weight	Output_Attention	2048x1024	-0.000028	0.000261	585.887886
+blocks.19.mlp.layer1.weight	model.diffusion_model.blocks.19.mlp.layer1.weight	Output_MLP	8192x2048	-0.000158	0.000129	71.884611
+blocks.19.mlp.layer2.weight	model.diffusion_model.blocks.19.mlp.layer2.weight	Output_MLP	2048x8192	-0.000005	0.000125	2394.032604
+blocks.19.self_attn.k_norm.weight	model.diffusion_model.blocks.19.self_attn.k_norm.weight	Output_Attention	128	1.130096	0.033511	0.161985
+blocks.19.self_attn.k_proj.weight	model.diffusion_model.blocks.19.self_attn.k_proj.weight	Output_Attention	2048x2048	-0.000002	0.000117	4720.915936
+blocks.19.self_attn.output_proj.weight	model.diffusion_model.blocks.19.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000003	0.000132	3573.985578
+blocks.19.self_attn.q_norm.weight	model.diffusion_model.blocks.19.self_attn.q_norm.weight	Output_Attention	128	1.128265	0.038230	0.173297
+blocks.19.self_attn.q_proj.weight	model.diffusion_model.blocks.19.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000015	0.000121	726.111616
+blocks.19.self_attn.v_proj.weight	model.diffusion_model.blocks.19.self_attn.v_proj.weight	Output_Attention	2048x2048	0.000000	0.000146	23740.292272
+blocks.2.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.2.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	0.001849	0.000942	16.602040
+blocks.2.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.2.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000211	0.000198	66.796343
+blocks.2.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.2.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000154	0.000451	138.057082
+blocks.2.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.2.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	-0.000127	0.000498	175.816319
+blocks.2.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.2.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	0.000360	0.000539	64.414521
+blocks.2.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.2.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	0.000046	0.000678	567.801651
+blocks.2.cross_attn.k_norm.weight	model.diffusion_model.blocks.2.cross_attn.k_norm.weight	Input_Attention	128	0.124248	0.032281	1.446046
+blocks.2.cross_attn.k_proj.weight	model.diffusion_model.blocks.2.cross_attn.k_proj.weight	Input_Attention	2048x1024	0.000004	0.000073	2434.116285
+blocks.2.cross_attn.output_proj.weight	model.diffusion_model.blocks.2.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000008	0.000097	1286.940818
+blocks.2.cross_attn.q_norm.weight	model.diffusion_model.blocks.2.cross_attn.q_norm.weight	Input_Attention	128	0.124435	0.032399	1.446512
+blocks.2.cross_attn.q_proj.weight	model.diffusion_model.blocks.2.cross_attn.q_proj.weight	Input_Attention	2048x2048	0.000005	0.000025	1080.643916
+blocks.2.cross_attn.v_proj.weight	model.diffusion_model.blocks.2.cross_attn.v_proj.weight	Input_Attention	2048x1024	-0.000019	0.000153	665.512972
+blocks.2.mlp.layer1.weight	model.diffusion_model.blocks.2.mlp.layer1.weight	Input_MLP	8192x2048	0.000019	0.000061	417.733159
+blocks.2.mlp.layer2.weight	model.diffusion_model.blocks.2.mlp.layer2.weight	Input_MLP	2048x8192	0.000007	0.000070	1160.396954
+blocks.2.self_attn.k_norm.weight	model.diffusion_model.blocks.2.self_attn.k_norm.weight	Input_Attention	128	0.175122	0.102080	1.824440
+blocks.2.self_attn.k_proj.weight	model.diffusion_model.blocks.2.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000004	0.000033	1543.035857
+blocks.2.self_attn.output_proj.weight	model.diffusion_model.blocks.2.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000002	0.000085	5853.921159
+blocks.2.self_attn.q_norm.weight	model.diffusion_model.blocks.2.self_attn.q_norm.weight	Input_Attention	128	0.177282	0.103145	1.811590
+blocks.2.self_attn.q_proj.weight	model.diffusion_model.blocks.2.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000008	0.000030	721.073100
+blocks.2.self_attn.v_proj.weight	model.diffusion_model.blocks.2.self_attn.v_proj.weight	Input_Attention	2048x2048	-0.000011	0.000056	655.612146
+blocks.20.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.20.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	-0.000287	0.006000	269.553165
+blocks.20.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.20.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	0.000041	0.000993	764.073708
+blocks.20.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.20.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	-0.004413	0.001511	8.809467
+blocks.20.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.20.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	0.000169	0.000977	185.064641
+blocks.20.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.20.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.002204	0.001269	16.158469
+blocks.20.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.20.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	0.000681	0.000298	25.327779
+blocks.20.cross_attn.k_norm.weight	model.diffusion_model.blocks.20.cross_attn.k_norm.weight	Output_Attention	128	0.053215	0.011141	1.983508
+blocks.20.cross_attn.k_proj.weight	model.diffusion_model.blocks.20.cross_attn.k_proj.weight	Output_Attention	2048x1024	0.000001	0.000059	7206.976055
+blocks.20.cross_attn.output_proj.weight	model.diffusion_model.blocks.20.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000009	0.000146	1372.412765
+blocks.20.cross_attn.q_norm.weight	model.diffusion_model.blocks.20.cross_attn.q_norm.weight	Output_Attention	128	0.054403	0.010918	1.920646
+blocks.20.cross_attn.q_proj.weight	model.diffusion_model.blocks.20.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000000	0.000129	101272.978192
+blocks.20.cross_attn.v_proj.weight	model.diffusion_model.blocks.20.cross_attn.v_proj.weight	Output_Attention	2048x1024	0.000010	0.000251	1515.670023
+blocks.20.mlp.layer1.weight	model.diffusion_model.blocks.20.mlp.layer1.weight	Output_MLP	8192x2048	-0.000155	0.000128	72.796719
+blocks.20.mlp.layer2.weight	model.diffusion_model.blocks.20.mlp.layer2.weight	Output_MLP	2048x8192	-0.000003	0.000129	4194.103747
+blocks.20.self_attn.k_norm.weight	model.diffusion_model.blocks.20.self_attn.k_norm.weight	Output_Attention	128	1.124176	0.036648	0.170291
+blocks.20.self_attn.k_proj.weight	model.diffusion_model.blocks.20.self_attn.k_proj.weight	Output_Attention	2048x2048	0.000001	0.000114	7892.103822
+blocks.20.self_attn.output_proj.weight	model.diffusion_model.blocks.20.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000135	2582.372596
+blocks.20.self_attn.q_norm.weight	model.diffusion_model.blocks.20.self_attn.q_norm.weight	Output_Attention	128	1.128143	0.038666	0.174300
+blocks.20.self_attn.q_proj.weight	model.diffusion_model.blocks.20.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000002	0.000123	6092.780768
+blocks.20.self_attn.v_proj.weight	model.diffusion_model.blocks.20.self_attn.v_proj.weight	Output_Attention	2048x2048	0.000010	0.000148	1273.516545
+blocks.21.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.21.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	-0.004053	0.006161	19.366689
+blocks.21.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.21.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	-0.000096	0.001190	359.729295
+blocks.21.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.21.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	0.000408	0.001967	108.716123
+blocks.21.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.21.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	-0.000097	0.001187	356.840061
+blocks.21.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.21.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.002335	0.001361	15.802225
+blocks.21.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.21.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	0.000290	0.000425	70.988410
+blocks.21.cross_attn.k_norm.weight	model.diffusion_model.blocks.21.cross_attn.k_norm.weight	Output_Attention	128	0.039422	0.009111	2.421287
+blocks.21.cross_attn.k_proj.weight	model.diffusion_model.blocks.21.cross_attn.k_proj.weight	Output_Attention	2048x1024	0.000002	0.000057	3495.489828
+blocks.21.cross_attn.output_proj.weight	model.diffusion_model.blocks.21.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000007	0.000138	1580.835424
+blocks.21.cross_attn.q_norm.weight	model.diffusion_model.blocks.21.cross_attn.q_norm.weight	Output_Attention	128	0.042687	0.009165	2.242649
+blocks.21.cross_attn.q_proj.weight	model.diffusion_model.blocks.21.cross_attn.q_proj.weight	Output_Attention	2048x2048	0.000019	0.000131	611.833312
+blocks.21.cross_attn.v_proj.weight	model.diffusion_model.blocks.21.cross_attn.v_proj.weight	Output_Attention	2048x1024	-0.000003	0.000336	5557.657239
+blocks.21.mlp.layer1.weight	model.diffusion_model.blocks.21.mlp.layer1.weight	Output_MLP	8192x2048	-0.000136	0.000125	81.892567
+blocks.21.mlp.layer2.weight	model.diffusion_model.blocks.21.mlp.layer2.weight	Output_MLP	2048x8192	-0.000004	0.000131	2558.740296
+blocks.21.self_attn.k_norm.weight	model.diffusion_model.blocks.21.self_attn.k_norm.weight	Output_Attention	128	1.146957	0.050431	0.195795
+blocks.21.self_attn.k_proj.weight	model.diffusion_model.blocks.21.self_attn.k_proj.weight	Output_Attention	2048x2048	0.000001	0.000112	7535.058236
+blocks.21.self_attn.output_proj.weight	model.diffusion_model.blocks.21.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000000	0.000135	81372.399450
+blocks.21.self_attn.q_norm.weight	model.diffusion_model.blocks.21.self_attn.q_norm.weight	Output_Attention	128	1.146896	0.057018	0.208201
+blocks.21.self_attn.q_proj.weight	model.diffusion_model.blocks.21.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000006	0.000123	1933.750983
+blocks.21.self_attn.v_proj.weight	model.diffusion_model.blocks.21.self_attn.v_proj.weight	Output_Attention	2048x2048	0.000000	0.000147	74530.639189
+blocks.22.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.22.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	-0.000204	0.003732	300.168486
+blocks.22.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.22.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	-0.000036	0.000693	724.147344
+blocks.22.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.22.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	0.001556	0.002352	31.159249
+blocks.22.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.22.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	0.000112	0.001504	345.446700
+blocks.22.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.22.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.001396	0.001826	30.603614
+blocks.22.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.22.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	-0.000051	0.000458	415.737014
+blocks.22.cross_attn.k_norm.weight	model.diffusion_model.blocks.22.cross_attn.k_norm.weight	Output_Attention	128	0.018422	0.005661	4.084312
+blocks.22.cross_attn.k_proj.weight	model.diffusion_model.blocks.22.cross_attn.k_proj.weight	Output_Attention	2048x1024	0.000002	0.000044	3596.393108
+blocks.22.cross_attn.output_proj.weight	model.diffusion_model.blocks.22.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000098	2214.136177
+blocks.22.cross_attn.q_norm.weight	model.diffusion_model.blocks.22.cross_attn.q_norm.weight	Output_Attention	128	0.020293	0.005893	3.783031
+blocks.22.cross_attn.q_proj.weight	model.diffusion_model.blocks.22.cross_attn.q_proj.weight	Output_Attention	2048x2048	0.000004	0.000131	2974.272595
+blocks.22.cross_attn.v_proj.weight	model.diffusion_model.blocks.22.cross_attn.v_proj.weight	Output_Attention	2048x1024	0.000003	0.000189	4387.737475
+blocks.22.mlp.layer1.weight	model.diffusion_model.blocks.22.mlp.layer1.weight	Output_MLP	8192x2048	-0.000135	0.000126	83.489287
+blocks.22.mlp.layer2.weight	model.diffusion_model.blocks.22.mlp.layer2.weight	Output_MLP	2048x8192	-0.000002	0.000136	5080.957602
+blocks.22.self_attn.k_norm.weight	model.diffusion_model.blocks.22.self_attn.k_norm.weight	Output_Attention	128	1.077858	0.047500	0.202202
+blocks.22.self_attn.k_proj.weight	model.diffusion_model.blocks.22.self_attn.k_proj.weight	Output_Attention	2048x2048	-0.000005	0.000107	2283.887146
+blocks.22.self_attn.output_proj.weight	model.diffusion_model.blocks.22.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000137	2852.361278
+blocks.22.self_attn.q_norm.weight	model.diffusion_model.blocks.22.self_attn.q_norm.weight	Output_Attention	128	1.073936	0.052315	0.212978
+blocks.22.self_attn.q_proj.weight	model.diffusion_model.blocks.22.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000011	0.000118	1017.577002
+blocks.22.self_attn.v_proj.weight	model.diffusion_model.blocks.22.self_attn.v_proj.weight	Output_Attention	2048x2048	-0.000000	0.000154	31893.993175
+blocks.23.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.23.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	-0.007057	0.006755	11.646405
+blocks.23.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.23.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	-0.000288	0.001200	120.508345
+blocks.23.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.23.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	-0.003574	0.002849	14.933958
+blocks.23.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.23.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	0.000185	0.002417	266.195310
+blocks.23.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.23.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.001559	0.001835	27.479072
+blocks.23.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.23.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	-0.000257	0.000723	104.737756
+blocks.23.cross_attn.k_norm.weight	model.diffusion_model.blocks.23.cross_attn.k_norm.weight	Output_Attention	128	0.044730	0.008186	2.022739
+blocks.23.cross_attn.k_proj.weight	model.diffusion_model.blocks.23.cross_attn.k_proj.weight	Output_Attention	2048x1024	-0.000004	0.000066	1926.178012
+blocks.23.cross_attn.output_proj.weight	model.diffusion_model.blocks.23.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000010	0.000161	1284.671825
+blocks.23.cross_attn.q_norm.weight	model.diffusion_model.blocks.23.cross_attn.q_norm.weight	Output_Attention	128	0.044725	0.008305	2.037567
+blocks.23.cross_attn.q_proj.weight	model.diffusion_model.blocks.23.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000007	0.000127	1592.409145
+blocks.23.cross_attn.v_proj.weight	model.diffusion_model.blocks.23.cross_attn.v_proj.weight	Output_Attention	2048x1024	-0.000000	0.000484	92317.877313
+blocks.23.mlp.layer1.weight	model.diffusion_model.blocks.23.mlp.layer1.weight	Output_MLP	8192x2048	-0.000104	0.000119	104.706070
+blocks.23.mlp.layer2.weight	model.diffusion_model.blocks.23.mlp.layer2.weight	Output_MLP	2048x8192	0.000000	0.000148	46071.348303
+blocks.23.self_attn.k_norm.weight	model.diffusion_model.blocks.23.self_attn.k_norm.weight	Output_Attention	128	1.217482	0.101232	0.261335
+blocks.23.self_attn.k_proj.weight	model.diffusion_model.blocks.23.self_attn.k_proj.weight	Output_Attention	2048x2048	0.000005	0.000107	1904.155048
+blocks.23.self_attn.output_proj.weight	model.diffusion_model.blocks.23.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000003	0.000140	3704.246435
+blocks.23.self_attn.q_norm.weight	model.diffusion_model.blocks.23.self_attn.q_norm.weight	Output_Attention	128	1.219037	0.110836	0.273101
+blocks.23.self_attn.q_proj.weight	model.diffusion_model.blocks.23.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000009	0.000126	1312.302125
+blocks.23.self_attn.v_proj.weight	model.diffusion_model.blocks.23.self_attn.v_proj.weight	Output_Attention	2048x2048	0.000001	0.000153	19043.273815
+blocks.24.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.24.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	0.001192	0.006260	66.352947
+blocks.24.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.24.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	0.000031	0.001290	1147.979173
+blocks.24.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.24.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	0.001796	0.003081	30.910693
+blocks.24.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.24.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	-0.000181	0.002471	273.924249
+blocks.24.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.24.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.001654	0.001668	24.694633
+blocks.24.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.24.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	0.000368	0.000667	70.137551
+blocks.24.cross_attn.k_norm.weight	model.diffusion_model.blocks.24.cross_attn.k_norm.weight	Output_Attention	128	0.026044	0.005490	2.844825
+blocks.24.cross_attn.k_proj.weight	model.diffusion_model.blocks.24.cross_attn.k_proj.weight	Output_Attention	2048x1024	0.000009	0.000050	764.543047
+blocks.24.cross_attn.output_proj.weight	model.diffusion_model.blocks.24.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000007	0.000144	1611.633973
+blocks.24.cross_attn.q_norm.weight	model.diffusion_model.blocks.24.cross_attn.q_norm.weight	Output_Attention	128	0.027582	0.005135	2.597951
+blocks.24.cross_attn.q_proj.weight	model.diffusion_model.blocks.24.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000001	0.000124	12337.067888
+blocks.24.cross_attn.v_proj.weight	model.diffusion_model.blocks.24.cross_attn.v_proj.weight	Output_Attention	2048x1024	-0.000003	0.000217	4669.385665
+blocks.24.mlp.layer1.weight	model.diffusion_model.blocks.24.mlp.layer1.weight	Output_MLP	8192x2048	-0.000105	0.000117	103.007649
+blocks.24.mlp.layer2.weight	model.diffusion_model.blocks.24.mlp.layer2.weight	Output_MLP	2048x8192	-0.000004	0.000135	3055.158462
+blocks.24.self_attn.k_norm.weight	model.diffusion_model.blocks.24.self_attn.k_norm.weight	Output_Attention	128	1.019345	0.050809	0.221132
+blocks.24.self_attn.k_proj.weight	model.diffusion_model.blocks.24.self_attn.k_proj.weight	Output_Attention	2048x2048	0.000006	0.000107	1615.360239
+blocks.24.self_attn.output_proj.weight	model.diffusion_model.blocks.24.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000136	2831.126538
+blocks.24.self_attn.q_norm.weight	model.diffusion_model.blocks.24.self_attn.q_norm.weight	Output_Attention	128	1.016575	0.051245	0.222683
+blocks.24.self_attn.q_proj.weight	model.diffusion_model.blocks.24.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000009	0.000116	1197.769636
+blocks.24.self_attn.v_proj.weight	model.diffusion_model.blocks.24.self_attn.v_proj.weight	Output_Attention	2048x2048	0.000002	0.000154	5134.138557
+blocks.25.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.25.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	0.001031	0.004825	67.359879
+blocks.25.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.25.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	0.000059	0.001075	551.339832
+blocks.25.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.25.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	-0.001890	0.003914	33.101625
+blocks.25.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.25.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	0.000045	0.003159	1248.256361
+blocks.25.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.25.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	-0.002560	0.001860	16.852150
+blocks.25.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.25.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	-0.000395	0.000549	59.304043
+blocks.25.cross_attn.k_norm.weight	model.diffusion_model.blocks.25.cross_attn.k_norm.weight	Output_Attention	128	0.031860	0.004823	2.179817
+blocks.25.cross_attn.k_proj.weight	model.diffusion_model.blocks.25.cross_attn.k_proj.weight	Output_Attention	2048x1024	-0.000016	0.000070	519.969492
+blocks.25.cross_attn.output_proj.weight	model.diffusion_model.blocks.25.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000009	0.000146	1401.149039
+blocks.25.cross_attn.q_norm.weight	model.diffusion_model.blocks.25.cross_attn.q_norm.weight	Output_Attention	128	0.033761	0.005017	2.097882
+blocks.25.cross_attn.q_proj.weight	model.diffusion_model.blocks.25.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000002	0.000137	4732.452494
+blocks.25.cross_attn.v_proj.weight	model.diffusion_model.blocks.25.cross_attn.v_proj.weight	Output_Attention	2048x1024	-0.000016	0.000334	1148.465176
+blocks.25.mlp.layer1.weight	model.diffusion_model.blocks.25.mlp.layer1.weight	Output_MLP	8192x2048	-0.000079	0.000113	134.983381
+blocks.25.mlp.layer2.weight	model.diffusion_model.blocks.25.mlp.layer2.weight	Output_MLP	2048x8192	-0.000005	0.000149	2495.131865
+blocks.25.self_attn.k_norm.weight	model.diffusion_model.blocks.25.self_attn.k_norm.weight	Output_Attention	128	1.222488	0.164563	0.331835
+blocks.25.self_attn.k_proj.weight	model.diffusion_model.blocks.25.self_attn.k_proj.weight	Output_Attention	2048x2048	0.000002	0.000103	4167.879932
+blocks.25.self_attn.output_proj.weight	model.diffusion_model.blocks.25.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000003	0.000145	4570.104893
+blocks.25.self_attn.q_norm.weight	model.diffusion_model.blocks.25.self_attn.q_norm.weight	Output_Attention	128	1.211578	0.163307	0.333542
+blocks.25.self_attn.q_proj.weight	model.diffusion_model.blocks.25.self_attn.q_proj.weight	Output_Attention	2048x2048	0.000013	0.000122	856.166026
+blocks.25.self_attn.v_proj.weight	model.diffusion_model.blocks.25.self_attn.v_proj.weight	Output_Attention	2048x2048	-0.000010	0.000161	1271.078214
+blocks.26.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.26.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	0.002846	0.006752	28.868692
+blocks.26.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.26.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	-0.000014	0.001297	2492.267324
+blocks.26.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.26.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	0.000266	0.005043	267.070200
+blocks.26.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.26.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	-0.000029	0.006580	2807.175461
+blocks.26.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.26.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.001497	0.002203	31.363703
+blocks.26.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.26.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	0.000059	0.000558	403.631824
+blocks.26.cross_attn.k_norm.weight	model.diffusion_model.blocks.26.cross_attn.k_norm.weight	Output_Attention	128	0.024498	0.005916	3.139652
+blocks.26.cross_attn.k_proj.weight	model.diffusion_model.blocks.26.cross_attn.k_proj.weight	Output_Attention	2048x1024	0.000002	0.000050	3014.992431
+blocks.26.cross_attn.output_proj.weight	model.diffusion_model.blocks.26.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000002	0.000138	4991.740056
+blocks.26.cross_attn.q_norm.weight	model.diffusion_model.blocks.26.cross_attn.q_norm.weight	Output_Attention	128	0.024433	0.006337	3.258139
+blocks.26.cross_attn.q_proj.weight	model.diffusion_model.blocks.26.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000009	0.000130	1226.292013
+blocks.26.cross_attn.v_proj.weight	model.diffusion_model.blocks.26.cross_attn.v_proj.weight	Output_Attention	2048x1024	0.000004	0.000367	4969.555040
+blocks.26.mlp.layer1.weight	model.diffusion_model.blocks.26.mlp.layer1.weight	Output_MLP	8192x2048	-0.000043	0.000105	238.294026
+blocks.26.mlp.layer2.weight	model.diffusion_model.blocks.26.mlp.layer2.weight	Output_MLP	2048x8192	0.000006	0.000175	2064.962432
+blocks.26.self_attn.k_norm.weight	model.diffusion_model.blocks.26.self_attn.k_norm.weight	Output_Attention	128	1.138143	0.055207	0.206443
+blocks.26.self_attn.k_proj.weight	model.diffusion_model.blocks.26.self_attn.k_proj.weight	Output_Attention	2048x2048	-0.000003	0.000104	3309.854472
+blocks.26.self_attn.output_proj.weight	model.diffusion_model.blocks.26.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000141	2938.343610
+blocks.26.self_attn.q_norm.weight	model.diffusion_model.blocks.26.self_attn.q_norm.weight	Output_Attention	128	1.133341	0.050827	0.198925
+blocks.26.self_attn.q_proj.weight	model.diffusion_model.blocks.26.self_attn.q_proj.weight	Output_Attention	2048x2048	-0.000018	0.000118	598.798721
+blocks.26.self_attn.v_proj.weight	model.diffusion_model.blocks.26.self_attn.v_proj.weight	Output_Attention	2048x2048	-0.000004	0.000157	3443.208831
+blocks.27.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.27.adaln_modulation_cross_attn.1.weight	Output_Attention	256x2048	0.000985	0.002487	50.625309
+blocks.27.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.27.adaln_modulation_cross_attn.2.weight	Output_Attention	6144x256	0.000048	0.000489	458.091003
+blocks.27.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.27.adaln_modulation_mlp.1.weight	Output_MLP	256x2048	0.000324	0.001848	132.679985
+blocks.27.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.27.adaln_modulation_mlp.2.weight	Output_MLP	6144x256	-0.000048	0.001935	913.991297
+blocks.27.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.27.adaln_modulation_self_attn.1.weight	Output_Attention	256x2048	0.000355	0.002744	147.649128
+blocks.27.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.27.adaln_modulation_self_attn.2.weight	Output_Attention	6144x256	-0.000155	0.001716	266.562425
+blocks.27.cross_attn.k_norm.weight	model.diffusion_model.blocks.27.cross_attn.k_norm.weight	Output_Attention	128	0.019596	0.005620	3.825529
+blocks.27.cross_attn.k_proj.weight	model.diffusion_model.blocks.27.cross_attn.k_proj.weight	Output_Attention	2048x1024	0.000004	0.000080	2173.081957
+blocks.27.cross_attn.output_proj.weight	model.diffusion_model.blocks.27.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000003	0.000063	2400.847625
+blocks.27.cross_attn.q_norm.weight	model.diffusion_model.blocks.27.cross_attn.q_norm.weight	Output_Attention	128	0.020569	0.006285	3.854267
+blocks.27.cross_attn.q_proj.weight	model.diffusion_model.blocks.27.cross_attn.q_proj.weight	Output_Attention	2048x2048	-0.000006	0.000120	1802.674312
+blocks.27.cross_attn.v_proj.weight	model.diffusion_model.blocks.27.cross_attn.v_proj.weight	Output_Attention	2048x1024	0.000001	0.000180	20235.856825
+blocks.27.mlp.layer1.weight	model.diffusion_model.blocks.27.mlp.layer1.weight	Output_MLP	8192x2048	0.000035	0.000110	298.467445
+blocks.27.mlp.layer2.weight	model.diffusion_model.blocks.27.mlp.layer2.weight	Output_MLP	2048x8192	0.000027	0.000098	371.124247
+blocks.27.self_attn.k_norm.weight	model.diffusion_model.blocks.27.self_attn.k_norm.weight	Output_Attention	128	0.661674	0.253978	0.761647
+blocks.27.self_attn.k_proj.weight	model.diffusion_model.blocks.27.self_attn.k_proj.weight	Output_Attention	2048x2048	-0.000005	0.000071	1694.785943
+blocks.27.self_attn.output_proj.weight	model.diffusion_model.blocks.27.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000005	0.000156	2276.410999
+blocks.27.self_attn.q_norm.weight	model.diffusion_model.blocks.27.self_attn.q_norm.weight	Output_Attention	128	0.648067	0.234655	0.747473
+blocks.27.self_attn.q_proj.weight	model.diffusion_model.blocks.27.self_attn.q_proj.weight	Output_Attention	2048x2048	-0.000006	0.000087	1477.041567
+blocks.27.self_attn.v_proj.weight	model.diffusion_model.blocks.27.self_attn.v_proj.weight	Output_Attention	2048x2048	0.000004	0.000149	3150.888081
+blocks.3.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.3.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	-0.000306	0.001085	107.539688
+blocks.3.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.3.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000067	0.000220	222.401254
+blocks.3.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.3.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	0.000979	0.001202	35.411452
+blocks.3.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.3.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	0.001394	0.001016	22.858516
+blocks.3.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.3.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	0.000038	0.000691	686.753400
+blocks.3.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.3.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	-0.000028	0.000707	962.598255
+blocks.3.cross_attn.k_norm.weight	model.diffusion_model.blocks.3.cross_attn.k_norm.weight	Input_Attention	128	0.191984	0.042008	1.067581
+blocks.3.cross_attn.k_proj.weight	model.diffusion_model.blocks.3.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000011	0.000073	807.016324
+blocks.3.cross_attn.output_proj.weight	model.diffusion_model.blocks.3.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000003	0.000104	3965.609469
+blocks.3.cross_attn.q_norm.weight	model.diffusion_model.blocks.3.cross_attn.q_norm.weight	Input_Attention	128	0.191987	0.042030	1.067840
+blocks.3.cross_attn.q_proj.weight	model.diffusion_model.blocks.3.cross_attn.q_proj.weight	Input_Attention	2048x2048	0.000001	0.000035	4933.981467
+blocks.3.cross_attn.v_proj.weight	model.diffusion_model.blocks.3.cross_attn.v_proj.weight	Input_Attention	2048x1024	0.000003	0.000149	4403.659105
+blocks.3.mlp.layer1.weight	model.diffusion_model.blocks.3.mlp.layer1.weight	Input_MLP	8192x2048	0.000023	0.000129	484.843060
+blocks.3.mlp.layer2.weight	model.diffusion_model.blocks.3.mlp.layer2.weight	Input_MLP	2048x8192	0.000001	0.000138	9025.355659
+blocks.3.self_attn.k_norm.weight	model.diffusion_model.blocks.3.self_attn.k_norm.weight	Input_Attention	128	0.235716	0.139667	1.585470
+blocks.3.self_attn.k_proj.weight	model.diffusion_model.blocks.3.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000002	0.000052	4681.578797
+blocks.3.self_attn.output_proj.weight	model.diffusion_model.blocks.3.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000009	0.000114	1171.687581
+blocks.3.self_attn.q_norm.weight	model.diffusion_model.blocks.3.self_attn.q_norm.weight	Input_Attention	128	0.235384	0.135606	1.564451
+blocks.3.self_attn.q_proj.weight	model.diffusion_model.blocks.3.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000004	0.000049	1648.121851
+blocks.3.self_attn.v_proj.weight	model.diffusion_model.blocks.3.self_attn.v_proj.weight	Input_Attention	2048x2048	0.000015	0.000077	574.752393
+blocks.4.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.4.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	-0.001435	0.001064	22.730831
+blocks.4.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.4.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	-0.000389	0.000206	36.876495
+blocks.4.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.4.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000247	0.000984	126.914345
+blocks.4.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.4.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	0.000200	0.000900	150.112733
+blocks.4.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.4.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	0.000028	0.000500	802.857913
+blocks.4.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.4.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	-0.000395	0.000941	77.579634
+blocks.4.cross_attn.k_norm.weight	model.diffusion_model.blocks.4.cross_attn.k_norm.weight	Input_Attention	128	0.253156	0.065635	1.011998
+blocks.4.cross_attn.k_proj.weight	model.diffusion_model.blocks.4.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000012	0.000079	752.038648
+blocks.4.cross_attn.output_proj.weight	model.diffusion_model.blocks.4.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000005	0.000115	2147.991222
+blocks.4.cross_attn.q_norm.weight	model.diffusion_model.blocks.4.cross_attn.q_norm.weight	Input_Attention	128	0.253105	0.065568	1.011685
+blocks.4.cross_attn.q_proj.weight	model.diffusion_model.blocks.4.cross_attn.q_proj.weight	Input_Attention	2048x2048	0.000000	0.000053	22276.179603
+blocks.4.cross_attn.v_proj.weight	model.diffusion_model.blocks.4.cross_attn.v_proj.weight	Input_Attention	2048x1024	0.000004	0.000158	2879.185927
+blocks.4.mlp.layer1.weight	model.diffusion_model.blocks.4.mlp.layer1.weight	Input_MLP	8192x2048	0.000086	0.000150	142.381115
+blocks.4.mlp.layer2.weight	model.diffusion_model.blocks.4.mlp.layer2.weight	Input_MLP	2048x8192	0.000013	0.000149	954.344355
+blocks.4.self_attn.k_norm.weight	model.diffusion_model.blocks.4.self_attn.k_norm.weight	Input_Attention	128	0.450084	0.173464	0.925360
+blocks.4.self_attn.k_proj.weight	model.diffusion_model.blocks.4.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000006	0.000083	1489.320887
+blocks.4.self_attn.output_proj.weight	model.diffusion_model.blocks.4.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000005	0.000126	2368.608385
+blocks.4.self_attn.q_norm.weight	model.diffusion_model.blocks.4.self_attn.q_norm.weight	Input_Attention	128	0.440265	0.174731	0.949448
+blocks.4.self_attn.q_proj.weight	model.diffusion_model.blocks.4.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000002	0.000078	5416.553027
+blocks.4.self_attn.v_proj.weight	model.diffusion_model.blocks.4.self_attn.v_proj.weight	Input_Attention	2048x2048	-0.000004	0.000112	2463.321408
+blocks.5.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.5.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	0.001693	0.001971	26.223577
+blocks.5.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.5.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000347	0.000298	49.661168
+blocks.5.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.5.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000811	0.000976	38.546515
+blocks.5.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.5.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	-0.000341	0.000662	75.370711
+blocks.5.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.5.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	-0.000239	0.000433	87.110558
+blocks.5.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.5.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	-0.000443	0.000730	61.023419
+blocks.5.cross_attn.k_norm.weight	model.diffusion_model.blocks.5.cross_attn.k_norm.weight	Input_Attention	128	0.239493	0.074249	1.137763
+blocks.5.cross_attn.k_proj.weight	model.diffusion_model.blocks.5.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000004	0.000079	2186.063566
+blocks.5.cross_attn.output_proj.weight	model.diffusion_model.blocks.5.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000006	0.000125	2015.906635
+blocks.5.cross_attn.q_norm.weight	model.diffusion_model.blocks.5.cross_attn.q_norm.weight	Input_Attention	128	0.239626	0.074391	1.138219
+blocks.5.cross_attn.q_proj.weight	model.diffusion_model.blocks.5.cross_attn.q_proj.weight	Input_Attention	2048x2048	-0.000003	0.000062	2334.531828
+blocks.5.cross_attn.v_proj.weight	model.diffusion_model.blocks.5.cross_attn.v_proj.weight	Input_Attention	2048x1024	0.000007	0.000160	1744.930852
+blocks.5.mlp.layer1.weight	model.diffusion_model.blocks.5.mlp.layer1.weight	Input_MLP	8192x2048	0.000084	0.000154	147.279444
+blocks.5.mlp.layer2.weight	model.diffusion_model.blocks.5.mlp.layer2.weight	Input_MLP	2048x8192	0.000002	0.000150	6338.654116
+blocks.5.self_attn.k_norm.weight	model.diffusion_model.blocks.5.self_attn.k_norm.weight	Input_Attention	128	0.663399	0.150369	0.584527
+blocks.5.self_attn.k_proj.weight	model.diffusion_model.blocks.5.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000016	0.000101	639.423585
+blocks.5.self_attn.output_proj.weight	model.diffusion_model.blocks.5.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000007	0.000131	1629.000479
+blocks.5.self_attn.q_norm.weight	model.diffusion_model.blocks.5.self_attn.q_norm.weight	Input_Attention	128	0.658367	0.156211	0.600328
+blocks.5.self_attn.q_proj.weight	model.diffusion_model.blocks.5.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000006	0.000098	1798.512788
+blocks.5.self_attn.v_proj.weight	model.diffusion_model.blocks.5.self_attn.v_proj.weight	Input_Attention	2048x2048	-0.000002	0.000127	4949.690510
+blocks.6.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.6.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	0.002156	0.001935	20.400723
+blocks.6.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.6.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000406	0.000308	43.244330
+blocks.6.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.6.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.001255	0.000891	23.772054
+blocks.6.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.6.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	-0.000730	0.000777	38.198482
+blocks.6.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.6.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	-0.000368	0.000458	58.125139
+blocks.6.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.6.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	0.000029	0.000781	976.950838
+blocks.6.cross_attn.k_norm.weight	model.diffusion_model.blocks.6.cross_attn.k_norm.weight	Input_Attention	128	0.239440	0.064880	1.063800
+blocks.6.cross_attn.k_proj.weight	model.diffusion_model.blocks.6.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000007	0.000080	1237.772562
+blocks.6.cross_attn.output_proj.weight	model.diffusion_model.blocks.6.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000001	0.000125	8061.182468
+blocks.6.cross_attn.q_norm.weight	model.diffusion_model.blocks.6.cross_attn.q_norm.weight	Input_Attention	128	0.239116	0.064623	1.063123
+blocks.6.cross_attn.q_proj.weight	model.diffusion_model.blocks.6.cross_attn.q_proj.weight	Input_Attention	2048x2048	-0.000007	0.000062	1211.092905
+blocks.6.cross_attn.v_proj.weight	model.diffusion_model.blocks.6.cross_attn.v_proj.weight	Input_Attention	2048x1024	-0.000019	0.000161	667.439501
+blocks.6.mlp.layer1.weight	model.diffusion_model.blocks.6.mlp.layer1.weight	Input_MLP	8192x2048	0.000015	0.000153	820.750573
+blocks.6.mlp.layer2.weight	model.diffusion_model.blocks.6.mlp.layer2.weight	Input_MLP	2048x8192	0.000013	0.000157	1000.028361
+blocks.6.self_attn.k_norm.weight	model.diffusion_model.blocks.6.self_attn.k_norm.weight	Input_Attention	128	0.461193	0.172165	0.899683
+blocks.6.self_attn.k_proj.weight	model.diffusion_model.blocks.6.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000002	0.000087	4056.253425
+blocks.6.self_attn.output_proj.weight	model.diffusion_model.blocks.6.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000006	0.000136	2078.387139
+blocks.6.self_attn.q_norm.weight	model.diffusion_model.blocks.6.self_attn.q_norm.weight	Input_Attention	128	0.454931	0.187159	0.950955
+blocks.6.self_attn.q_proj.weight	model.diffusion_model.blocks.6.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000008	0.000079	1161.768453
+blocks.6.self_attn.v_proj.weight	model.diffusion_model.blocks.6.self_attn.v_proj.weight	Input_Attention	2048x2048	0.000011	0.000136	1083.101264
+blocks.7.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.7.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	0.000634	0.002947	85.644491
+blocks.7.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.7.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000098	0.000415	208.235177
+blocks.7.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.7.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000550	0.000740	49.451653
+blocks.7.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.7.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	0.000468	0.000599	52.274983
+blocks.7.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.7.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	-0.000127	0.000478	171.634591
+blocks.7.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.7.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	-0.000794	0.000703	33.379627
+blocks.7.cross_attn.k_norm.weight	model.diffusion_model.blocks.7.cross_attn.k_norm.weight	Input_Attention	128	0.357442	0.081937	0.800818
+blocks.7.cross_attn.k_proj.weight	model.diffusion_model.blocks.7.cross_attn.k_proj.weight	Input_Attention	2048x1024	-0.000001	0.000097	7145.927679
+blocks.7.cross_attn.output_proj.weight	model.diffusion_model.blocks.7.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000004	0.000131	2662.852224
+blocks.7.cross_attn.q_norm.weight	model.diffusion_model.blocks.7.cross_attn.q_norm.weight	Input_Attention	128	0.357446	0.081910	0.800679
+blocks.7.cross_attn.q_proj.weight	model.diffusion_model.blocks.7.cross_attn.q_proj.weight	Input_Attention	2048x2048	-0.000002	0.000071	5185.027374
+blocks.7.cross_attn.v_proj.weight	model.diffusion_model.blocks.7.cross_attn.v_proj.weight	Input_Attention	2048x1024	0.000005	0.000165	2458.678598
+blocks.7.mlp.layer1.weight	model.diffusion_model.blocks.7.mlp.layer1.weight	Input_MLP	8192x2048	0.000014	0.000155	869.157404
+blocks.7.mlp.layer2.weight	model.diffusion_model.blocks.7.mlp.layer2.weight	Input_MLP	2048x8192	-0.000001	0.000158	13710.948853
+blocks.7.self_attn.k_norm.weight	model.diffusion_model.blocks.7.self_attn.k_norm.weight	Input_Attention	128	0.471298	0.142272	0.800321
+blocks.7.self_attn.k_proj.weight	model.diffusion_model.blocks.7.self_attn.k_proj.weight	Input_Attention	2048x2048	-0.000002	0.000089	4309.894700
+blocks.7.self_attn.output_proj.weight	model.diffusion_model.blocks.7.self_attn.output_proj.weight	Output_Attention	2048x2048	-0.000009	0.000135	1323.176969
+blocks.7.self_attn.q_norm.weight	model.diffusion_model.blocks.7.self_attn.q_norm.weight	Input_Attention	128	0.464973	0.141500	0.809002
+blocks.7.self_attn.q_proj.weight	model.diffusion_model.blocks.7.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000004	0.000079	2163.672139
+blocks.7.self_attn.v_proj.weight	model.diffusion_model.blocks.7.self_attn.v_proj.weight	Input_Attention	2048x2048	-0.000009	0.000136	1282.933516
+blocks.8.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.8.adaln_modulation_cross_attn.1.weight	Input_Attention	256x2048	0.001453	0.004147	44.313169
+blocks.8.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.8.adaln_modulation_cross_attn.2.weight	Input_Attention	6144x256	0.000078	0.000574	308.199310
+blocks.8.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.8.adaln_modulation_mlp.1.weight	Input_MLP	256x2048	-0.000071	0.000719	376.779239
+blocks.8.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.8.adaln_modulation_mlp.2.weight	Input_MLP	6144x256	0.000292	0.000458	73.288845
+blocks.8.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.8.adaln_modulation_self_attn.1.weight	Input_Attention	256x2048	-0.000566	0.000799	49.960102
+blocks.8.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.8.adaln_modulation_self_attn.2.weight	Input_Attention	6144x256	0.000418	0.000822	68.635663
+blocks.8.cross_attn.k_norm.weight	model.diffusion_model.blocks.8.cross_attn.k_norm.weight	Input_Attention	128	0.479101	0.088847	0.622150
+blocks.8.cross_attn.k_proj.weight	model.diffusion_model.blocks.8.cross_attn.k_proj.weight	Input_Attention	2048x1024	0.000016	0.000103	627.308679
+blocks.8.cross_attn.output_proj.weight	model.diffusion_model.blocks.8.cross_attn.output_proj.weight	Output_Attention	2048x2048	0.000003	0.000134	4074.119861
+blocks.8.cross_attn.q_norm.weight	model.diffusion_model.blocks.8.cross_attn.q_norm.weight	Input_Attention	128	0.479069	0.088890	0.622343
+blocks.8.cross_attn.q_proj.weight	model.diffusion_model.blocks.8.cross_attn.q_proj.weight	Input_Attention	2048x2048	-0.000000	0.000083	20727.156632
+blocks.8.cross_attn.v_proj.weight	model.diffusion_model.blocks.8.cross_attn.v_proj.weight	Input_Attention	2048x1024	-0.000001	0.000167	9018.413831
+blocks.8.mlp.layer1.weight	model.diffusion_model.blocks.8.mlp.layer1.weight	Input_MLP	8192x2048	0.000081	0.000155	153.170330
+blocks.8.mlp.layer2.weight	model.diffusion_model.blocks.8.mlp.layer2.weight	Input_MLP	2048x8192	0.000012	0.000154	1062.917543
+blocks.8.self_attn.k_norm.weight	model.diffusion_model.blocks.8.self_attn.k_norm.weight	Input_Attention	128	0.954323	0.045742	0.224110
+blocks.8.self_attn.k_proj.weight	model.diffusion_model.blocks.8.self_attn.k_proj.weight	Input_Attention	2048x2048	0.000008	0.000120	1431.419571
+blocks.8.self_attn.output_proj.weight	model.diffusion_model.blocks.8.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000006	0.000146	2169.877768
+blocks.8.self_attn.q_norm.weight	model.diffusion_model.blocks.8.self_attn.q_norm.weight	Input_Attention	128	0.947289	0.056756	0.251492
+blocks.8.self_attn.q_proj.weight	model.diffusion_model.blocks.8.self_attn.q_proj.weight	Input_Attention	2048x2048	-0.000008	0.000122	1393.525495
+blocks.8.self_attn.v_proj.weight	model.diffusion_model.blocks.8.self_attn.v_proj.weight	Input_Attention	2048x2048	-0.000005	0.000149	2526.437139
+blocks.9.adaln_modulation_cross_attn.1.weight	model.diffusion_model.blocks.9.adaln_modulation_cross_attn.1.weight	Middle_Attention	256x2048	0.004994	0.005784	15.229032
+blocks.9.adaln_modulation_cross_attn.2.weight	model.diffusion_model.blocks.9.adaln_modulation_cross_attn.2.weight	Middle_Attention	6144x256	0.000551	0.000575	43.509601
+blocks.9.adaln_modulation_mlp.1.weight	model.diffusion_model.blocks.9.adaln_modulation_mlp.1.weight	Middle_MLP	256x2048	0.000280	0.000685	93.318880
+blocks.9.adaln_modulation_mlp.2.weight	model.diffusion_model.blocks.9.adaln_modulation_mlp.2.weight	Middle_MLP	6144x256	0.000104	0.000396	190.687217
+blocks.9.adaln_modulation_self_attn.1.weight	model.diffusion_model.blocks.9.adaln_modulation_self_attn.1.weight	Middle_Attention	256x2048	0.000143	0.000389	138.188354
+blocks.9.adaln_modulation_self_attn.2.weight	model.diffusion_model.blocks.9.adaln_modulation_self_attn.2.weight	Middle_Attention	6144x256	0.000182	0.000379	107.295677
+blocks.9.cross_attn.k_norm.weight	model.diffusion_model.blocks.9.cross_attn.k_norm.weight	Middle_Attention	128	0.551588	0.096836	0.564162
+blocks.9.cross_attn.k_proj.weight	model.diffusion_model.blocks.9.cross_attn.k_proj.weight	Middle_Attention	2048x1024	-0.000012	0.000117	931.253839
+blocks.9.cross_attn.output_proj.weight	model.diffusion_model.blocks.9.cross_attn.output_proj.weight	Output_Attention	2048x2048	-0.000003	0.000144	3859.818973
+blocks.9.cross_attn.q_norm.weight	model.diffusion_model.blocks.9.cross_attn.q_norm.weight	Middle_Attention	128	0.551998	0.096995	0.564206
+blocks.9.cross_attn.q_proj.weight	model.diffusion_model.blocks.9.cross_attn.q_proj.weight	Middle_Attention	2048x2048	-0.000002	0.000090	6279.758247
+blocks.9.cross_attn.v_proj.weight	model.diffusion_model.blocks.9.cross_attn.v_proj.weight	Middle_Attention	2048x1024	-0.000003	0.000173	4929.925673
+blocks.9.mlp.layer1.weight	model.diffusion_model.blocks.9.mlp.layer1.weight	Middle_MLP	8192x2048	0.000051	0.000153	240.122160
+blocks.9.mlp.layer2.weight	model.diffusion_model.blocks.9.mlp.layer2.weight	Middle_MLP	2048x8192	-0.000007	0.000148	1628.123796
+blocks.9.self_attn.k_norm.weight	model.diffusion_model.blocks.9.self_attn.k_norm.weight	Middle_Attention	128	0.755188	0.084104	0.384019
+blocks.9.self_attn.k_proj.weight	model.diffusion_model.blocks.9.self_attn.k_proj.weight	Middle_Attention	2048x2048	0.000004	0.000108	2387.214448
+blocks.9.self_attn.output_proj.weight	model.diffusion_model.blocks.9.self_attn.output_proj.weight	Output_Attention	2048x2048	0.000004	0.000143	3252.128094
+blocks.9.self_attn.q_norm.weight	model.diffusion_model.blocks.9.self_attn.q_norm.weight	Middle_Attention	128	0.749676	0.090514	0.401314
+blocks.9.self_attn.q_proj.weight	model.diffusion_model.blocks.9.self_attn.q_proj.weight	Middle_Attention	2048x2048	0.000009	0.000104	1118.554526
+blocks.9.self_attn.v_proj.weight	model.diffusion_model.blocks.9.self_attn.v_proj.weight	Middle_Attention	2048x2048	-0.000006	0.000151	1967.821195
+final_layer.adaln_modulation.1.weight	model.diffusion_model.final_layer.adaln_modulation.1.weight	Other_Norm	256x2048	0.000366	0.000576	65.546608
+final_layer.adaln_modulation.2.weight	model.diffusion_model.final_layer.adaln_modulation.2.weight	Other_Norm	4096x256	0.000382	0.000511	59.142419
+final_layer.linear.weight	model.diffusion_model.final_layer.linear.weight	Other_Other	64x2048	-0.000007	0.000031	773.875935
+llm_adapter.blocks.0.cross_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.0.cross_attn.k_norm.weight	Input_Attention	64	1.139923	0.121724	0.306064
+llm_adapter.blocks.0.cross_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.0.cross_attn.k_proj.weight	Input_Attention	1024x1024	0.000021	0.000369	896.392151
+llm_adapter.blocks.0.cross_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.0.cross_attn.o_proj.weight	Input_Attention	1024x1024	0.000020	0.000325	893.476136
+llm_adapter.blocks.0.cross_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.0.cross_attn.q_norm.weight	Input_Attention	64	1.153748	0.118917	0.298890
+llm_adapter.blocks.0.cross_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.0.cross_attn.q_proj.weight	Input_Attention	1024x1024	0.000012	0.000341	1500.154979
+llm_adapter.blocks.0.cross_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.0.cross_attn.v_proj.weight	Input_Attention	1024x1024	0.000005	0.000375	4095.553716
+llm_adapter.blocks.0.mlp.0.bias	model.diffusion_model.llm_adapter.blocks.0.mlp.0.bias	Input_MLP	4096	0.069867	0.000813	0.408213
+llm_adapter.blocks.0.mlp.0.weight	model.diffusion_model.llm_adapter.blocks.0.mlp.0.weight	Input_MLP	4096x1024	0.000077	0.001339	476.843893
+llm_adapter.blocks.0.mlp.2.bias	model.diffusion_model.llm_adapter.blocks.0.mlp.2.bias	Input_MLP	1024	-0.000526	0.000477	41.543311
+llm_adapter.blocks.0.mlp.2.weight	model.diffusion_model.llm_adapter.blocks.0.mlp.2.weight	Input_MLP	1024x4096	0.000010	0.000942	3223.271718
+llm_adapter.blocks.0.norm_cross_attn.weight	model.diffusion_model.llm_adapter.blocks.0.norm_cross_attn.weight	Input_Attention	1024	0.987858	0.001035	0.032573
+llm_adapter.blocks.0.norm_mlp.weight	model.diffusion_model.llm_adapter.blocks.0.norm_mlp.weight	Input_MLP	1024	1.270851	0.001232	0.027619
+llm_adapter.blocks.0.norm_self_attn.weight	model.diffusion_model.llm_adapter.blocks.0.norm_self_attn.weight	Input_Attention	1024	1.117188	0.001527	0.034974
+llm_adapter.blocks.0.self_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.0.self_attn.k_norm.weight	Input_Attention	64	1.300781	0.013118	0.088049
+llm_adapter.blocks.0.self_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.0.self_attn.k_proj.weight	Input_Attention	1024x1024	0.000003	0.000349	7240.733567
+llm_adapter.blocks.0.self_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.0.self_attn.o_proj.weight	Input_Attention	1024x1024	-0.000018	0.000756	1527.112254
+llm_adapter.blocks.0.self_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.0.self_attn.q_norm.weight	Input_Attention	64	1.303955	0.014873	0.093526
+llm_adapter.blocks.0.self_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.0.self_attn.q_proj.weight	Input_Attention	1024x1024	0.000001	0.000317	25843.650118
+llm_adapter.blocks.0.self_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.0.self_attn.v_proj.weight	Input_Attention	1024x1024	-0.000011	0.000761	2615.202345
+llm_adapter.blocks.1.cross_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.1.cross_attn.k_norm.weight	Input_Attention	64	1.346771	0.278127	0.391587
+llm_adapter.blocks.1.cross_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.1.cross_attn.k_proj.weight	Input_Attention	1024x1024	-0.000011	0.000368	1799.958285
+llm_adapter.blocks.1.cross_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.1.cross_attn.o_proj.weight	Input_Attention	1024x1024	-0.000012	0.000286	1458.752539
+llm_adapter.blocks.1.cross_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.1.cross_attn.q_norm.weight	Input_Attention	64	1.374588	0.281752	0.386155
+llm_adapter.blocks.1.cross_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.1.cross_attn.q_proj.weight	Input_Attention	1024x1024	-0.000027	0.000332	686.716324
+llm_adapter.blocks.1.cross_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.1.cross_attn.v_proj.weight	Input_Attention	1024x1024	-0.000017	0.000348	1112.596225
+llm_adapter.blocks.1.mlp.0.bias	model.diffusion_model.llm_adapter.blocks.1.mlp.0.bias	Input_MLP	4096	0.058151	0.000842	0.499041
+llm_adapter.blocks.1.mlp.0.weight	model.diffusion_model.llm_adapter.blocks.1.mlp.0.weight	Input_MLP	4096x1024	-0.000002	0.001029	20860.051514
+llm_adapter.blocks.1.mlp.2.bias	model.diffusion_model.llm_adapter.blocks.1.mlp.2.bias	Input_MLP	1024	-0.000875	0.000575	27.407238
+llm_adapter.blocks.1.mlp.2.weight	model.diffusion_model.llm_adapter.blocks.1.mlp.2.weight	Input_MLP	1024x4096	-0.000004	0.000692	6250.701353
+llm_adapter.blocks.1.norm_cross_attn.weight	model.diffusion_model.llm_adapter.blocks.1.norm_cross_attn.weight	Input_Attention	1024	0.988659	0.001416	0.038058
+llm_adapter.blocks.1.norm_mlp.weight	model.diffusion_model.llm_adapter.blocks.1.norm_mlp.weight	Input_MLP	1024	1.194641	0.000637	0.021125
+llm_adapter.blocks.1.norm_self_attn.weight	model.diffusion_model.llm_adapter.blocks.1.norm_self_attn.weight	Input_Attention	1024	1.081486	0.000979	0.028931
+llm_adapter.blocks.1.self_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.1.self_attn.k_norm.weight	Input_Attention	64	1.300537	0.005170	0.055284
+llm_adapter.blocks.1.self_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.1.self_attn.k_proj.weight	Input_Attention	1024x1024	0.000004	0.000377	5430.997599
+llm_adapter.blocks.1.self_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.1.self_attn.o_proj.weight	Input_Attention	1024x1024	0.000001	0.000721	20851.938070
+llm_adapter.blocks.1.self_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.1.self_attn.q_norm.weight	Input_Attention	64	1.309204	0.006378	0.061002
+llm_adapter.blocks.1.self_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.1.self_attn.q_proj.weight	Input_Attention	1024x1024	-0.000001	0.000335	14183.317577
+llm_adapter.blocks.1.self_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.1.self_attn.v_proj.weight	Input_Attention	1024x1024	-0.000016	0.000794	1757.944378
+llm_adapter.blocks.2.cross_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.2.cross_attn.k_norm.weight	Input_Attention	64	1.393623	0.394522	0.450702
+llm_adapter.blocks.2.cross_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.2.cross_attn.k_proj.weight	Input_Attention	1024x1024	0.000007	0.000359	2622.603713
+llm_adapter.blocks.2.cross_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.2.cross_attn.o_proj.weight	Input_Attention	1024x1024	-0.000013	0.000263	1216.730242
+llm_adapter.blocks.2.cross_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.2.cross_attn.q_norm.weight	Input_Attention	64	1.414268	0.391211	0.442256
+llm_adapter.blocks.2.cross_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.2.cross_attn.q_proj.weight	Input_Attention	1024x1024	-0.000002	0.000313	8357.752720
+llm_adapter.blocks.2.cross_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.2.cross_attn.v_proj.weight	Input_Attention	1024x1024	0.000016	0.000330	1116.685561
+llm_adapter.blocks.2.mlp.0.bias	model.diffusion_model.llm_adapter.blocks.2.mlp.0.bias	Input_MLP	4096	0.045272	0.000930	0.673697
+llm_adapter.blocks.2.mlp.0.weight	model.diffusion_model.llm_adapter.blocks.2.mlp.0.weight	Input_MLP	4096x1024	-0.000032	0.000892	944.534255
+llm_adapter.blocks.2.mlp.2.bias	model.diffusion_model.llm_adapter.blocks.2.mlp.2.bias	Input_MLP	1024	-0.000892	0.000732	30.316558
+llm_adapter.blocks.2.mlp.2.weight	model.diffusion_model.llm_adapter.blocks.2.mlp.2.weight	Input_MLP	1024x4096	-0.000032	0.000607	778.390291
+llm_adapter.blocks.2.norm_cross_attn.weight	model.diffusion_model.llm_adapter.blocks.2.norm_cross_attn.weight	Input_Attention	1024	0.991886	0.001393	0.037625
+llm_adapter.blocks.2.norm_mlp.weight	model.diffusion_model.llm_adapter.blocks.2.norm_mlp.weight	Input_MLP	1024	1.141960	0.000378	0.017022
+llm_adapter.blocks.2.norm_self_attn.weight	model.diffusion_model.llm_adapter.blocks.2.norm_self_attn.weight	Input_Attention	1024	1.086987	0.000988	0.028916
+llm_adapter.blocks.2.self_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.2.self_attn.k_norm.weight	Input_Attention	64	1.301147	0.004751	0.052974
+llm_adapter.blocks.2.self_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.2.self_attn.k_proj.weight	Input_Attention	1024x1024	-0.000033	0.000356	575.602227
+llm_adapter.blocks.2.self_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.2.self_attn.o_proj.weight	Input_Attention	1024x1024	0.000017	0.000724	1559.766426
+llm_adapter.blocks.2.self_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.2.self_attn.q_norm.weight	Input_Attention	64	1.309082	0.004418	0.050772
+llm_adapter.blocks.2.self_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.2.self_attn.q_proj.weight	Input_Attention	1024x1024	0.000002	0.000321	7714.126896
+llm_adapter.blocks.2.self_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.2.self_attn.v_proj.weight	Input_Attention	1024x1024	-0.000022	0.000779	1255.130622
+llm_adapter.blocks.3.cross_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.3.cross_attn.k_norm.weight	Input_Attention	64	1.232925	0.364414	0.489622
+llm_adapter.blocks.3.cross_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.3.cross_attn.k_proj.weight	Input_Attention	1024x1024	0.000004	0.000365	5202.780959
+llm_adapter.blocks.3.cross_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.3.cross_attn.o_proj.weight	Input_Attention	1024x1024	-0.000001	0.000251	15175.143111
+llm_adapter.blocks.3.cross_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.3.cross_attn.q_norm.weight	Input_Attention	64	1.253689	0.367765	0.483722
+llm_adapter.blocks.3.cross_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.3.cross_attn.q_proj.weight	Input_Attention	1024x1024	-0.000011	0.000331	1583.181650
+llm_adapter.blocks.3.cross_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.3.cross_attn.v_proj.weight	Input_Attention	1024x1024	0.000036	0.000327	502.662110
+llm_adapter.blocks.3.mlp.0.bias	model.diffusion_model.llm_adapter.blocks.3.mlp.0.bias	Input_MLP	4096	0.035975	0.000954	0.858431
+llm_adapter.blocks.3.mlp.0.weight	model.diffusion_model.llm_adapter.blocks.3.mlp.0.weight	Input_MLP	4096x1024	-0.000100	0.000813	285.181520
+llm_adapter.blocks.3.mlp.2.bias	model.diffusion_model.llm_adapter.blocks.3.mlp.2.bias	Input_MLP	1024	-0.001394	0.000760	19.772471
+llm_adapter.blocks.3.mlp.2.weight	model.diffusion_model.llm_adapter.blocks.3.mlp.2.weight	Input_MLP	1024x4096	-0.000026	0.000634	986.481481
+llm_adapter.blocks.3.norm_cross_attn.weight	model.diffusion_model.llm_adapter.blocks.3.norm_cross_attn.weight	Input_Attention	1024	0.991619	0.001077	0.033094
+llm_adapter.blocks.3.norm_mlp.weight	model.diffusion_model.llm_adapter.blocks.3.norm_mlp.weight	Input_MLP	1024	1.117249	0.000349	0.016730
+llm_adapter.blocks.3.norm_self_attn.weight	model.diffusion_model.llm_adapter.blocks.3.norm_self_attn.weight	Input_Attention	1024	1.111168	0.001021	0.028753
+llm_adapter.blocks.3.self_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.3.self_attn.k_norm.weight	Input_Attention	64	1.273193	0.003172	0.044234
+llm_adapter.blocks.3.self_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.3.self_attn.k_proj.weight	Input_Attention	1024x1024	0.000038	0.000355	501.288156
+llm_adapter.blocks.3.self_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.3.self_attn.o_proj.weight	Input_Attention	1024x1024	-0.000028	0.000800	1024.447471
+llm_adapter.blocks.3.self_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.3.self_attn.q_norm.weight	Input_Attention	64	1.282837	0.004038	0.049537
+llm_adapter.blocks.3.self_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.3.self_attn.q_proj.weight	Input_Attention	1024x1024	0.000035	0.000330	523.420322
+llm_adapter.blocks.3.self_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.3.self_attn.v_proj.weight	Input_Attention	1024x1024	-0.000004	0.000874	7345.755173
+llm_adapter.blocks.4.cross_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.4.cross_attn.k_norm.weight	Input_Attention	64	1.182083	0.351308	0.501414
+llm_adapter.blocks.4.cross_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.4.cross_attn.k_proj.weight	Input_Attention	1024x1024	0.000029	0.000358	652.282389
+llm_adapter.blocks.4.cross_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.4.cross_attn.o_proj.weight	Input_Attention	1024x1024	-0.000023	0.000277	717.391538
+llm_adapter.blocks.4.cross_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.4.cross_attn.q_norm.weight	Input_Attention	64	1.183962	0.371094	0.514522
+llm_adapter.blocks.4.cross_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.4.cross_attn.q_proj.weight	Input_Attention	1024x1024	0.000042	0.000341	438.382732
+llm_adapter.blocks.4.cross_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.4.cross_attn.v_proj.weight	Input_Attention	1024x1024	-0.000011	0.000343	1705.840708
+llm_adapter.blocks.4.mlp.0.bias	model.diffusion_model.llm_adapter.blocks.4.mlp.0.bias	Input_MLP	4096	0.030334	0.001134	1.109902
+llm_adapter.blocks.4.mlp.0.weight	model.diffusion_model.llm_adapter.blocks.4.mlp.0.weight	Input_MLP	4096x1024	-0.000094	0.000737	289.263813
+llm_adapter.blocks.4.mlp.2.bias	model.diffusion_model.llm_adapter.blocks.4.mlp.2.bias	Input_MLP	1024	-0.000722	0.000788	38.872153
+llm_adapter.blocks.4.mlp.2.weight	model.diffusion_model.llm_adapter.blocks.4.mlp.2.weight	Input_MLP	1024x4096	-0.000037	0.000859	789.007726
+llm_adapter.blocks.4.norm_cross_attn.weight	model.diffusion_model.llm_adapter.blocks.4.norm_cross_attn.weight	Input_Attention	1024	0.990631	0.001196	0.034909
+llm_adapter.blocks.4.norm_mlp.weight	model.diffusion_model.llm_adapter.blocks.4.norm_mlp.weight	Input_MLP	1024	1.103966	0.000497	0.020204
+llm_adapter.blocks.4.norm_self_attn.weight	model.diffusion_model.llm_adapter.blocks.4.norm_self_attn.weight	Input_Attention	1024	1.140175	0.001225	0.030700
+llm_adapter.blocks.4.self_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.4.self_attn.k_norm.weight	Input_Attention	64	1.261597	0.003304	0.045559
+llm_adapter.blocks.4.self_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.4.self_attn.k_proj.weight	Input_Attention	1024x1024	0.000001	0.000329	15188.376488
+llm_adapter.blocks.4.self_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.4.self_attn.o_proj.weight	Input_Attention	1024x1024	-0.000009	0.000973	3620.830741
+llm_adapter.blocks.4.self_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.4.self_attn.q_norm.weight	Input_Attention	64	1.263184	0.005173	0.056940
+llm_adapter.blocks.4.self_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.4.self_attn.q_proj.weight	Input_Attention	1024x1024	-0.000001	0.000308	13451.985816
+llm_adapter.blocks.4.self_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.4.self_attn.v_proj.weight	Input_Attention	1024x1024	0.000006	0.001031	5557.792460
+llm_adapter.blocks.5.cross_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.5.cross_attn.k_norm.weight	Input_Attention	64	1.065536	0.361631	0.564371
+llm_adapter.blocks.5.cross_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.5.cross_attn.k_proj.weight	Input_Attention	1024x1024	0.000004	0.000383	5099.023880
+llm_adapter.blocks.5.cross_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.5.cross_attn.o_proj.weight	Input_Attention	1024x1024	-0.000029	0.000337	641.128790
+llm_adapter.blocks.5.cross_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.5.cross_attn.q_norm.weight	Input_Attention	64	1.067287	0.366111	0.566924
+llm_adapter.blocks.5.cross_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.5.cross_attn.q_proj.weight	Input_Attention	1024x1024	-0.000041	0.000401	486.935838
+llm_adapter.blocks.5.cross_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.5.cross_attn.v_proj.weight	Input_Attention	1024x1024	0.000018	0.000362	1070.948120
+llm_adapter.blocks.5.mlp.0.bias	model.diffusion_model.llm_adapter.blocks.5.mlp.0.bias	Input_MLP	4096	0.025378	0.001352	1.448617
+llm_adapter.blocks.5.mlp.0.weight	model.diffusion_model.llm_adapter.blocks.5.mlp.0.weight	Input_MLP	4096x1024	-0.000064	0.000704	415.691222
+llm_adapter.blocks.5.mlp.2.bias	model.diffusion_model.llm_adapter.blocks.5.mlp.2.bias	Input_MLP	1024	-0.001262	0.001067	25.878135
+llm_adapter.blocks.5.mlp.2.weight	model.diffusion_model.llm_adapter.blocks.5.mlp.2.weight	Input_MLP	1024x4096	-0.000044	0.001489	880.981710
+llm_adapter.blocks.5.norm_cross_attn.weight	model.diffusion_model.llm_adapter.blocks.5.norm_cross_attn.weight	Input_Attention	1024	0.993420	0.001168	0.034407
+llm_adapter.blocks.5.norm_mlp.weight	model.diffusion_model.llm_adapter.blocks.5.norm_mlp.weight	Input_MLP	1024	1.110992	0.000859	0.026387
+llm_adapter.blocks.5.norm_self_attn.weight	model.diffusion_model.llm_adapter.blocks.5.norm_self_attn.weight	Input_Attention	1024	1.201530	0.001840	0.035702
+llm_adapter.blocks.5.self_attn.k_norm.weight	model.diffusion_model.llm_adapter.blocks.5.self_attn.k_norm.weight	Input_Attention	64	1.292603	0.006392	0.061852
+llm_adapter.blocks.5.self_attn.k_proj.weight	model.diffusion_model.llm_adapter.blocks.5.self_attn.k_proj.weight	Input_Attention	1024x1024	0.000011	0.000310	1545.325578
+llm_adapter.blocks.5.self_attn.o_proj.weight	model.diffusion_model.llm_adapter.blocks.5.self_attn.o_proj.weight	Input_Attention	1024x1024	-0.000113	0.001392	331.264356
+llm_adapter.blocks.5.self_attn.q_norm.weight	model.diffusion_model.llm_adapter.blocks.5.self_attn.q_norm.weight	Input_Attention	64	1.289673	0.009559	0.075810
+llm_adapter.blocks.5.self_attn.q_proj.weight	model.diffusion_model.llm_adapter.blocks.5.self_attn.q_proj.weight	Input_Attention	1024x1024	-0.000015	0.000296	1167.087429
+llm_adapter.blocks.5.self_attn.v_proj.weight	model.diffusion_model.llm_adapter.blocks.5.self_attn.v_proj.weight	Input_Attention	1024x1024	0.000044	0.001376	841.941293
+llm_adapter.embed.weight	model.diffusion_model.llm_adapter.embed.weight	Other_Other	32128x1024	0.026177	45.189804	256.806201
+llm_adapter.norm.weight	model.diffusion_model.llm_adapter.norm.weight	Other_Norm	1024	0.279330	0.003920	0.224142
+llm_adapter.out_proj.bias	model.diffusion_model.llm_adapter.out_proj.bias	Other_Other	1024	-0.000253	0.001648	160.476243
+llm_adapter.out_proj.weight	model.diffusion_model.llm_adapter.out_proj.weight	Other_Other	1024x1024	0.000019	0.000407	1074.938020
+t_embedder.1.linear_1.weight	model.diffusion_model.t_embedder.1.linear_1.weight	Other_Other	2048x2048	0.000053	0.000070	156.295163
+t_embedder.1.linear_2.weight	model.diffusion_model.t_embedder.1.linear_2.weight	Other_Other	6144x2048	-0.001632	0.000078	5.406144
+t_embedding_norm.weight	model.diffusion_model.t_embedding_norm.weight	Other_Norm	2048	0.171794	0.007442	0.502155
+x_embedder.proj.1.weight	model.diffusion_model.x_embedder.proj.1.weight	Other_Other	2048x68	-0.000026	0.000250	600.733483
+========================================================================
+[MERGE_HINTS]
+========================================================================
+# マージ優先(full) - 高情報密度・表現寄与大
+PRIORITY(full): blocks.16.adaln_modulation_cross_attn.2.weight
+PRIORITY(full): blocks.18.cross_attn.k_proj.weight
+PRIORITY(full): blocks.16.self_attn.output_proj.weight
+PRIORITY(full): blocks.15.self_attn.output_proj.weight
+PRIORITY(full): blocks.20.cross_attn.q_proj.weight
+PRIORITY(full): blocks.23.cross_attn.v_proj.weight
+PRIORITY(full): blocks.21.self_attn.output_proj.weight
+PRIORITY(full): blocks.21.self_attn.v_proj.weight
+PRIORITY(full): blocks.13.self_attn.output_proj.weight
+PRIORITY(full): blocks.15.cross_attn.q_proj.weight
+PRIORITY(full): blocks.16.self_attn.q_proj.weight
+PRIORITY(full): blocks.15.self_attn.q_proj.weight
+PRIORITY(full): blocks.23.mlp.layer2.weight
+PRIORITY(full): blocks.22.self_attn.v_proj.weight
+PRIORITY(full): llm_adapter.blocks.0.self_attn.q_proj.weight
+PRIORITY(full): blocks.19.self_attn.v_proj.weight
+PRIORITY(full): blocks.4.cross_attn.q_proj.weight
+PRIORITY(full): blocks.16.cross_attn.output_proj.weight
+PRIORITY(full): llm_adapter.blocks.1.mlp.0.weight
+PRIORITY(full): llm_adapter.blocks.1.self_attn.o_proj.weight
+PRIORITY(full): blocks.8.cross_attn.q_proj.weight
+PRIORITY(full): blocks.27.cross_attn.v_proj.weight
+PRIORITY(full): blocks.14.cross_attn.q_proj.weight
+PRIORITY(full): blocks.23.self_attn.v_proj.weight
+PRIORITY(full): blocks.10.cross_attn.v_proj.weight
+PRIORITY(full): blocks.15.adaln_modulation_mlp.2.weight
+PRIORITY(full): blocks.11.self_attn.v_proj.weight
+PRIORITY(full): llm_adapter.blocks.4.self_attn.k_proj.weight
+PRIORITY(full): llm_adapter.blocks.3.cross_attn.o_proj.weight
+PRIORITY(full): blocks.1.self_attn.q_proj.weight
+PRIORITY(full): blocks.11.self_attn.output_proj.weight
+PRIORITY(full): llm_adapter.blocks.1.self_attn.q_proj.weight
+PRIORITY(full): blocks.1.self_attn.k_proj.weight
+PRIORITY(full): blocks.7.mlp.layer2.weight
+PRIORITY(full): llm_adapter.blocks.4.self_attn.q_proj.weight
+PRIORITY(full): blocks.18.self_attn.output_proj.weight
+PRIORITY(full): blocks.24.cross_attn.q_proj.weight
+PRIORITY(full): blocks.14.cross_attn.k_proj.weight
+PRIORITY(full): blocks.1.cross_attn.q_proj.weight
+PRIORITY(full): blocks.11.mlp.layer2.weight
+PRIORITY(full): blocks.13.self_attn.v_proj.weight
+PRIORITY(full): blocks.3.mlp.layer2.weight
+PRIORITY(full): blocks.8.cross_attn.v_proj.weight
+PRIORITY(full): blocks.19.adaln_modulation_mlp.2.weight
+PRIORITY(full): llm_adapter.blocks.2.cross_attn.q_proj.weight
+PRIORITY(full): blocks.6.cross_attn.output_proj.weight
+PRIORITY(full): blocks.20.self_attn.k_proj.weight
+PRIORITY(full): llm_adapter.blocks.2.self_attn.q_proj.weight
+PRIORITY(full): blocks.21.self_attn.k_proj.weight
+PRIORITY(full): llm_adapter.blocks.3.self_attn.v_proj.weight
+PRIORITY(full): llm_adapter.blocks.0.self_attn.k_proj.weight
+PRIORITY(full): blocks.20.cross_attn.k_proj.weight
+PRIORITY(full): blocks.15.mlp.layer2.weight
+PRIORITY(full): blocks.7.cross_attn.k_proj.weight
+PRIORITY(full): blocks.10.self_attn.q_proj.weight
+PRIORITY(full): blocks.12.self_attn.q_proj.weight
+PRIORITY(full): blocks.17.mlp.layer2.weight
+PRIORITY(full): blocks.10.self_attn.output_proj.weight
+PRIORITY(full): blocks.10.self_attn.k_proj.weight
+PRIORITY(full): blocks.13.self_attn.k_proj.weight
+PRIORITY(full): blocks.11.cross_attn.output_proj.weight
+PRIORITY(full): blocks.5.mlp.layer2.weight
+PRIORITY(full): blocks.18.adaln_modulation_mlp.2.weight
+PRIORITY(full): blocks.9.cross_attn.q_proj.weight
+PRIORITY(full): llm_adapter.blocks.1.mlp.2.weight
+PRIORITY(full): blocks.20.self_attn.q_proj.weight
+PRIORITY(full): blocks.11.cross_attn.q_proj.weight
+PRIORITY(full): blocks.2.self_attn.output_proj.weight
+# 破棄候補(full) - 低情報密度・高冗長
+DISCARD(full):  llm_adapter.blocks.3.norm_mlp.weight
+DISCARD(full):  llm_adapter.blocks.2.norm_mlp.weight
+DISCARD(full):  llm_adapter.blocks.4.norm_mlp.weight
+DISCARD(full):  llm_adapter.blocks.1.norm_mlp.weight
+DISCARD(full):  llm_adapter.blocks.5.norm_mlp.weight
+DISCARD(full):  llm_adapter.blocks.0.norm_mlp.weight
+DISCARD(full):  llm_adapter.blocks.3.norm_self_attn.weight
+DISCARD(full):  llm_adapter.blocks.2.norm_self_attn.weight
+DISCARD(full):  llm_adapter.blocks.1.norm_self_attn.weight
+DISCARD(full):  llm_adapter.blocks.4.norm_self_attn.weight
+DISCARD(full):  llm_adapter.blocks.0.norm_cross_attn.weight
+DISCARD(full):  llm_adapter.blocks.3.norm_cross_attn.weight
+DISCARD(full):  llm_adapter.blocks.5.norm_cross_attn.weight
+DISCARD(full):  llm_adapter.blocks.4.norm_cross_attn.weight
+DISCARD(full):  llm_adapter.blocks.0.norm_self_attn.weight
+DISCARD(full):  llm_adapter.blocks.5.norm_self_attn.weight
+DISCARD(full):  llm_adapter.blocks.2.norm_cross_attn.weight
+DISCARD(full):  llm_adapter.blocks.1.norm_cross_attn.weight
+DISCARD(full):  llm_adapter.blocks.3.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.blocks.4.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.blocks.3.self_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.2.self_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.2.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.blocks.1.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.blocks.4.self_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.1.self_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.5.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.blocks.5.self_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.0.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.blocks.0.self_attn.q_norm.weight
+DISCARD(full):  blocks.15.self_attn.k_norm.weight
+DISCARD(full):  blocks.13.self_attn.k_norm.weight
+DISCARD(full):  blocks.13.self_attn.q_norm.weight
+DISCARD(full):  blocks.15.self_attn.q_norm.weight
+DISCARD(full):  blocks.19.self_attn.k_norm.weight
+DISCARD(full):  blocks.16.self_attn.k_norm.weight
+DISCARD(full):  blocks.14.self_attn.q_norm.weight
+DISCARD(full):  blocks.17.self_attn.k_norm.weight
+DISCARD(full):  blocks.14.self_attn.k_norm.weight
+DISCARD(full):  blocks.20.self_attn.k_norm.weight
+DISCARD(full):  blocks.18.self_attn.q_norm.weight
+DISCARD(full):  blocks.16.self_attn.q_norm.weight
+DISCARD(full):  blocks.18.self_attn.k_norm.weight
+DISCARD(full):  blocks.19.self_attn.q_norm.weight
+DISCARD(full):  blocks.20.self_attn.q_norm.weight
+DISCARD(full):  blocks.17.self_attn.q_norm.weight
+DISCARD(full):  blocks.21.self_attn.k_norm.weight
+DISCARD(full):  blocks.26.self_attn.q_norm.weight
+DISCARD(full):  blocks.22.self_attn.k_norm.weight
+DISCARD(full):  blocks.26.self_attn.k_norm.weight
+DISCARD(full):  blocks.21.self_attn.q_norm.weight
+DISCARD(full):  blocks.22.self_attn.q_norm.weight
+DISCARD(full):  blocks.24.self_attn.k_norm.weight
+DISCARD(full):  blocks.24.self_attn.q_norm.weight
+DISCARD(full):  blocks.8.self_attn.k_norm.weight
+DISCARD(full):  llm_adapter.norm.weight
+DISCARD(full):  blocks.8.self_attn.q_norm.weight
+DISCARD(full):  blocks.10.self_attn.q_norm.weight
+DISCARD(full):  blocks.23.self_attn.k_norm.weight
+DISCARD(full):  blocks.10.self_attn.k_norm.weight
+DISCARD(full):  blocks.23.self_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.0.cross_attn.q_norm.weight
+DISCARD(full):  llm_adapter.blocks.0.cross_attn.k_norm.weight
+DISCARD(full):  blocks.25.self_attn.k_norm.weight
+DISCARD(full):  blocks.25.self_attn.q_norm.weight
+DISCARD(full):  blocks.12.self_attn.k_norm.weight
+DISCARD(full):  blocks.13.cross_attn.q_norm.weight
+DISCARD(full):  blocks.13.cross_attn.k_norm.weight
+========================================================================

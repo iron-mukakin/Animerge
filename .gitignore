@@ -1,0 +1,56 @@
+# venv
+.venv/
+
+# python
+__pycache__/
+.uv_cache/
+*.pyc
+*.pt
+*.th
+uv.lock
+
+# models
+*.pt
+*.pth
+*.safetensors
+*.onnx
+
+# audio
+*.wav
+*.mp3
+*.mp4
+*.avi
+
+# logs
+*.log
+logs/
+logs/tensorboard/
+
+# cache
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# env
+.env
+.env.*
+
+# notebook
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+*.zip
+*.rar
+
+開発用ファイル/
+コマンド早見表.txt
+logs/tensorboard/
+checkpoints/tokenizers/
+checkpoints/whisper/
+torch_hub/

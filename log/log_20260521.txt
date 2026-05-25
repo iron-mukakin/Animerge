@@ -1,0 +1,87 @@
+2026-05-21 08:48:25 [本体マージ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-05-21 13:30:15 [LoRAマージ開始]
+  Model A : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Model B : E:\Animerge\lora\Lunalight Perfume Dancer & Liger Dancer Anima Sqq V1.2.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-05-21 13:32:25 [本体マージ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-05-21 13:46:18 [LoRAマージ開始]
+  Model A : E:\Animerge\lora\Lunalight Perfume Dancer & Liger Dancer Anima Sqq V1.2.safetensors
+  Model B : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-05-21 13:48:32 [差分抽出開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-05-21 14:04:04 [本体マージ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model1.safetensors
+2026-05-21 14:05:33 [本体マージ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model2.safetensors
+2026-05-21 18:46:22 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-21 18:46:42 [Analysis 開始]
+  Target : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-05-21 18:48:18 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-21 18:49:13 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-21 18:55:49 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-21 18:56:12 [Analysis 開始]
+  Target : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-05-21 19:00:41 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-21 19:01:07 [Analysis 開始]
+  Target : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Method : Attention Map
+  Layer  : Matrix
+  Device : cuda
+

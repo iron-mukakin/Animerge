@@ -1,0 +1,95 @@
+1. 必須となる共通コアスクリプト
+
+LoRAの学習ループや共通処理を担当する、sd-scripts の中心的なファイルです。
+
+    train_network.py
+
+        役割: LoRA学習の基底抽象クラス（NetworkTrainer）を定義している最重要ファイル。anima_train_network.py はこのクラスを継承（class AnimaNetworkTrainer(train_network.NetworkTrainer):）しているため、これがなければ動作しません。
+
+    networks パッケージ（LoRAコア定義）
+
+    networks/lora.py または networks/ ディレクトリ内のLoRA生成スクリプト。
+
+    見落としの理由: anima_train_network.py 内では直接インポートされていませんが、基底クラスである train_network.py 内部で import networks.lora のように呼び出され、引数（--network_module=networks.lora など）を介して動的に読み込まれます。             このパッケージがないと、Animaモデルに対してLoRAの重み（リニア層やコンボリューション層へのランク分解構造）を注入・生成することができません。
+
+2. Anima / HunyuanImage 固有のモジュール（library/ ディレクトリ内）
+
+Animaモデルのロード、テキストエンコーディング、およびVAEの処理を行うための専用モジュールです。
+
+    library/anima_models.py
+
+        役割: Anima固有のDiT（Diffusion Transformer）ネットワークの構造定義。
+
+    library/anima_utils.py
+
+        役割: AnimaのDiTモデルやQwen3テキストエンコーダーをディスクから読み込むためのロード関数、およびパラメータ管理。
+
+    library/anima_train_utils.py
+
+        役割: Animaの学習に特化した引数の追加や、オプティマイザに渡すパラメータグループの生成。
+
+    library/qwen_image_autoencoder_kl.py
+
+        役割: Animaで採用されている特定のVAEモデル（Qwen Image Autoencoder KL）の定義およびロード（load_vae）処理。
+
+    library/strategy_anima.py
+
+        役割: Anima専用のトークナイズ、テキストエンコーディング、潜在変数（Latent）キャッシュ処理の具象ロジック。
+
+    library/strategy_base.py
+
+        役割: 各種処理（トークナイズやエンコーディングなど）をカプセル化する戦略（Strategy）パターンの基底クラス。
+
+library.hunyuan_image_utils（解像度・バケット管理）
+
+    library/hunyuan_image_utils.py
+
+    anima_train_network.py の assert_extra_args 内で、データセットの解像度がAnima（HunyuanImage）の仕様（16ないし32の倍数制限など）に適合しているかを検証する処理（hunyuan_image_utils.check_image_size 等）が呼び出されています。この検証ロジックが欠けると、バケット生成時やパディング処理時にランタイムエラーが発生します。
+
+3. sd-scripts 共通ユーティリティ（library/ ディレクトリ内）
+
+データの処理、デバイス（GPU）制御、モデルスペック管理などを行う共通ライブラリです。
+
+    library/train_util.py
+
+        役割: コマンドライン引数の検証、データセットのグループ化、オプティマイザの生成、ステップ計算など、学習に関する汎用的なヘルパー関数群。
+
+    library/config_util.py
+
+        役割: 学習用設定（TOML等）の読み込み、およびデータセット配置の設計図（Blueprint）を生成する処理。
+
+    library/device_utils.py
+
+        役割: VRAM解放（clean_memory_on_device）や、Intel GPU対応（init_ipex）などのデバイス制御。
+
+    library/utils.py
+
+        役割: ロギングの設定（setup_logging）など、システム全体の補助関数。
+
+    library/sai_model_spec.py
+
+        役割: Stability AIメタデータスペックに準拠したモデルメタデータの保存・処理（LoRAファイルの出力時に利用）。
+
+3. 各種データセット処理モジュール（Datasetクラス）
+
+    library/train_util.py 内部から呼び出されるデータセット関連クラス、あるいは専用のデータローダー。
+
+    見落としの理由: anima_train_network.py では train_util.DatasetGroup や train_util.MinimalDataset が型ヒントや引数検証として明示的に使われています。Animaの学習では、テキストエンコーダー（Qwen3、T5）のトークナイズ結果や、VAEで切り出したLatent（潜在変数）をキャッシュしたデータセットを読み込む必要があるため、これらを制御するデータローダー層（library/ 内のDataset系クラス）が必須となります。
+
+4. 拡散モデルの数理・スケジューラー系モジュール
+
+AnimaはFlow Matching（フローマッチング）モデルの系譜であるため、SD3やFluxの学習ロジックの一部を流用しています。
+
+    library/flux_train_utils.py
+
+        役割: Timestepのサンプリング（Shiftを伴う分布など）やロス計算の補助ロジック。
+
+    library/sd3_train_utils.py
+
+        役割: Flow Matching用のスケジューラー（FlowMatchEulerDiscreteScheduler）など、ノイズスケジュールの制御。
+
+5. その他の拡張機能（必要に応じて）
+
+    library/deepspeed_utils.py
+
+        役割: DeepSpeedを使用した大規模・省VRAM学習を行う場合に必要。使用しない（通常のPyTorch/Accelerateのみ）場合は、コード内の参照箇所を無効化すれば除外可能です。

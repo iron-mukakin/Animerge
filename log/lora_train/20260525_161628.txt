@@ -1,0 +1,619 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_train_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --train_data_dir E:/lora_training/Data/input/dq3_yusha --output_dir E:\Animerge\lora --output_name lora_output --resolution 512,512 --train_batch_size 1 --caption_extension .txt --keep_tokens 1 --network_module networks.lora --network_dim 16 --network_alpha 8.0 --learning_rate 1e-4 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --optimizer_type AdamW --max_train_epochs 10 --save_every_n_epochs 1 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --timestep_sampling sigmoid --discrete_flow_shift 1.0 --sigmoid_scale 1.0 --weighting_scheme none --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --max_data_loader_n_workers 0 --seed 42 --cache_latents --enable_bucket --bucket_no_upscale --network_train_unet_only --gradient_checkpointing --min_bucket_reso 256 --max_bucket_reso 1024 --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":1.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":0.0,"Output_MLP":0.0,"Output_Norm":1.0,"Output_ResNet":0.0,"Output_Timestep":1.0} --validation_split 0.1 --early_stopping --early_stopping_mode epoch --early_stopping_patience 3 --early_stopping_threshold 0.01
+
+2026-05-25 16:16:38 INFO     Using DreamBooth method.      train_network.py:629
+                    INFO     prepare images.                 train_util.py:2185
+                    INFO     get image size from name of     train_util.py:2060
+                             cache files
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+100%|██████████| 6/6 [00:00<?, ?it/s]
+                    INFO     set image size from cache       train_util.py:2090
+                             files: 0/6
+                    INFO     found directory                 train_util.py:2132
+                             E:\lora_training\Data\input\dq3
+                             _yusha\1_dq_roto_mesu contains
+                             6 image files
+
+read caption:   0%|          | 0/6 [00:00<?, ?it/s]
+read caption: 100%|██████████| 6/6 [00:00<00:00, 417.62it/s]
+                    INFO     6 train images with repeats.    train_util.py:2231
+                    INFO     0 reg images with repeats.      train_util.py:2235
+                    WARNING  no regularization images /      train_util.py:2240
+                             正則化画像が見つかりませんでし
+                             た
+                    INFO     prepare images.                 train_util.py:2185
+                    INFO     get image size from name of     train_util.py:2060
+                             cache files
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+100%|██████████| 6/6 [00:00<?, ?it/s]
+                    INFO     set image size from cache       train_util.py:2090
+                             files: 0/6
+                    INFO     found directory                 train_util.py:2132
+                             E:\lora_training\Data\input\dq3
+                             _yusha\1_dq_roto_mesu contains
+                             1 image files
+
+read caption:   0%|          | 0/1 [00:00<?, ?it/s]
+read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
+                    INFO     1 validation images with        train_util.py:2231
+                             repeats.
+                    INFO     0 reg images with repeats.      train_util.py:2235
+                    WARNING  no regularization images /      train_util.py:2240
+                             正則化画像が見つかりませんでし
+                             た
+                    INFO     [Dataset 0]                     config_util.py:586
+                               batch_size: 1
+                               resolution: (512, 512)
+                               skip_image_resolution: None
+                               resize_interpolation: None
+                               enable_bucket: True
+                               min_bucket_reso: 256
+                               max_bucket_reso: 1024
+                               bucket_reso_steps: 64
+                               bucket_no_upscale: True
+
+                               [Subset 0 of Dataset 0]
+                                 image_dir:
+                             "E:\lora_training\Data\input\dq
+                             3_yusha\1_dq_roto_mesu"
+                                 image_count: 6
+                                 num_repeats: 1
+                                 shuffle_caption: False
+                                 keep_tokens: 1
+                                 caption_dropout_rate: 0.0
+                                 caption_dropout_every_n_epo
+                             chs: 0
+                                 caption_tag_dropout_rate:
+                             0.0
+                                 caption_prefix: None
+                                 caption_suffix: None
+                                 color_aug: False
+                                 flip_aug: False
+                                 face_crop_aug_range: None
+                                 random_crop: False
+                                 token_warmup_min: 1,
+                                 token_warmup_step: 0,
+                                 alpha_mask: False
+                                 resize_interpolation: None
+                                 custom_attributes: {}
+                                 is_reg: False
+                                 class_tokens: dq_roto_mesu
+                                 caption_extension: .txt
+
+
+                    INFO     [Validation Dataset 0]          config_util.py:586
+                               batch_size: 1
+                               resolution: (512, 512)
+                               skip_image_resolution: None
+                               resize_interpolation: None
+                               enable_bucket: True
+                               min_bucket_reso: 256
+                               max_bucket_reso: 1024
+                               bucket_reso_steps: 64
+                               bucket_no_upscale: True
+
+                               [Subset 0 of Validation
+                             Dataset 0]
+                                 image_dir:
+                             "E:\lora_training\Data\input\dq
+                             3_yusha\1_dq_roto_mesu"
+                                 image_count: 1
+                                 num_repeats: 1
+                                 shuffle_caption: False
+                                 keep_tokens: 1
+                                 caption_dropout_rate: 0.0
+                                 caption_dropout_every_n_epo
+                             chs: 0
+                                 caption_tag_dropout_rate:
+                             0.0
+                                 caption_prefix: None
+                                 caption_suffix: None
+                                 color_aug: False
+                                 flip_aug: False
+                                 face_crop_aug_range: None
+                                 random_crop: False
+                                 token_warmup_min: 1,
+                                 token_warmup_step: 0,
+                                 alpha_mask: False
+                                 resize_interpolation: None
+                                 custom_attributes: {}
+                                 is_reg: False
+                                 class_tokens: dq_roto_mesu
+                                 caption_extension: .txt
+
+
+                    INFO     [Prepare dataset 0]             config_util.py:598
+                    INFO     loading image sizes.             train_util.py:999
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+100%|██████████| 6/6 [00:00<00:00, 376.10it/s]
+                    INFO     make buckets                    train_util.py:1022
+                    WARNING  min_bucket_reso and             train_util.py:1039
+                             max_bucket_reso are ignored if
+                             bucket_no_upscale is set,
+                             because bucket reso is defined
+                             by image size automatically /
+                             bucket_no_upscaleが指定された場
+                             合は、bucketの解像度は画像サイ
+                             ズから自動計算されるため、min_b
+                             ucket_resoとmax_bucket_resoは無
+                             視されます
+                    INFO     number of images (including     train_util.py:1068
+                             repeats) /
+                             各bucketの画像枚数（繰り返し回
+                             数を含む）
+                    INFO     bucket 0: resolution (384,      train_util.py:1073
+                             512), count: 1
+                    INFO     bucket 1: resolution (448,      train_util.py:1073
+                             448), count: 2
+                    INFO     bucket 2: resolution (512,      train_util.py:1073
+                             512), count: 3
+                    INFO     mean ar error (without          train_util.py:1081
+                             repeats): 0.03214285714285714
+                    INFO     [Prepare validation dataset 0]  config_util.py:603
+                    INFO     loading image sizes.             train_util.py:999
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|██████████| 1/1 [00:00<?, ?it/s]
+                    INFO     make buckets                    train_util.py:1022
+                    WARNING  min_bucket_reso and             train_util.py:1039
+                             max_bucket_reso are ignored if
+                             bucket_no_upscale is set,
+                             because bucket reso is defined
+                             by image size automatically /
+                             bucket_no_upscaleが指定された場
+                             合は、bucketの解像度は画像サイ
+                             ズから自動計算されるため、min_b
+                             ucket_resoとmax_bucket_resoは無
+                             視されます
+                    INFO     number of images (including     train_util.py:1068
+                             repeats) /
+                             各bucketの画像枚数（繰り返し回
+                             数を含む）
+                    INFO     bucket 0: resolution (512,      train_util.py:1073
+                             512), count: 1
+                    INFO     mean ar error (without          train_util.py:1081
+                             repeats): 0.0
+                    INFO     preparing accelerator         train_network.py:692
+                    INFO     Loading Qwen3 text       anima_train_network.py:86
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:265
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-05-25 16:16:47 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+                             keys matched successfully>
+                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
+                             Parameters: 596,049,920
+                    INFO     Loading Anima VAE...     anima_train_network.py:91
+                    INFO     Initializing VAE qwen_image_autoencoder_kl.py:1609
+2026-05-25 16:16:48 INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
+                             F:/Game_Files/Co
+                             mfyUI_windows_po
+                             rtable/ComfyUI/m
+                             odels/vae/qwen_i
+                             mage_vae.safeten
+                             sors
+                    INFO     Converted        qwen_image_autoencoder_kl.py:1538
+                             ComfyUI
+                             AutoencoderKL
+                             state dict keys
+                             to official
+                             format
+                    INFO     Loaded VAE: <All qwen_image_autoencoder_kl.py:1638
+                             keys matched
+                             successfully>
+                    INFO     [Dataset 0]                     train_util.py:2740
+                    INFO     caching latents with caching    train_util.py:1128
+                             strategy.
+                    INFO     caching latents...              train_util.py:1178
+accelerator device: cuda
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+ 17%|█▋        | 1/6 [00:00<00:02,  1.93it/s]
+ 33%|███▎      | 2/6 [00:00<00:01,  3.07it/s]
+ 50%|█████     | 3/6 [00:00<00:00,  3.68it/s]
+ 67%|██████▋   | 4/6 [00:01<00:00,  3.96it/s]
+ 83%|████████▎ | 5/6 [00:01<00:00,  4.24it/s]
+100%|██████████| 6/6 [00:01<00:00,  4.43it/s]
+100%|██████████| 6/6 [00:01<00:00,  3.87it/s]
+2026-05-25 16:16:50 INFO     [Dataset 0]                     train_util.py:2740
+                    INFO     caching latents with caching    train_util.py:1128
+                             strategy.
+                    INFO     caching latents...              train_util.py:1178
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|██████████| 1/1 [00:00<00:00,  4.86it/s]
+100%|██████████| 1/1 [00:00<00:00,  4.86it/s]
+2026-05-25 16:16:51 INFO     Loading Anima DiT model anima_train_network.py:112
+                             with attn_mode=torch,
+                             split_attn: False...
+                    INFO     Loading DiT model from          anima_utils.py:166
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, device=cuda
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusion_
+                             models/anima-base-v1.0.safetensor
+                             s']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+
+Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
+Loading anima-base-v1.0.safetensors:   5%|▍         | 33/685 [00:00<00:02, 309.76it/s]
+Loading anima-base-v1.0.safetensors:   9%|▉         | 64/685 [00:00<00:02, 268.78it/s]
+Loading anima-base-v1.0.safetensors:  14%|█▎        | 93/685 [00:00<00:02, 265.64it/s]
+Loading anima-base-v1.0.safetensors:  18%|█▊        | 120/685 [00:00<00:02, 257.64it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 151/685 [00:00<00:02, 266.09it/s]
+Loading anima-base-v1.0.safetensors:  26%|██▌       | 178/685 [00:00<00:02, 246.83it/s]
+Loading anima-base-v1.0.safetensors:  31%|███       | 209/685 [00:00<00:01, 256.86it/s]
+Loading anima-base-v1.0.safetensors:  34%|███▍      | 235/685 [00:00<00:01, 249.85it/s]
+Loading anima-base-v1.0.safetensors:  38%|███▊      | 261/685 [00:01<00:01, 245.18it/s]
+Loading anima-base-v1.0.safetensors:  43%|████▎     | 293/685 [00:01<00:01, 258.28it/s]
+Loading anima-base-v1.0.safetensors:  47%|████▋     | 319/685 [00:01<00:01, 247.56it/s]
+Loading anima-base-v1.0.safetensors:  51%|█████     | 349/685 [00:01<00:01, 257.45it/s]
+Loading anima-base-v1.0.safetensors:  55%|█████▍    | 375/685 [00:01<00:01, 239.66it/s]
+Loading anima-base-v1.0.safetensors:  60%|█████▉    | 409/685 [00:01<00:01, 259.00it/s]
+Loading anima-base-v1.0.safetensors:  64%|██████▎   | 436/685 [00:01<00:01, 243.73it/s]
+Loading anima-base-v1.0.safetensors:  69%|██████▉   | 471/685 [00:01<00:00, 264.64it/s]
+Loading anima-base-v1.0.safetensors:  73%|███████▎  | 498/685 [00:01<00:00, 250.60it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 533/685 [00:02<00:00, 266.59it/s]
+Loading anima-base-v1.0.safetensors:  82%|████████▏ | 560/685 [00:02<00:00, 259.70it/s]
+Loading anima-base-v1.0.safetensors:  95%|█████████▌| 654/685 [00:02<00:00, 430.58it/s]
+
+2026-05-25 16:16:54 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+                             renamed. Examples:
+                             [('net.blocks.0.adaln_modulation
+                             _cross_attn.1.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.1.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             cross_attn.2.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.2.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             mlp.1.weight',
+                             'blocks.0.adaln_modulation_mlp.1
+                             .weight')]
+                    INFO     Loaded DiT model from           anima_utils.py:210
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, unexpected missing keys:
+                             0, unexpected keys: 0
+                    INFO     anima_matrix_scales detected: using    lora.py:468
+                             per-module LR via
+                             get_lr_weight_for_lora
+                    INFO     create LoRA network. base dim (rank): lora.py:1039
+                             16, alpha: 8.0
+                    INFO     neuron dropout: p=None, rank dropout: lora.py:1040
+                             p=None, module dropout: p=None
+                    INFO     create LoRA for Text Encoder:         lora.py:1134
+                    INFO     create LoRA for Text Encoder: 0       lora.py:1139
+                             modules.
+                    INFO     create LoRA for U-Net: 508 modules.   lora.py:1147
+                    INFO     anima_matrix_scales: 15 groups loaded lora.py:1251
+                    INFO     enable LoRA for U-Net: 508 modules    lora.py:1194
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     use AdamW optimizer | {}        train_util.py:5230
+2026-05-25 16:17:05 INFO     unet dtype: torch.bfloat16,  train_network.py:1459
+                             device: cuda:0
+                    INFO     text_encoder [0] dtype:      train_network.py:1465
+                             torch.bfloat16, device:
+                             cuda:0
+import network module: networks.lora
+prepare optimizer, data loader etc.
+override steps. steps for 10 epochs is / 指定エポックまでのステップ数: 60
+running training / 学習開始
+  num train images * repeats / 学習画像の数×繰り返し回数: 6
+  num validation images * repeats / 学習画像の数×繰り返し回数: 1
+  num reg images / 正則化画像の数: 0
+  num batches per epoch / 1epochのバッチ数: 6
+  num epochs / epoch数: 10
+  batch size per device / バッチサイズ: 1
+  gradient accumulation steps / 勾配を合計するステップ数 = 1
+  total optimization steps / 学習ステップ数: 60
+
+steps:   0%|          | 0/60 [00:00<?, ?it/s]                    INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 0, epoch: 1
+
+steps:   2%|▏         | 1/60 [00:01<01:39,  1.68s/it]
+steps:   2%|▏         | 1/60 [00:01<01:39,  1.68s/it, avr_loss=0.0556]
+steps:   3%|▎         | 2/60 [00:02<01:23,  1.43s/it, avr_loss=0.0556]
+steps:   3%|▎         | 2/60 [00:02<01:23,  1.43s/it, avr_loss=0.0637]
+steps:   5%|▌         | 3/60 [00:04<01:17,  1.36s/it, avr_loss=0.0637]
+steps:   5%|▌         | 3/60 [00:04<01:17,  1.36s/it, avr_loss=0.0617]
+steps:   7%|▋         | 4/60 [00:05<01:13,  1.32s/it, avr_loss=0.0617]
+steps:   7%|▋         | 4/60 [00:05<01:13,  1.32s/it, avr_loss=0.0591]
+steps:   8%|▊         | 5/60 [00:06<01:11,  1.30s/it, avr_loss=0.0591]
+steps:   8%|▊         | 5/60 [00:06<01:11,  1.30s/it, avr_loss=0.0592]
+steps:  10%|█         | 6/60 [00:07<01:09,  1.29s/it, avr_loss=0.0592]
+steps:  10%|█         | 6/60 [00:07<01:09,  1.29s/it, avr_loss=0.0529]
+epoch 1/10
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s][A
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.17it/s][A
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.17it/s, val_epoch_avg_loss=0.0398, timestep=200][A
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.12it/s, val_epoch_avg_loss=0.0398, timestep=200][A
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.12it/s, val_epoch_avg_loss=0.0421, timestep=400][A
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.15it/s, val_epoch_avg_loss=0.0421, timestep=400][A
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.15it/s, val_epoch_avg_loss=0.0516, timestep=600][A
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.15it/s, val_epoch_avg_loss=0.0516, timestep=600][A
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.15it/s, val_epoch_avg_loss=0.0507, timestep=800][A2026-05-25 16:17:14 WARNING  [EarlyStopping] 初回計測:    train_network.py:1814
+                             val_loss=0.050703
+                             監視を開始します。
+2026-05-25 16:17:15 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 1, epoch: 2
+
+steps:  12%|█▏        | 7/60 [00:09<01:08,  1.29s/it, avr_loss=0.0529]
+steps:  12%|█▏        | 7/60 [00:09<01:08,  1.29s/it, avr_loss=0.0519]
+steps:  13%|█▎        | 8/60 [00:10<01:07,  1.29s/it, avr_loss=0.0519]
+steps:  13%|█▎        | 8/60 [00:10<01:07,  1.29s/it, avr_loss=0.0436]
+steps:  15%|█▌        | 9/60 [00:11<01:05,  1.28s/it, avr_loss=0.0436]
+steps:  15%|█▌        | 9/60 [00:11<01:05,  1.28s/it, avr_loss=0.0412]
+steps:  17%|█▋        | 10/60 [00:12<01:03,  1.27s/it, avr_loss=0.0412]
+steps:  17%|█▋        | 10/60 [00:12<01:03,  1.27s/it, avr_loss=0.0444]
+steps:  18%|█▊        | 11/60 [00:13<01:01,  1.26s/it, avr_loss=0.0444]
+steps:  18%|█▊        | 11/60 [00:13<01:01,  1.26s/it, avr_loss=0.0439]
+steps:  20%|██        | 12/60 [00:15<01:00,  1.25s/it, avr_loss=0.0439]
+steps:  20%|██        | 12/60 [00:15<01:00,  1.25s/it, avr_loss=0.0537][EarlyStopping] 初回計測: val_loss=0.050703  監視を開始します。
+
+saving checkpoint: E:\Animerge\lora\lora_output-000001.safetensors
+
+epoch 2/10
+
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s][A[A
+epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.28s/it, val_epoch_avg_loss=0.0507, timestep=800]
+
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.02it/s][A[A
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.02it/s, val_epoch_avg_loss=0.0505, timestep=200][A[A
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.15it/s, val_epoch_avg_loss=0.0505, timestep=200][A[A
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.15it/s, val_epoch_avg_loss=0.0506, timestep=400][A[A
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.15it/s, val_epoch_avg_loss=0.0506, timestep=400][A[A
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.15it/s, val_epoch_avg_loss=0.0497, timestep=600][A[A
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.15it/s, val_epoch_avg_loss=0.0497, timestep=600][A[A
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.15it/s, val_epoch_avg_loss=0.0485, timestep=800][A[A2026-05-25 16:17:24 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 2, epoch: 3
+
+steps:  22%|██▏       | 13/60 [00:16<00:58,  1.25s/it, avr_loss=0.0537]
+steps:  22%|██▏       | 13/60 [00:16<00:58,  1.25s/it, avr_loss=0.0527]
+steps:  23%|██▎       | 14/60 [00:17<00:57,  1.25s/it, avr_loss=0.0527]
+steps:  23%|██▎       | 14/60 [00:17<00:57,  1.25s/it, avr_loss=0.057]
+steps:  25%|██▌       | 15/60 [00:18<00:56,  1.25s/it, avr_loss=0.057]
+steps:  25%|██▌       | 15/60 [00:18<00:56,  1.25s/it, avr_loss=0.0573]
+steps:  27%|██▋       | 16/60 [00:19<00:54,  1.25s/it, avr_loss=0.0573]
+steps:  27%|██▋       | 16/60 [00:19<00:54,  1.25s/it, avr_loss=0.0533]
+steps:  28%|██▊       | 17/60 [00:21<00:53,  1.24s/it, avr_loss=0.0533]
+steps:  28%|██▊       | 17/60 [00:21<00:53,  1.24s/it, avr_loss=0.0472]
+steps:  30%|███       | 18/60 [00:22<00:52,  1.24s/it, avr_loss=0.0472]
+steps:  30%|███       | 18/60 [00:22<00:52,  1.24s/it, avr_loss=0.0449]
+saving checkpoint: E:\Animerge\lora\lora_output-000002.safetensors
+
+epoch 3/10
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s][A
+epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.27s/it, val_epoch_avg_loss=0.0485, timestep=800]
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.00it/s][A
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.00it/s, val_epoch_avg_loss=0.0483, timestep=200][A
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.08it/s, val_epoch_avg_loss=0.0483, timestep=200][A
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.08it/s, val_epoch_avg_loss=0.0484, timestep=400][A
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.16it/s, val_epoch_avg_loss=0.0484, timestep=400][A
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.16it/s, val_epoch_avg_loss=0.0482, timestep=600][A
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.12it/s, val_epoch_avg_loss=0.0482, timestep=600][A
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.12it/s, val_epoch_avg_loss=0.0478, timestep=800][A2026-05-25 16:17:33 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 3, epoch: 4
+
+steps:  32%|███▏      | 19/60 [00:23<00:50,  1.24s/it, avr_loss=0.0449]
+steps:  32%|███▏      | 19/60 [00:23<00:50,  1.24s/it, avr_loss=0.0518]
+steps:  33%|███▎      | 20/60 [00:24<00:49,  1.24s/it, avr_loss=0.0518]
+steps:  33%|███▎      | 20/60 [00:24<00:49,  1.24s/it, avr_loss=0.0526]
+steps:  35%|███▌      | 21/60 [00:26<00:48,  1.24s/it, avr_loss=0.0526]
+steps:  35%|███▌      | 21/60 [00:26<00:48,  1.24s/it, avr_loss=0.074]
+steps:  37%|███▋      | 22/60 [00:27<00:47,  1.24s/it, avr_loss=0.074]
+steps:  37%|███▋      | 22/60 [00:27<00:47,  1.24s/it, avr_loss=0.0742]
+steps:  38%|███▊      | 23/60 [00:28<00:45,  1.24s/it, avr_loss=0.0742]
+steps:  38%|███▊      | 23/60 [00:28<00:45,  1.24s/it, avr_loss=0.0848]
+steps:  40%|████      | 24/60 [00:29<00:44,  1.23s/it, avr_loss=0.0848]
+steps:  40%|████      | 24/60 [00:29<00:44,  1.23s/it, avr_loss=0.0784]
+saving checkpoint: E:\Animerge\lora\lora_output-000003.safetensors
+
+epoch 4/10
+
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s][A[A
+epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.28s/it, val_epoch_avg_loss=0.0478, timestep=800]
+
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.13it/s][A[A
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.13it/s, val_epoch_avg_loss=0.0475, timestep=200][A[A
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.23it/s, val_epoch_avg_loss=0.0475, timestep=200][A[A
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.23it/s, val_epoch_avg_loss=0.0474, timestep=400][A[A
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0474, timestep=400][A[A
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0469, timestep=600][A[A
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.25it/s, val_epoch_avg_loss=0.0469, timestep=600][A[A
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.25it/s, val_epoch_avg_loss=0.0467, timestep=800][A[A2026-05-25 16:17:42 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 4, epoch: 5
+
+steps:  42%|████▏     | 25/60 [00:30<00:43,  1.23s/it, avr_loss=0.0784]
+steps:  42%|████▏     | 25/60 [00:30<00:43,  1.23s/it, avr_loss=0.0701]
+steps:  43%|████▎     | 26/60 [00:31<00:41,  1.23s/it, avr_loss=0.0701]
+steps:  43%|████▎     | 26/60 [00:31<00:41,  1.23s/it, avr_loss=0.0679]
+steps:  45%|████▌     | 27/60 [00:33<00:40,  1.23s/it, avr_loss=0.0679]
+steps:  45%|████▌     | 27/60 [00:33<00:40,  1.23s/it, avr_loss=0.0627]
+steps:  47%|████▋     | 28/60 [00:34<00:39,  1.23s/it, avr_loss=0.0627]
+steps:  47%|████▋     | 28/60 [00:34<00:39,  1.23s/it, avr_loss=0.0654]
+steps:  48%|████▊     | 29/60 [00:35<00:38,  1.23s/it, avr_loss=0.0654]
+steps:  48%|████▊     | 29/60 [00:35<00:38,  1.23s/it, avr_loss=0.0609]
+steps:  50%|█████     | 30/60 [00:36<00:36,  1.23s/it, avr_loss=0.0609]
+steps:  50%|█████     | 30/60 [00:36<00:36,  1.23s/it, avr_loss=0.0649]
+saving checkpoint: E:\Animerge\lora\lora_output-000004.safetensors
+
+epoch 5/10
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s][A
+epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.26s/it, val_epoch_avg_loss=0.0467, timestep=800]
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.16it/s][A
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.16it/s, val_epoch_avg_loss=0.0465, timestep=200][A
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.24it/s, val_epoch_avg_loss=0.0465, timestep=200][A
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.24it/s, val_epoch_avg_loss=0.0463, timestep=400][A
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.21it/s, val_epoch_avg_loss=0.0463, timestep=400][A
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.21it/s, val_epoch_avg_loss=0.0463, timestep=600][A
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.23it/s, val_epoch_avg_loss=0.0463, timestep=600][A
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.23it/s, val_epoch_avg_loss=0.0461, timestep=800][A2026-05-25 16:17:51 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 5, epoch: 6
+
+steps:  52%|█████▏    | 31/60 [00:38<00:35,  1.23s/it, avr_loss=0.0649]
+steps:  52%|█████▏    | 31/60 [00:38<00:35,  1.23s/it, avr_loss=0.0676]
+steps:  53%|█████▎    | 32/60 [00:39<00:34,  1.23s/it, avr_loss=0.0676]
+steps:  53%|█████▎    | 32/60 [00:39<00:34,  1.23s/it, avr_loss=0.0717]
+steps:  55%|█████▌    | 33/60 [00:40<00:33,  1.23s/it, avr_loss=0.0717]
+steps:  55%|█████▌    | 33/60 [00:40<00:33,  1.23s/it, avr_loss=0.0543]
+steps:  57%|█████▋    | 34/60 [00:41<00:31,  1.23s/it, avr_loss=0.0543]
+steps:  57%|█████▋    | 34/60 [00:41<00:31,  1.23s/it, avr_loss=0.0477]
+steps:  58%|█████▊    | 35/60 [00:42<00:30,  1.22s/it, avr_loss=0.0477]
+steps:  58%|█████▊    | 35/60 [00:42<00:30,  1.22s/it, avr_loss=0.0459]
+steps:  60%|██████    | 36/60 [00:44<00:29,  1.23s/it, avr_loss=0.0459]
+steps:  60%|██████    | 36/60 [00:44<00:29,  1.23s/it, avr_loss=0.0469]
+saving checkpoint: E:\Animerge\lora\lora_output-000005.safetensors
+
+epoch 6/10
+
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s][A[A
+epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.27s/it, val_epoch_avg_loss=0.0461, timestep=800]
+
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.17it/s][A[A
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.17it/s, val_epoch_avg_loss=0.0459, timestep=200][A[A
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.02it/s, val_epoch_avg_loss=0.0459, timestep=200][A[A
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.02it/s, val_epoch_avg_loss=0.0458, timestep=400][A[A
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.03it/s, val_epoch_avg_loss=0.0458, timestep=400][A[A
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.03it/s, val_epoch_avg_loss=0.0459, timestep=600][A[A
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.01it/s, val_epoch_avg_loss=0.0459, timestep=600][A[A
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.01it/s, val_epoch_avg_loss=0.0459, timestep=800][A[A2026-05-25 16:18:00 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 6, epoch: 7
+
+steps:  62%|██████▏   | 37/60 [00:45<00:28,  1.23s/it, avr_loss=0.0469]
+steps:  62%|██████▏   | 37/60 [00:45<00:28,  1.23s/it, avr_loss=0.0501]
+steps:  63%|██████▎   | 38/60 [00:46<00:26,  1.23s/it, avr_loss=0.0501]
+steps:  63%|██████▎   | 38/60 [00:46<00:26,  1.23s/it, avr_loss=0.0462]
+steps:  65%|██████▌   | 39/60 [00:47<00:25,  1.23s/it, avr_loss=0.0462]
+steps:  65%|██████▌   | 39/60 [00:47<00:25,  1.23s/it, avr_loss=0.0432]
+steps:  67%|██████▋   | 40/60 [00:49<00:24,  1.23s/it, avr_loss=0.0432]
+steps:  67%|██████▋   | 40/60 [00:49<00:24,  1.23s/it, avr_loss=0.0465]forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FF8AC8D348D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FF8AF57E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FF8AFDE427C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FF8AC8D348D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FF8AF57E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FF8AFDE427C  Unknown               Unknown  Unknown

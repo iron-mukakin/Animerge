@@ -1,0 +1,27 @@
+{
+  "alpha": 0.5,
+  "cosine_threshold": 0.4,
+  "auto_correction": true,
+  "dry_run": true,
+  "freeze_bias_input": false,
+  "freeze_bias_middle": false,
+  "freeze_bias_output": false,
+  "layer_display_mode": "Matrix",
+  "parameter_scales": {
+    "Input_Attention": 0.2,
+    "Input_MLP": 1.0,
+    "Input_Norm": 1.0,
+    "Input_ResNet": 0.5,
+    "Input_Timestep": 1.0,
+    "Middle_Attention": 1.0,
+    "Middle_MLP": 0.7,
+    "Middle_Norm": 1.0,
+    "Middle_ResNet": 1.0,
+    "Middle_Timestep": 0.8,
+    "Output_Attention": 1.0,
+    "Output_MLP": 1.0,
+    "Output_Norm": 0.9,
+    "Output_ResNet": 1.0,
+    "Output_Timestep": 1.0
+  }
+}

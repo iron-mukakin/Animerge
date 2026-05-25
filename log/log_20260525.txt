@@ -1,0 +1,93 @@
+2026-05-25 02:30:51 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-25 02:31:42 [Load Base Structure]
+  Layers: 685
+
+2026-05-25 02:44:39 [Load Base Structure]
+  Layers: 685
+
+2026-05-25 02:44:43 [Load Base Structure]
+  Layers: 685
+
+2026-05-25 02:44:57 [Preset Save] component.json
+
+2026-05-25 02:57:54 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-25 02:58:35 [Preset Load] component.json
+
+2026-05-25 02:58:39 [Load Base Structure]
+  Layers: 685
+
+2026-05-25 02:58:41 [Preset Load] component.json
+
+2026-05-25 03:24:32 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-05-25 09:36:48 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 12
+
+2026-05-25 09:39:40 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 12
+
+2026-05-25 09:40:42 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 12
+
+2026-05-25 09:50:17 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 12
+
+2026-05-25 09:50:28 [Load Base Structure]
+  Layers: 685
+
+2026-05-25 12:03:58 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-05-25 15:16:40 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-05-25 15:21:42 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-05-25 16:06:08 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-05-25 16:09:30 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-05-25 16:13:25 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-05-25 16:22:25 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 9
+
+2026-05-25 17:01:11 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 9
+
+2026-05-25 17:54:57 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 9
+
+2026-05-25 20:36:34 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 9
+
+2026-05-25 21:15:52 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 9
+

@@ -1,0 +1,40 @@
+# CUDA 12.8 GPU版 torch
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.8.0+cu128
+torchvision>=0.20.0
+
+# Core
+safetensors>=0.4.5
+numpy>=2.0.0
+packaging>=24.0
+pillow>=10.0.0
+
+# LoRA学習 (sd-scripts / anima_train_network) に必要
+accelerate>=0.30.0
+transformers>=4.40.0
+huggingface_hub>=0.23.0
+tqdm>=4.66.0
+einops>=0.7.0
+toml>=0.10.2
+scipy>=1.13.0
+diffusers>=0.27.0
+imagesize>=1.4.1
+opencv-python>=4.9.0
+peft>=0.17.0
+lycoris-lora
+voluptuous>=0.14.2
+sentencepiece>=0.2.0
+protobuf>=4.25.0
+
+# TensorBoard (use_tensorboard オプション有効時に必要)
+tensorboard>=2.16.0
+
+# Optional: xformers (--xformers / --attn_mode xformers 使用時)
+# xformers>=0.0.26           # CUDA版torchと一致するビルドが必要
+
+# Optional optimizers (未インストールの場合 AdamW にフォールバック)
+bitsandbytes>=0.43.0         # AdamW8bit
+# lion-pytorch>=0.2.2        # Lion
+# prodigyopt>=1.0            # Prodigy
+# dadaptation>=3.2           # DAdaptAdam
+# transformers>=4.40.0       # AdaFactor (transformers.optimization.Adafactor)
