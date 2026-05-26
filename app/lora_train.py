@@ -39,6 +39,7 @@ MATRIX_BLOCKS       = ("Input", "Middle", "Output")
 MATRIX_COMPONENTS   = ("Attention", "MLP", "Norm", "ResNet", "Timestep")
 COMPONENT_GROUPS    = ("Attention", "MLP", "Norm", "ResNet", "Timestep", "Other")
 LAYER_COLUMNS       = 3
+SAMPLE_FIXED_SEED   = 42
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -66,6 +67,7 @@ def build_lora_train_tab(
     tab_layer   = ttk.Frame(nb, padding=8)
     tab_monitor = ttk.Frame(nb, padding=8)
     tab_monitor_layer = ttk.Frame(nb, padding=8)
+    tab_sample  = ttk.Frame(nb, padding=8)
     tab_preset  = ttk.Frame(nb, padding=8)
 
     nb.add(tab_model,   text="  モデル  ")
@@ -76,6 +78,7 @@ def build_lora_train_tab(
     nb.add(tab_layer,   text="  階層学習  ")
     nb.add(tab_monitor, text="  モニターグラフ  ")
     nb.add(tab_monitor_layer, text="  モニター階層  ")
+    nb.add(tab_sample,  text="  サンプル生成  ")
     nb.add(tab_preset,  text="  プリセット  ")
 
     _build_model_tab(tab_model,   state)
@@ -86,6 +89,7 @@ def build_lora_train_tab(
     _build_layer_train_tab(tab_layer, state)
     _build_monitor_tab(tab_monitor, state)
     _build_monitor_layer_tab(tab_monitor_layer, state)
+    _build_sample_tab(tab_sample, state)
     _build_train_preset_tab(tab_preset, state)
 
     # ── 実行パネル（主要な中タブの画面下）────────────────────────────────
@@ -178,8 +182,16 @@ class _TrainState:
         self.t5_max_token_length = tk.IntVar(value=512)
         self.t5_tokenizer_path = tk.StringVar(value="")
         self.max_grad_norm  = tk.DoubleVar(value=1.0)
-        self.sample_every_n_epochs = tk.StringVar(value="")
+        self.sample_enabled = tk.BooleanVar(value=False)
+        self.sample_every_n_epochs = tk.StringVar(value="1")
         self.sample_prompts = tk.StringVar(value="")
+        self.sample_prompt = tk.StringVar(value="")
+        self.sample_negative_prompt = tk.StringVar(value="")
+        self.sample_width = tk.IntVar(value=512)
+        self.sample_height = tk.IntVar(value=512)
+        self.sample_steps = tk.IntVar(value=30)
+        self.sample_scale = tk.DoubleVar(value=7.5)
+        self.sample_flow_shift = tk.DoubleVar(value=3.0)
 
         # 階層学習
         self.layer_train_enabled = tk.BooleanVar(value=False)
@@ -486,10 +498,6 @@ def _build_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     lf2.pack(fill=tk.X)
     ttk.Checkbutton(lf2, text="gradient_checkpointing", variable=s.gradient_checkpointing).grid(
         row=0, column=0, sticky=tk.W, padx=8, pady=3)
-    ttk.Checkbutton(lf2, text="xformers", variable=s.xformers).grid(
-        row=0, column=1, sticky=tk.W, padx=8, pady=3)
-    ttk.Checkbutton(lf2, text="sdpa", variable=s.sdpa).grid(
-        row=0, column=2, sticky=tk.W, padx=8, pady=3)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -551,12 +559,19 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=4, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Spinbox(lf, from_=64, to=4096, textvariable=s.t5_max_token_length, width=8).grid(
         row=4, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    _entry_browse_row(lf, 4, "", s.t5_tokenizer_path, is_dir=True)
-    # t5_tokenizer_path を右列に手動配置
     ttk.Label(lf, text="t5_tokenizer_path", width=20, anchor=tk.W).grid(
         row=4, column=2, sticky=tk.W, padx=(0, 2), pady=3)
-    ttk.Entry(lf, textvariable=s.t5_tokenizer_path).grid(
-        row=4, column=3, sticky=tk.EW, padx=(0, 4), pady=3)
+    t5_path_frame = ttk.Frame(lf)
+    t5_path_frame.grid(row=4, column=3, sticky=tk.EW, padx=(0, 4), pady=3)
+    t5_path_frame.columnconfigure(0, weight=1)
+    ttk.Entry(t5_path_frame, textvariable=s.t5_tokenizer_path).grid(
+        row=0, column=0, sticky=tk.EW, padx=(0, 2))
+    ttk.Button(
+        t5_path_frame,
+        text="Browse",
+        width=7,
+        command=lambda: _browse_dir(s.t5_tokenizer_path),
+    ).grid(row=0, column=1)
 
     # チェックボックス行
     lf2 = ttk.LabelFrame(parent, text="オフロード / キャッシュ")
@@ -571,22 +586,9 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
     ttk.Checkbutton(lf2, text="vae_disable_cache", variable=s.vae_disable_cache).grid(
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
 
-    # サンプル設定
-    lf3 = ttk.LabelFrame(parent, text="サンプル生成 (任意)")
-    lf3.pack(fill=tk.X)
-    lf3.columnconfigure(1, weight=1)
-
-    ttk.Label(lf3, text="sample_every_n_epochs", width=24, anchor=tk.W).grid(
-        row=0, column=0, sticky=tk.W, padx=(4, 2), pady=3)
-    ttk.Entry(lf3, textvariable=s.sample_every_n_epochs, width=10).grid(
-        row=0, column=1, sticky=tk.W, padx=(0, 4), pady=3)
-
-    _entry_browse_row(lf3, 1, "sample_prompts (txt)", s.sample_prompts,
-                      filetypes=[("Text", "*.txt"), ("All", "*.*")])
-
     # Validation / EarlyStopping
     lf4 = ttk.LabelFrame(parent, text="Validation / Early Stopping")
-    lf4.pack(fill=tk.X, pady=(8, 0))
+    lf4.pack(fill=tk.X)
     lf4.columnconfigure(1, weight=1)
     lf4.columnconfigure(3, weight=1)
 
@@ -976,7 +978,190 @@ def _build_monitor_layer_tab(parent: ttk.Frame, s: _TrainState) -> None:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# タブ9: LoRA学習プリセット
+# タブ9: サンプル生成
+# ──────────────────────────────────────────────────────────────────────────────
+def _sample_dir(s: _TrainState) -> Path:
+    return s.paths.root / "log" / "sample_gen"
+
+
+def _sample_prompt_path(s: _TrainState) -> Path:
+    return _sample_dir(s) / "_sample_prompt.txt"
+
+
+def _build_sample_prompt_line(s: _TrainState) -> str:
+    prompt = s.sample_prompt.get().strip()
+    neg = s.sample_negative_prompt.get().strip()
+    width = max(64, int(s.sample_width.get()))
+    height = max(64, int(s.sample_height.get()))
+    steps = max(1, int(s.sample_steps.get()))
+    scale = float(s.sample_scale.get())
+    flow_shift = float(s.sample_flow_shift.get())
+
+    line = (
+        f"{prompt} --w {width} --h {height} --s {steps} "
+        f"--l {scale:g} --fs {flow_shift:g} --d {SAMPLE_FIXED_SEED}"
+    )
+    if neg:
+        line += f" --n {neg}"
+    return line
+
+
+def _write_sample_prompt_file(s: _TrainState) -> Path:
+    path = _sample_prompt_path(s)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_build_sample_prompt_line(s) + "\n", encoding="utf-8", newline="\n")
+    return path
+
+
+def _extract_sample_epoch(path: Path) -> str:
+    m = re.search(r"(?:^|_)e(\d+)(?:_|$)", path.stem)
+    if not m:
+        return "-"
+    try:
+        return str(int(m.group(1)))
+    except ValueError:
+        return m.group(1)
+
+
+def _build_sample_tab(parent: ttk.Frame, s: _TrainState) -> None:
+    parent.columnconfigure(0, weight=1)
+    parent.rowconfigure(1, weight=1)
+
+    settings = ttk.LabelFrame(parent, text="サンプル生成設定")
+    settings.grid(row=0, column=0, sticky=tk.EW, pady=(0, 8))
+    settings.columnconfigure(1, weight=1)
+    settings.columnconfigure(3, weight=1)
+
+    ttk.Checkbutton(settings, text="サンプル生成を有効にする", variable=s.sample_enabled).grid(
+        row=0, column=0, columnspan=2, sticky=tk.W, padx=(4, 12), pady=3
+    )
+    ttk.Label(settings, text=f"seed固定: {SAMPLE_FIXED_SEED}", foreground="#64748B").grid(
+        row=0, column=2, columnspan=2, sticky=tk.W, padx=(0, 4), pady=3
+    )
+
+    ttk.Label(settings, text="epoch間隔", width=16, anchor=tk.W).grid(
+        row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3
+    )
+    ttk.Spinbox(settings, from_=1, to=9999, textvariable=s.sample_every_n_epochs, width=8).grid(
+        row=1, column=1, sticky=tk.W, padx=(0, 12), pady=3
+    )
+    ttk.Label(settings, text="出力先", width=10, anchor=tk.W).grid(
+        row=1, column=2, sticky=tk.W, padx=(0, 2), pady=3
+    )
+    ttk.Label(settings, text=str(_sample_dir(s)), foreground="#1D4ED8").grid(
+        row=1, column=3, sticky=tk.W, padx=(0, 4), pady=3
+    )
+
+    ttk.Label(settings, text="prompt", width=16, anchor=tk.W).grid(
+        row=2, column=0, sticky=tk.W, padx=(4, 2), pady=3
+    )
+    ttk.Entry(settings, textvariable=s.sample_prompt).grid(
+        row=2, column=1, columnspan=3, sticky=tk.EW, padx=(0, 4), pady=3
+    )
+
+    ttk.Label(settings, text="negative prompt", width=16, anchor=tk.W).grid(
+        row=3, column=0, sticky=tk.W, padx=(4, 2), pady=3
+    )
+    ttk.Entry(settings, textvariable=s.sample_negative_prompt).grid(
+        row=3, column=1, columnspan=3, sticky=tk.EW, padx=(0, 4), pady=3
+    )
+
+    ttk.Label(settings, text="width / height", width=16, anchor=tk.W).grid(
+        row=4, column=0, sticky=tk.W, padx=(4, 2), pady=3
+    )
+    size_frame = ttk.Frame(settings)
+    size_frame.grid(row=4, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Spinbox(size_frame, from_=64, to=4096, increment=16, textvariable=s.sample_width, width=7).pack(side=tk.LEFT)
+    ttk.Label(size_frame, text=" x ").pack(side=tk.LEFT)
+    ttk.Spinbox(size_frame, from_=64, to=4096, increment=16, textvariable=s.sample_height, width=7).pack(side=tk.LEFT)
+
+    ttk.Label(settings, text="steps", width=10, anchor=tk.W).grid(
+        row=4, column=2, sticky=tk.W, padx=(0, 2), pady=3
+    )
+    ttk.Spinbox(settings, from_=1, to=1000, textvariable=s.sample_steps, width=8).grid(
+        row=4, column=3, sticky=tk.W, padx=(0, 4), pady=3
+    )
+
+    ttk.Label(settings, text="scale", width=16, anchor=tk.W).grid(
+        row=5, column=0, sticky=tk.W, padx=(4, 2), pady=3
+    )
+    ttk.Entry(settings, textvariable=s.sample_scale, width=10).grid(
+        row=5, column=1, sticky=tk.W, padx=(0, 12), pady=3
+    )
+    ttk.Label(settings, text="flow_shift", width=10, anchor=tk.W).grid(
+        row=5, column=2, sticky=tk.W, padx=(0, 2), pady=3
+    )
+    ttk.Entry(settings, textvariable=s.sample_flow_shift, width=10).grid(
+        row=5, column=3, sticky=tk.W, padx=(0, 4), pady=3
+    )
+
+    gallery = ttk.LabelFrame(parent, text="最新サンプル")
+    gallery.grid(row=1, column=0, sticky=tk.NSEW)
+    for c in range(5):
+        gallery.columnconfigure(c, weight=1, uniform="sample_cols")
+    for r in range(2):
+        gallery.rowconfigure(r, weight=1, uniform="sample_rows")
+
+    cells = []
+    photo_refs: list[object | None] = [None] * 10
+    for idx in range(10):
+        cell = ttk.Frame(gallery, padding=4)
+        cell.grid(row=idx // 5, column=idx % 5, sticky=tk.NSEW)
+        cell.columnconfigure(0, weight=1)
+        cell.rowconfigure(0, weight=1)
+        img = ttk.Label(cell, anchor=tk.CENTER)
+        img.grid(row=0, column=0, sticky=tk.NSEW)
+        ep = ttk.Label(cell, text="epoch -", anchor=tk.CENTER)
+        ep.grid(row=1, column=0, sticky=tk.EW, pady=(3, 0))
+        cells.append((img, ep))
+
+    def _refresh_gallery(schedule_next: bool = False) -> None:
+        files = sorted(
+            _sample_dir(s).glob("*.png"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )[:10]
+        try:
+            from PIL import Image, ImageTk
+        except Exception:
+            Image = None
+            ImageTk = None
+
+        for idx, (img_label, ep_label) in enumerate(cells):
+            if idx >= len(files):
+                img_label.configure(image="", text="")
+                ep_label.configure(text="epoch -")
+                photo_refs[idx] = None
+                continue
+
+            path = files[idx]
+            ep_label.configure(text=f"epoch {_extract_sample_epoch(path)}")
+            if Image is None or ImageTk is None:
+                img_label.configure(image="", text=path.name)
+                photo_refs[idx] = None
+                continue
+
+            try:
+                with Image.open(path) as im:
+                    im.thumbnail((220, 220))
+                    photo = ImageTk.PhotoImage(im.copy())
+                photo_refs[idx] = photo
+                img_label.configure(image=photo, text="")
+            except Exception:
+                img_label.configure(image="", text=path.name)
+                photo_refs[idx] = None
+
+        if schedule_next:
+            parent.after(2000, lambda: _refresh_gallery(True))
+
+    ttk.Button(settings, text="表示更新", command=lambda: _refresh_gallery(False)).grid(
+        row=6, column=0, sticky=tk.W, padx=(4, 2), pady=(4, 3)
+    )
+    _refresh_gallery(True)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# タブ10: LoRA学習プリセット
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
     """_TrainState の全 tk.Variable を JSON に保存・復元するプリセットタブ。"""
@@ -1075,8 +1260,16 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
             "t5_max_token_length": int(s.t5_max_token_length.get()),
             "t5_tokenizer_path": s.t5_tokenizer_path.get(),
             "max_grad_norm":     float(s.max_grad_norm.get()),
+            "sample_enabled":    bool(s.sample_enabled.get()),
             "sample_every_n_epochs": s.sample_every_n_epochs.get(),
             "sample_prompts":    s.sample_prompts.get(),
+            "sample_prompt":     s.sample_prompt.get(),
+            "sample_negative_prompt": s.sample_negative_prompt.get(),
+            "sample_width":      int(s.sample_width.get()),
+            "sample_height":     int(s.sample_height.get()),
+            "sample_steps":      int(s.sample_steps.get()),
+            "sample_scale":      float(s.sample_scale.get()),
+            "sample_flow_shift": float(s.sample_flow_shift.get()),
             # 階層学習
             "layer_train_enabled": bool(s.layer_train_enabled.get()),
             "layer_display_mode":  s.layer_display_mode.get(),
@@ -1161,8 +1354,16 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.t5_max_token_length, "t5_max_token_length", 512)
         _s(s.t5_tokenizer_path, "t5_tokenizer_path",  "")
         _s(s.max_grad_norm,     "max_grad_norm",      1.0)
-        _s(s.sample_every_n_epochs, "sample_every_n_epochs", "")
+        _s(s.sample_enabled,    "sample_enabled",     False)
+        _s(s.sample_every_n_epochs, "sample_every_n_epochs", "1")
         _s(s.sample_prompts,    "sample_prompts",     "")
+        _s(s.sample_prompt,     "sample_prompt",      "")
+        _s(s.sample_negative_prompt, "sample_negative_prompt", "")
+        _s(s.sample_width,      "sample_width",       512)
+        _s(s.sample_height,     "sample_height",      512)
+        _s(s.sample_steps,      "sample_steps",       30)
+        _s(s.sample_scale,      "sample_scale",       7.5)
+        _s(s.sample_flow_shift, "sample_flow_shift",  3.0)
         # 階層学習
         _s(s.layer_train_enabled, "layer_train_enabled", False)
         _s(s.layer_display_mode,  "layer_display_mode",  "Matrix")
@@ -1515,8 +1716,6 @@ def _build_command(s: _TrainState) -> list[str]:
         (s.bucket_no_upscale,           "--bucket_no_upscale"),
         (s.network_train_unet_only,     "--network_train_unet_only"),
         (s.gradient_checkpointing,      "--gradient_checkpointing"),
-        (s.xformers,                    "--xformers"),
-        (s.sdpa,                        "--sdpa"),
         (s.split_attn,                  "--split_attn"),
         (s.unsloth_offload_checkpointing, "--unsloth_offload_checkpointing"),
         (s.cpu_offload_checkpointing,   "--cpu_offload_checkpointing"),
@@ -1584,10 +1783,11 @@ def _build_command(s: _TrainState) -> list[str]:
         cmd += ["--early_stopping_threshold", str(s.early_stopping_threshold.get())]
 
     # サンプル
-    if s.sample_every_n_epochs.get().strip():
-        cmd += ["--sample_every_n_epochs", s.sample_every_n_epochs.get().strip()]
-    if s.sample_prompts.get():
-        cmd += ["--sample_prompts", s.sample_prompts.get()]
+    if s.sample_enabled.get():
+        sample_prompt_file = _write_sample_prompt_file(s)
+        cmd += ["--sample_every_n_epochs", s.sample_every_n_epochs.get().strip() or "1"]
+        cmd += ["--sample_prompts", str(sample_prompt_file)]
+        cmd += ["--sample_save_dir", str(_sample_dir(s))]
 
     return cmd
 
@@ -1620,6 +1820,14 @@ def _validate(s: _TrainState) -> str | None:
         return "Qwen3テキストエンコーダパスが未設定です。"
     if not s.train_data_dir.get():
         return "学習データフォルダが未設定です。"
+    if s.sample_enabled.get() and not s.sample_prompt.get().strip():
+        return "サンプル生成が有効ですが、prompt が未設定です。"
+    if s.sample_enabled.get():
+        try:
+            if int(s.sample_every_n_epochs.get().strip() or "1") <= 0:
+                return "サンプル出力のepoch間隔は1以上を指定してください。"
+        except ValueError:
+            return "サンプル出力のepoch間隔は整数で指定してください。"
     return None
 
 

@@ -32,6 +32,12 @@ logger = logging.getLogger(__name__)
 def add_anima_training_arguments(parser: argparse.ArgumentParser):
     """Add Anima-specific training arguments to the parser."""
     parser.add_argument(
+        "--sample_save_dir",
+        type=str,
+        default=None,
+        help="Directory to output Anima sample images. If omitted, output_dir/sample is used.",
+    )
+    parser.add_argument(
         "--qwen3",
         type=str,
         default=None,
@@ -431,7 +437,7 @@ def sample_images(
     dit.switch_block_swap_for_inference()
 
     prompts = train_util.load_prompts(args.sample_prompts)
-    save_dir = os.path.join(args.output_dir, "sample")
+    save_dir = args.sample_save_dir if getattr(args, "sample_save_dir", None) else os.path.join(args.output_dir, "sample")
     os.makedirs(save_dir, exist_ok=True)
 
     # Save RNG state
