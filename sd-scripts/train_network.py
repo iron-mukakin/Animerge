@@ -1597,6 +1597,16 @@ class NetworkTrainer:
                         if hasattr(network, "update_norms"):
                             network.update_norms()
 
+                    # モニターグラフ用: clip後のgrad_normを直接計算して保持する
+                    # LoRANetwork に grad_norms() が未実装のため直接集計する
+                    _anima_gn_sq = 0.0
+                    _anima_gn_cnt = 0
+                    for _p in accelerator.unwrap_model(network).parameters():
+                        if _p.grad is not None:
+                            _anima_gn_sq += _p.grad.data.norm(2).item() ** 2
+                            _anima_gn_cnt += 1
+                    _anima_grad_norm = (_anima_gn_sq ** 0.5) if _anima_gn_cnt > 0 else None
+
                     optimizer.step()
                     lr_scheduler.step()
                     optimizer.zero_grad(set_to_none=True)
@@ -1659,6 +1669,38 @@ class NetworkTrainer:
                 avr_loss: float = loss_recorder.moving_average
                 logs = {"avr_loss": avr_loss}  # , "lr": lr_scheduler.get_last_lr()[0]}
                 progress_bar.set_postfix(**{**max_mean_logs, **logs})
+
+                # モニターグラフ用: grad_norm / loss_scale / lr を stdout に出力
+                if accelerator.sync_gradients:
+                    _monitor_parts = []
+                    if _anima_grad_norm is not None:
+                        _monitor_parts.append(f"grad_norm={_anima_grad_norm:.6f}")
+                    if hasattr(accelerator, 'scaler') and accelerator.scaler is not None:
+                        try:
+                            _monitor_parts.append(f"loss_scale={accelerator.scaler.get_scale():.0f}")
+                        except Exception:
+                            pass
+                    _lrs = lr_scheduler.get_last_lr()
+                    if _lrs:
+                        _monitor_parts.append(f"lr={_lrs[0]:.8f}")
+                    if _monitor_parts:
+                        accelerator.print(" ".join(_monitor_parts))
+
+                # モニターグラフ用: grad_norm / loss_scale / lr を stdout に出力
+                _monitor_parts = []
+                if mean_grad_norm is not None:
+                    _monitor_parts.append(f"grad_norm={mean_grad_norm:.6f}")
+                if hasattr(accelerator, 'scaler') and accelerator.scaler is not None:
+                    try:
+                        _scale_val = accelerator.scaler.get_scale()
+                        _monitor_parts.append(f"loss_scale={_scale_val:.0f}")
+                    except Exception:
+                        pass
+                _lrs = lr_scheduler.get_last_lr()
+                if _lrs:
+                    _monitor_parts.append(f"lr={_lrs[0]:.8f}")
+                if _monitor_parts:
+                    accelerator.print(" ".join(_monitor_parts))
 
                 if is_tracking:
                     logs = self.generate_step_logs(

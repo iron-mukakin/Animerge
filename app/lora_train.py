@@ -85,8 +85,9 @@ def build_lora_train_tab(
     _build_monitor_tab(tab_monitor, state)
     _build_train_preset_tab(tab_preset, state)
 
-    # ── 実行パネル（タブ外・下部固定）────────────────────────────────────
-    _build_run_panel(parent, state)
+    # ── 実行パネル（主要な中タブの画面下）────────────────────────────────
+    for tab in (tab_model, tab_dataset, tab_network, tab_train):
+        _build_run_panel(tab, state)
 
     return state
 
@@ -101,6 +102,7 @@ class _TrainState:
         self.get_model_choices = get_model_choices
         self._proc: subprocess.Popen | None = None
         self._log_queue: queue.Queue[str] = queue.Queue()
+        self._monitor_queue: queue.Queue[str] = queue.Queue()
         self._stop_event = threading.Event()
 
         # ── モデル ──────────────────────────────────────────────
@@ -198,6 +200,8 @@ class _TrainState:
 
         # ステータス
         self.status_var     = tk.StringVar(value="待機中")
+        self._log_widgets: list[tk.Text] = []
+        self._log_drain_started = False
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -934,16 +938,20 @@ def _load_layer_preset(s: _TrainState, canvas: tk.Canvas, inner: ttk.Frame) -> N
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# タブ7: モニターグラフ（プレースホルダ）
+# タブ7: モニターグラフ
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_monitor_tab(parent: ttk.Frame, s: _TrainState) -> None:
-    """モニターグラフタブ（実装予定・現在はプレースホルダ）。"""
-    ttk.Label(
-        parent,
-        text="モニターグラフ機能は今後実装予定です。  loss/step/epoch/予測終了時間をリアルタイム表示します。",
-        justify=tk.LEFT,
-        foreground="#64748B",
-    ).pack(padx=16, pady=24, anchor=tk.W)
+    """モニターグラフタブ。MonitorGraph クラスを埋め込む。"""
+    try:
+        from .monitor_graph import MonitorGraph
+        s._monitor_graph = MonitorGraph(parent, s)
+    except Exception as exc:
+        ttk.Label(
+            parent,
+            text=f"モニターグラフの初期化に失敗しました。\n{exc}",
+            foreground="#EF4444",
+            justify=tk.LEFT,
+        ).pack(padx=16, pady=24, anchor=tk.W)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1275,7 +1283,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 実行パネル（タブ外・下部固定）
+# 実行パネル（主要な中タブ下部）
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_run_panel(parent: ttk.Frame, s: _TrainState) -> None:
     frm = ttk.LabelFrame(parent, text="実行")
@@ -1316,20 +1324,23 @@ def _build_run_panel(parent: ttk.Frame, s: _TrainState) -> None:
     log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
     log_text.pack(fill=tk.BOTH, expand=True)
 
-    s._log_widget = log_text
+    s._log_widgets.append(log_text)
 
     # 定期ドレイン
     def _drain():
         while True:
             try:
                 msg = s._log_queue.get_nowait()
-                s._log_widget.insert(tk.END, msg + "\n")
-                s._log_widget.see(tk.END)
+                for widget in s._log_widgets:
+                    widget.insert(tk.END, msg + "\n")
+                    widget.see(tk.END)
             except queue.Empty:
                 break
         parent.after(200, _drain)
 
-    parent.after(200, _drain)
+    if not s._log_drain_started:
+        s._log_drain_started = True
+        parent.after(200, _drain)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1648,6 +1659,7 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
                     import re as _re
                     line = _re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', line)
                     s._log_queue.put(line)
+                    s._monitor_queue.put(line)
                     lf.write(line + "\n")
                     lf.flush()
             proc.wait()

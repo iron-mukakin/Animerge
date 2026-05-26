@@ -29,6 +29,9 @@ protobuf>=4.25.0
 # TensorBoard (use_tensorboard オプション有効時に必要)
 tensorboard>=2.16.0
 
+# モニターグラフ (app/monitor_graph.py の FigureCanvasTkAgg に必要)
+matplotlib>=3.9.0
+
 # Optional: xformers (--xformers / --attn_mode xformers 使用時)
 # xformers>=0.0.26           # CUDA版torchと一致するビルドが必要
 
