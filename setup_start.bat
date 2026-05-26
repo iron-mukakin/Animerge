@@ -1,92 +1,122 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal
+
 chcp 65001 >nul
 
 cd /d "%~dp0"
 
-set VENV_DIR=.venv
-set PY=%VENV_DIR%\Scripts\python.exe
-set REQ=requirements.txt
+set "VENV_DIR=.venv"
+set "PY=%VENV_DIR%\Scripts\python.exe"
 
-echo.
-echo ===== Python Environment Bootstrap =====
+echo ==========================================
+echo Python GPU Environment Setup
+echo ==========================================
 echo.
 
-REM ------------------------------
-REM 1. venv 作成
-REM ------------------------------
+REM ==================================================
+REM Python version detect
+REM ==================================================
+
+set "PYTHON_CMD="
+
+py -3.12 -c "import sys" >nul 2>nul
+if not errorlevel 1 (
+    set "PYTHON_CMD=py -3.12"
+)
+
+if not defined PYTHON_CMD (
+    py -3.11 -c "import sys" >nul 2>nul
+    if not errorlevel 1 (
+        set "PYTHON_CMD=py -3.11"
+    )
+)
+
+if not defined PYTHON_CMD (
+    py -3.10 -c "import sys" >nul 2>nul
+    if not errorlevel 1 (
+        set "PYTHON_CMD=py -3.10"
+    )
+)
+
+if not defined PYTHON_CMD (
+    echo.
+    echo [ERROR] Python 3.10 - 3.12 not found
+    echo.
+    pause
+    exit /b 1
+)
+
+echo [OK] Python found:
+echo %PYTHON_CMD%
+echo.
+
+REM ==================================================
+REM Create venv
+REM ==================================================
+
 if not exist "%PY%" (
-    echo [INFO] Creating virtual environment...
 
-    py -3 -m venv %VENV_DIR% 2>nul
-    if errorlevel 1 python -m venv %VENV_DIR%
+    echo [INFO] Creating venv...
+    
+    call %PYTHON_CMD% -m venv "%VENV_DIR%"
 
-    if not exist "%PY%" (
-        echo [ERROR] Failed to create virtual environment
-        pause
-        exit /b 1
-    )
-)
-
-echo [INFO] Using python:
-"%PY%" --version
-
-REM ------------------------------
-REM 2. pip upgrade
-REM ------------------------------
-echo.
-echo [INFO] Upgrading pip...
-"%PY%" -m pip install --upgrade pip >nul
-
-REM ------------------------------
-REM 3. requirements 存在確認
-REM ------------------------------
-if not exist "%REQ%" (
-    echo [WARN] requirements.txt not found
-    goto RUN_APP
-)
-
-REM ------------------------------
-REM 4. 依存インストール判定
-REM ------------------------------
-echo.
-echo [INFO] Checking dependencies...
-
-"%PY%" -m pip freeze > .installed.tmp
-
-set INSTALL_REQUIRED=0
-
-for /f "usebackq delims=" %%i in ("%REQ%") do (
-
-    set pkg=%%i
-    set pkg=!pkg: =!
-
-    if "!pkg!"=="" (
-        rem skip
-    ) else (
-        findstr /i "!pkg!" .installed.tmp >nul
-        if errorlevel 1 (
-            set INSTALL_REQUIRED=1
-        )
-    )
-)
-
-del .installed.tmp
-
-REM ------------------------------
-REM 5. pip install
-REM ------------------------------
-if "%INSTALL_REQUIRED%"=="1" (
-    echo [INFO] Installing dependencies...
-    "%PY%" -m pip install -r "%REQ%"
     if errorlevel 1 (
-        echo [ERROR] Dependency installation failed
+        echo.
+        echo [ERROR] venv creation failed
+        echo.
         pause
         exit /b 1
     )
-) else (
-    echo [INFO] Dependencies already satisfied
 )
+
+echo [OK] venv ready
+echo.
+
+REM ==================================================
+REM Upgrade pip
+REM ==================================================
+
+echo [INFO] Upgrading pip...
+
+"%PY%" -m pip install --upgrade pip setuptools wheel
+
+if errorlevel 1 (
+    echo.
+    echo [ERROR] pip upgrade failed
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+
+REM ==================================================
+REM Install requirements
+REM ==================================================
+
+echo [INFO] Installing packages...
+echo.
+
+"%PY%" -m pip install -r requirements.txt
+
+if errorlevel 1 (
+    echo.
+    echo [ERROR] requirements install failed
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+echo ==========================================
+echo Setup Complete
+echo ==========================================
+echo.
+
+"%PY%" -c "import torch; print(torch.__version__)"
+"%PY%" -c "import torch; print(torch.cuda.is_available())"
+
+echo.
 
 REM ------------------------------
 REM 6. アプリ起動

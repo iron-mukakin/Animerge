@@ -155,7 +155,7 @@ class _TrainState:
         self.lr             = tk.StringVar(value="1e-4")
         self.lr_scheduler   = tk.StringVar(value="cosine_with_restarts")
         self.lr_warmup_steps = tk.IntVar(value=0)
-        self.optimizer      = tk.StringVar(value="AdamW8bit")
+        self.optimizer      = tk.StringVar(value="AdamW")
         self.optimizer_args = tk.StringVar(value="")
         self.max_train_epochs = tk.IntVar(value=10)
         self.save_every_n_epochs = tk.IntVar(value=1)
