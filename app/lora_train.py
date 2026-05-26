@@ -65,6 +65,7 @@ def build_lora_train_tab(
     tab_adv     = ttk.Frame(nb, padding=8)
     tab_layer   = ttk.Frame(nb, padding=8)
     tab_monitor = ttk.Frame(nb, padding=8)
+    tab_monitor_layer = ttk.Frame(nb, padding=8)
     tab_preset  = ttk.Frame(nb, padding=8)
 
     nb.add(tab_model,   text="  モデル  ")
@@ -74,6 +75,7 @@ def build_lora_train_tab(
     nb.add(tab_adv,     text="  詳細  ")
     nb.add(tab_layer,   text="  階層学習  ")
     nb.add(tab_monitor, text="  モニターグラフ  ")
+    nb.add(tab_monitor_layer, text="  モニター階層  ")
     nb.add(tab_preset,  text="  プリセット  ")
 
     _build_model_tab(tab_model,   state)
@@ -83,6 +85,7 @@ def build_lora_train_tab(
     _build_adv_tab(tab_adv,       state)
     _build_layer_train_tab(tab_layer, state)
     _build_monitor_tab(tab_monitor, state)
+    _build_monitor_layer_tab(tab_monitor_layer, state)
     _build_train_preset_tab(tab_preset, state)
 
     # ── 実行パネル（主要な中タブの画面下）────────────────────────────────
@@ -103,6 +106,7 @@ class _TrainState:
         self._proc: subprocess.Popen | None = None
         self._log_queue: queue.Queue[str] = queue.Queue()
         self._monitor_queue: queue.Queue[str] = queue.Queue()
+        self._monitor_layer_queue: queue.Queue[str] = queue.Queue()
         self._stop_event = threading.Event()
 
         # ── モデル ──────────────────────────────────────────────
@@ -955,7 +959,24 @@ def _build_monitor_tab(parent: ttk.Frame, s: _TrainState) -> None:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# タブ8: LoRA学習プリセット
+# タブ8: モニター階層
+# ──────────────────────────────────────────────────────────────────────────────
+def _build_monitor_layer_tab(parent: ttk.Frame, s: _TrainState) -> None:
+    """階層学習の実効LRモニターを埋め込む。"""
+    try:
+        from .monitor_layer import MonitorLayerGraph
+        s._monitor_layer_graph = MonitorLayerGraph(parent, s, _layer_group_names)
+    except Exception as exc:
+        ttk.Label(
+            parent,
+            text=f"モニター階層の初期化に失敗しました。\n{exc}",
+            foreground="#EF4444",
+            justify=tk.LEFT,
+        ).pack(padx=16, pady=24, anchor=tk.W)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# タブ9: LoRA学習プリセット
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
     """_TrainState の全 tk.Variable を JSON に保存・復元するプリセットタブ。"""
@@ -1660,6 +1681,7 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
                     line = _re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', line)
                     s._log_queue.put(line)
                     s._monitor_queue.put(line)
+                    s._monitor_layer_queue.put(line)
                     lf.write(line + "\n")
                     lf.flush()
             proc.wait()
