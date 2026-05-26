@@ -1686,6 +1686,22 @@ class NetworkTrainer:
                     if _monitor_parts:
                         accelerator.print(" ".join(_monitor_parts))
 
+                # モニターグラフ用: grad_norm / loss_scale / lr を stdout に出力
+                _monitor_parts = []
+                if mean_grad_norm is not None:
+                    _monitor_parts.append(f"grad_norm={mean_grad_norm:.6f}")
+                if hasattr(accelerator, 'scaler') and accelerator.scaler is not None:
+                    try:
+                        _scale_val = accelerator.scaler.get_scale()
+                        _monitor_parts.append(f"loss_scale={_scale_val:.0f}")
+                    except Exception:
+                        pass
+                _lrs = lr_scheduler.get_last_lr()
+                if _lrs:
+                    _monitor_parts.append(f"lr={_lrs[0]:.8f}")
+                if _monitor_parts:
+                    accelerator.print(" ".join(_monitor_parts))
+
                 if is_tracking:
                     logs = self.generate_step_logs(
                         args,

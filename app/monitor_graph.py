@@ -156,9 +156,14 @@ class MonitorGraph:
         self._build_param_panel(right)
         self._build_report_panel(right)
 
-        # リセットボタン
-        ttk.Button(right, text="グラフリセット", command=self._reset).pack(
-            fill=tk.X, padx=4, pady=(4, 0)
+        # 操作ボタン
+        btn_row = ttk.Frame(right)
+        btn_row.pack(fill=tk.X, padx=4, pady=(4, 0))
+        ttk.Button(btn_row, text="グラフリセット", command=self._reset).pack(
+            side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 2)
+        )
+        ttk.Button(btn_row, text="学習停止", command=self._stop_training).pack(
+            side=tk.LEFT, fill=tk.X, expand=True, padx=(2, 0)
         )
 
     def _build_param_panel(self, parent: ttk.Frame) -> None:
@@ -232,7 +237,7 @@ class MonitorGraph:
             lf,
             height=12,
             wrap=tk.WORD,
-            font=("TkFixedFont", 8),
+            font=("TkFixedFont", 10),
             state=tk.DISABLED,
             bg="#1E293B",
             fg="#CBD5E1",
@@ -530,7 +535,10 @@ class MonitorGraph:
             self._param_vars["delta_loss"].set("—")
 
         self._param_vars["grad_norm"].set(_fmt(self._last_grad, ".4f"))
-        self._param_vars["loss_scale"].set(_fmt(self._last_scale, ".0f"))
+        if self._is_bf16_training() and not self._loss_scales:
+            self._param_vars["loss_scale"].set("N/A (bf16)")
+        else:
+            self._param_vars["loss_scale"].set(_fmt(self._last_scale, ".0f"))
 
         # EarlyStopping プログレス
         if self._es_patience > 0:
@@ -655,6 +663,25 @@ class MonitorGraph:
                             alpha=0.5, label="scale=1")
                 ax4.legend(fontsize=7)
                 ax4.set_yscale("log")
+            elif self._is_bf16_training():
+                ax4.text(
+                    0.5,
+                    0.52,
+                    "bf16: AMP\nloss scaling disabled",
+                    transform=ax4.transAxes,
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                    fontweight="bold",
+                    color="#FCD34D",
+                    bbox={
+                        "boxstyle": "round,pad=0.55",
+                        "facecolor": "#7F1D1D",
+                        "edgecolor": "#FCD34D",
+                        "linewidth": 1.2,
+                        "alpha": 0.92,
+                    },
+                )
             ax4.set_title("loss scale", fontsize=9, color="#CBD5E1")
             ax4.set_xlabel("step", fontsize=8)
             ax4.grid(True)
@@ -709,6 +736,29 @@ class MonitorGraph:
                 ax.grid(True)
             self._ax_delta.cla()
             self._canvas.draw_idle()
+
+    def _stop_training(self) -> None:
+        proc = getattr(self._state, "_proc", None)
+        if proc is None or proc.poll() is not None:
+            self._state.log_fn("[LoRA Train] 停止対象のプロセスがありません。")
+            return
+
+        import os
+        import signal
+
+        try:
+            os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
+        except Exception:
+            proc.terminate()
+        self._state.status_var.set("停止要求済み")
+        self._state.log_fn("[LoRA Train] 停止要求を送信しました。（モニターグラフ）")
+
+    def _is_bf16_training(self) -> bool:
+        mixed_precision = getattr(self._state, "mixed_precision", None)
+        try:
+            return str(mixed_precision.get()).lower() == "bf16"
+        except Exception:
+            return False
 
 
 # ──────────────────────────────────────────────────────────────────────────────
