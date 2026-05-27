@@ -279,8 +279,10 @@ class MonitorGraph:
             })
 
             # サブプロット構成: Loss(上大), LR(中), grad_norm(下全幅)
-            self._fig = Figure(figsize=(7, 8), tight_layout=True)
-            gs = self._fig.add_gridspec(3, 2, height_ratios=[3, 1.5, 1.5], hspace=0.4, wspace=0.35)
+            # tight_layout=True は twinx 軸と非互換のため使用しない
+            self._fig = Figure(figsize=(7, 8))
+            gs = self._fig.add_gridspec(3, 2, height_ratios=[3, 1.5, 1.5])
+            self._fig.subplots_adjust(left=0.10, right=0.88, top=0.95, bottom=0.07, hspace=0.50)
 
             self._ax_loss  = self._fig.add_subplot(gs[0, :])   # 上段全幅: Loss + ΔLoss
             self._ax_lr    = self._fig.add_subplot(gs[1, :])   # 中段全幅: LR
