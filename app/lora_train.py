@@ -145,12 +145,6 @@ class _TrainState:
         self.network_train_unet_only = tk.BooleanVar(value=True)
         self.network_weights = tk.StringVar()
 
-        # 階層別LR (Anima固有)
-        self.self_attn_lr   = tk.StringVar(value="")
-        self.cross_attn_lr  = tk.StringVar(value="")
-        self.mlp_lr         = tk.StringVar(value="")
-        self.llm_adapter_lr = tk.StringVar(value="")
-
         # ── 学習設定 ─────────────────────────────────────────────
         self.lr             = tk.StringVar(value="1e-4")
         self.lr_scheduler   = tk.StringVar(value="cosine_with_restarts")
@@ -401,27 +395,6 @@ def _build_network_tab(parent: ttk.Frame, s: _TrainState) -> None:
     _entry_browse_row(lf, 4, "network_weights (再開用)", s.network_weights,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
-    # Anima 階層別LR
-    lf2 = ttk.LabelFrame(parent, text="階層別学習率 (空欄=base LRを使用 / 0=freeze)")
-    lf2.pack(fill=tk.X)
-    lf2.columnconfigure(1, weight=1)
-    lf2.columnconfigure(3, weight=1)
-
-    _lr_pair(lf2, 0, "self_attn_lr",   s.self_attn_lr,
-                   "cross_attn_lr", s.cross_attn_lr)
-    _lr_pair(lf2, 1, "mlp_lr",         s.mlp_lr,
-                   "llm_adapter_lr", s.llm_adapter_lr)
-
-
-def _lr_pair(parent, row, label1, var1, label2, var2):
-    ttk.Label(parent, text=label1, width=16, anchor=tk.W).grid(
-        row=row, column=0, sticky=tk.W, padx=(4, 2), pady=3)
-    ttk.Entry(parent, textvariable=var1, width=12).grid(
-        row=row, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    ttk.Label(parent, text=label2, width=16, anchor=tk.W).grid(
-        row=row, column=2, sticky=tk.W, padx=(0, 2), pady=3)
-    ttk.Entry(parent, textvariable=var2, width=12).grid(
-        row=row, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1286,10 +1259,6 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
             "network_module":    s.network_module.get(),
             "network_train_unet_only": bool(s.network_train_unet_only.get()),
             "network_weights":   s.network_weights.get(),
-            "self_attn_lr":      s.self_attn_lr.get(),
-            "cross_attn_lr":     s.cross_attn_lr.get(),
-            "mlp_lr":            s.mlp_lr.get(),
-            "llm_adapter_lr":    s.llm_adapter_lr.get(),
             "lr":                s.lr.get(),
             "lr_scheduler":      s.lr_scheduler.get(),
             "lr_warmup_steps":   int(s.lr_warmup_steps.get()),
@@ -1380,10 +1349,6 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.network_module,    "network_module",     "networks.lora")
         _s(s.network_train_unet_only, "network_train_unet_only", True)
         _s(s.network_weights,   "network_weights",    "")
-        _s(s.self_attn_lr,      "self_attn_lr",       "")
-        _s(s.cross_attn_lr,     "cross_attn_lr",      "")
-        _s(s.mlp_lr,            "mlp_lr",             "")
-        _s(s.llm_adapter_lr,    "llm_adapter_lr",     "")
         _s(s.lr,                "lr",                 "1e-4")
         _s(s.lr_scheduler,      "lr_scheduler",       "cosine_with_restarts")
         _s(s.lr_warmup_steps,   "lr_warmup_steps",    0)
@@ -1751,17 +1716,6 @@ def _build_command(s: _TrainState) -> list[str]:
         cmd += ["--optimizer_args"] + s.optimizer_args.get().split()
     if s.t5_tokenizer_path.get():
         cmd += ["--t5_tokenizer_path", s.t5_tokenizer_path.get()]
-
-    # 階層別LR
-    for flag, var in [
-        ("--self_attn_lr", s.self_attn_lr),
-        ("--cross_attn_lr", s.cross_attn_lr),
-        ("--mlp_lr", s.mlp_lr),
-        ("--llm_adapter_lr", s.llm_adapter_lr),
-    ]:
-        v = var.get().strip()
-        if v:
-            cmd += [flag, v]
 
     # bool フラグ
     bool_flags = [
