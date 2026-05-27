@@ -250,6 +250,7 @@ class MonitorGraph:
         self._report_text.tag_configure("danger",   foreground=COLOR_DANGER)
         self._report_text.tag_configure("info",     foreground=COLOR_INFO)
         self._report_text.tag_configure("diag",     foreground="#7DD3FC")   # 診断メッセージ: 水色
+        self._report_text.tag_configure("sample_info", foreground="#A78BFA")  # サンプル生成: 紫
 
     # ─────────────────────────────────────────────────────────────────
     # matplotlib 初期化
@@ -411,6 +412,12 @@ class MonitorGraph:
                 self._update_es_counter(line)
                 break
 
+        # サンプル生成ログ検出
+        if "Generating sample images at step" in line:
+            self._append_report(f"[サンプル生成] {line.strip()}", "sample_info")
+        elif "  prompt:" in line and ", size:" in line:
+            self._append_report(f"[サンプル生成] {line.strip()}", "sample_info")
+
         # 診断ログ
         self._auto_diagnose(line)
 
@@ -458,7 +465,9 @@ class MonitorGraph:
         """自動レポートテキストに色付きで1行追記する。"""
         # タグ決定
         tag = "info"
-        if keyword_or_tag in ("diag", "danger"):
+        if keyword_or_tag == "sample_info":
+            tag = "sample_info"
+        elif keyword_or_tag in ("diag", "danger"):
             tag = keyword_or_tag if keyword_or_tag in (
                 "normal", "caution", "warning", "danger", "info", "diag") else "info"
         else:

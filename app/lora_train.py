@@ -1157,6 +1157,64 @@ def _build_sample_tab(parent: ttk.Frame, s: _TrainState) -> None:
     ttk.Button(settings, text="表示更新", command=lambda: _refresh_gallery(False)).grid(
         row=6, column=0, sticky=tk.W, padx=(4, 2), pady=(4, 3)
     )
+
+    def _clear_sample_cache() -> None:
+        """確認ポップアップ（いいえ / はい）を表示し、OKなら sample_gen 内を全削除する。"""
+        import tkinter as _tk
+
+        dlg = _tk.Toplevel(settings)
+        dlg.title("確認")
+        dlg.resizable(False, False)
+        dlg.grab_set()
+
+        _tk.Label(
+            dlg,
+            text="本当に全て削除しますか？",
+            font=("TkDefaultFont", 11),
+            padx=20,
+            pady=16,
+        ).pack()
+
+        btn_frame = _tk.Frame(dlg)
+        btn_frame.pack(pady=(0, 12))
+
+        def _no():
+            dlg.destroy()
+
+        def _yes():
+            dlg.destroy()
+            target = _sample_dir(s)
+            if not target.exists():
+                return
+            deleted = 0
+            errors = 0
+            for f in target.iterdir():
+                try:
+                    if f.is_file():
+                        f.unlink()
+                        deleted += 1
+                except Exception:
+                    errors += 1
+            msg = f"[サンプルキャッシュ] {deleted}ファイルを削除しました。"
+            if errors:
+                msg += f" ({errors}件失敗)"
+            s.log_fn(msg)
+            _refresh_gallery(False)
+
+        # ボタン並び: いいえ → はい
+        _tk.Button(btn_frame, text="いいえ", width=10, command=_no).pack(side=_tk.LEFT, padx=(0, 8))
+        _tk.Button(btn_frame, text="はい",   width=10, command=_yes).pack(side=_tk.LEFT)
+
+        # ダイアログを中央付近に配置
+        dlg.update_idletasks()
+        px = settings.winfo_rootx() + settings.winfo_width() // 2 - dlg.winfo_width() // 2
+        py = settings.winfo_rooty() + settings.winfo_height() // 2 - dlg.winfo_height() // 2
+        dlg.geometry(f"+{px}+{py}")
+
+    ttk.Button(settings, text="キャッシュクリア", command=_clear_sample_cache).grid(
+        row=6, column=1, sticky=tk.W, padx=(0, 4), pady=(4, 3)
+    )
+
     _refresh_gallery(True)
 
 
