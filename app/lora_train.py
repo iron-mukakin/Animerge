@@ -921,16 +921,35 @@ def _load_layer_preset(s: _TrainState, canvas: tk.Canvas, inner: ttk.Frame) -> N
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_monitor_tab(parent: ttk.Frame, s: _TrainState) -> None:
     """モニターグラフタブ。MonitorGraph クラスを埋め込む。"""
+    parent.rowconfigure(0, weight=1)
+    parent.rowconfigure(1, weight=0)
+    parent.columnconfigure(0, weight=1)
+
+    graph_frame = ttk.Frame(parent)
+    graph_frame.grid(row=0, column=0, sticky=tk.NSEW)
+
     try:
         from .monitor_graph import MonitorGraph
-        s._monitor_graph = MonitorGraph(parent, s)
+        s._monitor_graph = MonitorGraph(graph_frame, s)
     except Exception as exc:
         ttk.Label(
-            parent,
+            graph_frame,
             text=f"モニターグラフの初期化に失敗しました。\n{exc}",
             foreground="#EF4444",
             justify=tk.LEFT,
         ).pack(padx=16, pady=24, anchor=tk.W)
+
+    # 学習ログ（既存 _build_run_panel と同仕様）
+    log_frame = ttk.LabelFrame(parent, text="学習ログ")
+    log_frame.grid(row=1, column=0, sticky=tk.EW, pady=(4, 0))
+
+    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 12))
+    log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
+    log_text.configure(yscrollcommand=log_scroll.set)
+    log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+    log_text.pack(fill=tk.BOTH, expand=True)
+
+    s._log_widgets.append(log_text)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
