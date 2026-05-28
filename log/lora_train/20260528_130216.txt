@@ -1,8 +1,8 @@
-CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_train_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --train_data_dir E:/lora_training/Data/input/dq3_yusha --output_dir E:\Animerge\lora --output_name lora_output --resolution 512,512 --train_batch_size 1 --caption_extension .txt --keep_tokens 1 --network_module networks.lora --network_dim 16 --network_alpha 8.0 --learning_rate 1e-4 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --optimizer_type AdamW --max_train_epochs 10 --save_every_n_epochs 1 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --timestep_sampling sigmoid --discrete_flow_shift 1.0 --sigmoid_scale 1.0 --weighting_scheme none --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --max_data_loader_n_workers 0 --seed 42 --cache_latents --enable_bucket --bucket_no_upscale --network_train_unet_only --gradient_checkpointing --min_bucket_reso 256 --max_bucket_reso 1024 --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":1.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":0.0,"Output_MLP":0.0,"Output_Norm":1.0,"Output_ResNet":0.0,"Output_Timestep":1.0} --validation_split 0.1 --early_stopping --early_stopping_mode epoch --early_stopping_patience 3 --early_stopping_threshold 0.01
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_train_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --train_data_dir E:/lora_training/Data/input/dq3_yusha --output_dir E:\Animerge\lora --output_name lora_output --resolution 512,512 --train_batch_size 1 --caption_extension .txt --keep_tokens 1 --network_module networks.lora --network_dim 16 --network_alpha 8.0 --learning_rate 1e-4 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --optimizer_type AdamW --max_train_epochs 10 --save_every_n_epochs 1 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --timestep_sampling sigmoid --discrete_flow_shift 1.0 --sigmoid_scale 1.0 --weighting_scheme none --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --max_data_loader_n_workers 0 --seed 42 --cache_latents --enable_bucket --bucket_no_upscale --network_train_unet_only --gradient_checkpointing --min_bucket_reso 256 --max_bucket_reso 1024 --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":1.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":0.0,"Output_MLP":0.0,"Output_Norm":1.0,"Output_ResNet":0.0,"Output_Timestep":1.0} --validation_split 0.1 --early_stopping --early_stopping_mode epoch --early_stopping_patience 3 --early_stopping_threshold 0.01 --sample_every_n_epochs 1 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen
 
-2026-05-26 12:54:12 INFO     Using DreamBooth method.      train_network.py:646
-                    INFO     prepare images.                 train_util.py:2185
-2026-05-26 12:54:13 INFO     get image size from name of     train_util.py:2060
+2026-05-28 13:02:49 INFO     Using DreamBooth method.      train_network.py:646
+2026-05-28 13:02:50 INFO     prepare images.                 train_util.py:2185
+                    INFO     get image size from name of     train_util.py:2060
                              cache files
 
   0%|          | 0/6 [00:00<?, ?it/s]
@@ -15,7 +15,7 @@ CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_
                              6 image files
 
 read caption:   0%|          | 0/6 [00:00<?, ?it/s]
-read caption: 100%|██████████| 6/6 [00:00<?, ?it/s]
+read caption: 100%|██████████| 6/6 [00:00<00:00, 5528.52it/s]
                     INFO     6 train images with repeats.    train_util.py:2231
                     INFO     0 reg images with repeats.      train_util.py:2235
                     WARNING  no regularization images /      train_util.py:2240
@@ -127,7 +127,9 @@ read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
                     INFO     loading image sizes.             train_util.py:999
 
   0%|          | 0/6 [00:00<?, ?it/s]
-100%|██████████| 6/6 [00:00<00:00, 831.87it/s]
+ 33%|███▎      | 2/6 [00:00<00:00, 18.38it/s]
+100%|██████████| 6/6 [00:00<00:00, 26.06it/s]
+100%|██████████| 6/6 [00:00<00:00, 25.01it/s]
                     INFO     make buckets                    train_util.py:1022
                     WARNING  min_bucket_reso and             train_util.py:1039
                              max_bucket_reso are ignored if
@@ -182,20 +184,20 @@ read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
                              F:/Game_Files/ComfyUI_windows_p
                              ortable/ComfyUI/models/clip/qwe
                              n_3_06b_base.safetensors
-2026-05-26 12:54:22 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+2026-05-28 13:03:02 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
                              keys matched successfully>
-                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
+2026-05-28 13:03:03 INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
                              Parameters: 596,049,920
                     INFO     Loading Anima VAE...     anima_train_network.py:91
                     INFO     Initializing VAE qwen_image_autoencoder_kl.py:1609
-2026-05-26 12:54:23 INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
+                    INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
                              F:/Game_Files/Co
                              mfyUI_windows_po
                              rtable/ComfyUI/m
                              odels/vae/qwen_i
                              mage_vae.safeten
                              sors
-                    INFO     Converted        qwen_image_autoencoder_kl.py:1538
+2026-05-28 13:03:07 INFO     Converted        qwen_image_autoencoder_kl.py:1538
                              ComfyUI
                              AutoencoderKL
                              state dict keys
@@ -211,25 +213,25 @@ read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
 accelerator device: cuda
 
   0%|          | 0/6 [00:00<?, ?it/s]
- 17%|█▋        | 1/6 [00:00<00:02,  1.81it/s]
- 33%|███▎      | 2/6 [00:00<00:01,  2.76it/s]
- 50%|█████     | 3/6 [00:01<00:00,  3.32it/s]
- 67%|██████▋   | 4/6 [00:01<00:00,  3.57it/s]
- 83%|████████▎ | 5/6 [00:01<00:00,  3.75it/s]
-100%|██████████| 6/6 [00:01<00:00,  3.91it/s]
-100%|██████████| 6/6 [00:01<00:00,  3.46it/s]
-2026-05-26 12:54:25 INFO     [Dataset 0]                     train_util.py:2740
+ 17%|█▋        | 1/6 [00:00<00:04,  1.23it/s]
+ 33%|███▎      | 2/6 [00:01<00:01,  2.21it/s]
+ 50%|█████     | 3/6 [00:01<00:01,  2.96it/s]
+ 67%|██████▋   | 4/6 [00:01<00:00,  3.44it/s]
+ 83%|████████▎ | 5/6 [00:01<00:00,  3.80it/s]
+100%|██████████| 6/6 [00:01<00:00,  4.09it/s]
+100%|██████████| 6/6 [00:01<00:00,  3.24it/s]
+2026-05-28 13:03:09 INFO     [Dataset 0]                     train_util.py:2740
                     INFO     caching latents with caching    train_util.py:1128
                              strategy.
                     INFO     caching latents...              train_util.py:1178
 
   0%|          | 0/1 [00:00<?, ?it/s]
-100%|██████████| 1/1 [00:00<00:00,  4.14it/s]
-100%|██████████| 1/1 [00:00<00:00,  4.14it/s]
-                    INFO     Loading Anima DiT model anima_train_network.py:112
+100%|██████████| 1/1 [00:00<00:00,  4.69it/s]
+100%|██████████| 1/1 [00:00<00:00,  4.69it/s]
+2026-05-28 13:03:10 INFO     Loading Anima DiT model anima_train_network.py:112
                              with attn_mode=torch,
                              split_attn: False...
-2026-05-26 12:54:26 INFO     Loading DiT model from          anima_utils.py:166
+                    INFO     Loading DiT model from          anima_utils.py:166
                              F:/Game_Files/ComfyUI_windows_p
                              ortable/ComfyUI/models/diffusio
                              n_models/anima-base-v1.0.safete
@@ -245,28 +247,101 @@ accelerator device: cuda
                              False
 
 Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
-Loading anima-base-v1.0.safetensors:   5%|▍         | 32/685 [00:00<00:02, 313.95it/s]
-Loading anima-base-v1.0.safetensors:   9%|▉         | 64/685 [00:00<00:02, 262.85it/s]
-Loading anima-base-v1.0.safetensors:  14%|█▎        | 93/685 [00:00<00:02, 261.10it/s]
-Loading anima-base-v1.0.safetensors:  18%|█▊        | 120/685 [00:00<00:02, 252.18it/s]
-Loading anima-base-v1.0.safetensors:  22%|██▏       | 153/685 [00:00<00:02, 263.66it/s]
-Loading anima-base-v1.0.safetensors:  26%|██▋       | 180/685 [00:00<00:01, 254.48it/s]
-Loading anima-base-v1.0.safetensors:  31%|███       | 213/685 [00:00<00:01, 264.74it/s]
-Loading anima-base-v1.0.safetensors:  35%|███▌      | 240/685 [00:00<00:01, 254.95it/s]
-Loading anima-base-v1.0.safetensors:  40%|███▉      | 273/685 [00:01<00:01, 264.01it/s]
-Loading anima-base-v1.0.safetensors:  44%|████▍     | 300/685 [00:01<00:01, 254.27it/s]
-Loading anima-base-v1.0.safetensors:  49%|████▊     | 333/685 [00:01<00:01, 264.20it/s]
-Loading anima-base-v1.0.safetensors:  53%|█████▎    | 360/685 [00:01<00:01, 255.72it/s]
-Loading anima-base-v1.0.safetensors:  57%|█████▋    | 393/685 [00:01<00:01, 262.98it/s]
-Loading anima-base-v1.0.safetensors:  61%|██████▏   | 420/685 [00:01<00:01, 254.92it/s]
-Loading anima-base-v1.0.safetensors:  66%|██████▌   | 453/685 [00:01<00:00, 264.54it/s]
-Loading anima-base-v1.0.safetensors:  70%|███████   | 480/685 [00:01<00:00, 257.14it/s]
-Loading anima-base-v1.0.safetensors:  75%|███████▍  | 513/685 [00:01<00:00, 264.68it/s]
-Loading anima-base-v1.0.safetensors:  79%|███████▉  | 540/685 [00:02<00:00, 254.79it/s]
-Loading anima-base-v1.0.safetensors:  86%|████████▌ | 588/685 [00:02<00:00, 315.24it/s]
-Loading anima-base-v1.0.safetensors:  99%|█████████▉| 678/685 [00:02<00:00, 444.11it/s]
+Loading anima-base-v1.0.safetensors:   1%|▏         | 9/685 [00:00<00:09, 74.46it/s]
+Loading anima-base-v1.0.safetensors:   2%|▏         | 17/685 [00:00<00:21, 31.31it/s]
+Loading anima-base-v1.0.safetensors:   3%|▎         | 22/685 [00:00<00:19, 34.59it/s]
+Loading anima-base-v1.0.safetensors:   4%|▍         | 29/685 [00:00<00:15, 43.32it/s]
+Loading anima-base-v1.0.safetensors:   5%|▌         | 35/685 [00:01<00:22, 29.12it/s]
+Loading anima-base-v1.0.safetensors:   6%|▌         | 40/685 [00:01<00:20, 30.78it/s]
+Loading anima-base-v1.0.safetensors:   7%|▋         | 50/685 [00:01<00:14, 43.11it/s]
+Loading anima-base-v1.0.safetensors:   8%|▊         | 56/685 [00:01<00:20, 30.34it/s]
+Loading anima-base-v1.0.safetensors:   9%|▉         | 61/685 [00:01<00:19, 32.31it/s]
+Loading anima-base-v1.0.safetensors:  10%|█         | 70/685 [00:01<00:14, 42.19it/s]
+Loading anima-base-v1.0.safetensors:  11%|█         | 76/685 [00:02<00:20, 29.26it/s]
+Loading anima-base-v1.0.safetensors:  12%|█▏        | 81/685 [00:02<00:19, 31.36it/s]
+Loading anima-base-v1.0.safetensors:  13%|█▎        | 90/685 [00:02<00:14, 40.82it/s]
+Loading anima-base-v1.0.safetensors:  14%|█▍        | 96/685 [00:02<00:19, 29.64it/s]
+Loading anima-base-v1.0.safetensors:  15%|█▍        | 101/685 [00:02<00:18, 31.31it/s]
+Loading anima-base-v1.0.safetensors:  16%|█▌        | 110/685 [00:03<00:14, 41.05it/s]
+Loading anima-base-v1.0.safetensors:  17%|█▋        | 116/685 [00:03<00:19, 28.69it/s]
+Loading anima-base-v1.0.safetensors:  18%|█▊        | 121/685 [00:03<00:18, 30.71it/s]
+Loading anima-base-v1.0.safetensors:  19%|█▉        | 130/685 [00:03<00:13, 40.17it/s]
+Loading anima-base-v1.0.safetensors:  20%|█▉        | 136/685 [00:04<00:18, 29.36it/s]
+Loading anima-base-v1.0.safetensors:  21%|██        | 141/685 [00:04<00:17, 31.46it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 150/685 [00:04<00:13, 40.97it/s]
+Loading anima-base-v1.0.safetensors:  23%|██▎       | 156/685 [00:04<00:18, 29.22it/s]
+Loading anima-base-v1.0.safetensors:  24%|██▎       | 161/685 [00:04<00:16, 31.23it/s]
+Loading anima-base-v1.0.safetensors:  25%|██▍       | 170/685 [00:04<00:12, 40.96it/s]
+Loading anima-base-v1.0.safetensors:  26%|██▌       | 176/685 [00:05<00:17, 29.78it/s]
+Loading anima-base-v1.0.safetensors:  26%|██▋       | 181/685 [00:05<00:15, 31.83it/s]
+Loading anima-base-v1.0.safetensors:  28%|██▊       | 190/685 [00:05<00:11, 41.45it/s]
+Loading anima-base-v1.0.safetensors:  29%|██▊       | 196/685 [00:05<00:16, 29.82it/s]
+Loading anima-base-v1.0.safetensors:  29%|██▉       | 201/685 [00:05<00:15, 31.45it/s]
+Loading anima-base-v1.0.safetensors:  31%|███       | 210/685 [00:06<00:11, 40.89it/s]
+Loading anima-base-v1.0.safetensors:  32%|███▏      | 216/685 [00:06<00:15, 29.74it/s]
+Loading anima-base-v1.0.safetensors:  32%|███▏      | 221/685 [00:06<00:14, 31.72it/s]
+Loading anima-base-v1.0.safetensors:  34%|███▎      | 230/685 [00:06<00:10, 41.39it/s]
+Loading anima-base-v1.0.safetensors:  34%|███▍      | 236/685 [00:07<00:15, 28.95it/s]
+Loading anima-base-v1.0.safetensors:  35%|███▌      | 241/685 [00:07<00:14, 31.05it/s]
+Loading anima-base-v1.0.safetensors:  36%|███▋      | 250/685 [00:07<00:10, 40.57it/s]
+Loading anima-base-v1.0.safetensors:  37%|███▋      | 256/685 [00:07<00:14, 29.19it/s]
+Loading anima-base-v1.0.safetensors:  38%|███▊      | 261/685 [00:07<00:13, 30.65it/s]
+Loading anima-base-v1.0.safetensors:  39%|███▉      | 270/685 [00:07<00:10, 39.44it/s]
+Loading anima-base-v1.0.safetensors:  40%|████      | 276/685 [00:08<00:14, 28.25it/s]
+Loading anima-base-v1.0.safetensors:  41%|████      | 280/685 [00:08<00:14, 28.92it/s]
+Loading anima-base-v1.0.safetensors:  42%|████▏     | 290/685 [00:08<00:09, 40.00it/s]
+Loading anima-base-v1.0.safetensors:  43%|████▎     | 296/685 [00:08<00:13, 29.07it/s]
+Loading anima-base-v1.0.safetensors:  44%|████▍     | 301/685 [00:09<00:12, 30.64it/s]
+Loading anima-base-v1.0.safetensors:  45%|████▌     | 310/685 [00:09<00:09, 39.91it/s]
+Loading anima-base-v1.0.safetensors:  46%|████▌     | 316/685 [00:09<00:13, 28.29it/s]
+Loading anima-base-v1.0.safetensors:  47%|████▋     | 321/685 [00:09<00:12, 30.16it/s]
+Loading anima-base-v1.0.safetensors:  48%|████▊     | 330/685 [00:09<00:09, 39.30it/s]
+Loading anima-base-v1.0.safetensors:  49%|████▉     | 336/685 [00:10<00:12, 28.37it/s]
+Loading anima-base-v1.0.safetensors:  50%|████▉     | 341/685 [00:10<00:11, 30.39it/s]
+Loading anima-base-v1.0.safetensors:  51%|█████     | 350/685 [00:10<00:08, 39.76it/s]
+Loading anima-base-v1.0.safetensors:  52%|█████▏    | 356/685 [00:10<00:11, 28.96it/s]
+Loading anima-base-v1.0.safetensors:  53%|█████▎    | 361/685 [00:10<00:10, 30.36it/s]
+Loading anima-base-v1.0.safetensors:  54%|█████▍    | 370/685 [00:11<00:07, 39.70it/s]
+Loading anima-base-v1.0.safetensors:  55%|█████▍    | 376/685 [00:11<00:10, 28.71it/s]
+Loading anima-base-v1.0.safetensors:  56%|█████▌    | 381/685 [00:11<00:09, 30.60it/s]
+Loading anima-base-v1.0.safetensors:  57%|█████▋    | 390/685 [00:11<00:07, 40.17it/s]
+Loading anima-base-v1.0.safetensors:  58%|█████▊    | 396/685 [00:11<00:09, 29.02it/s]
+Loading anima-base-v1.0.safetensors:  59%|█████▊    | 401/685 [00:12<00:09, 30.57it/s]
+Loading anima-base-v1.0.safetensors:  60%|█████▉    | 410/685 [00:12<00:06, 39.89it/s]
+Loading anima-base-v1.0.safetensors:  61%|██████    | 416/685 [00:12<00:09, 28.78it/s]
+Loading anima-base-v1.0.safetensors:  61%|██████▏   | 421/685 [00:12<00:08, 30.71it/s]
+Loading anima-base-v1.0.safetensors:  63%|██████▎   | 430/685 [00:12<00:06, 39.82it/s]
+Loading anima-base-v1.0.safetensors:  64%|██████▎   | 436/685 [00:13<00:08, 28.93it/s]
+Loading anima-base-v1.0.safetensors:  64%|██████▍   | 441/685 [00:13<00:07, 30.87it/s]
+Loading anima-base-v1.0.safetensors:  66%|██████▌   | 450/685 [00:13<00:05, 40.55it/s]
+Loading anima-base-v1.0.safetensors:  67%|██████▋   | 456/685 [00:13<00:07, 29.07it/s]
+Loading anima-base-v1.0.safetensors:  67%|██████▋   | 461/685 [00:13<00:07, 30.79it/s]
+Loading anima-base-v1.0.safetensors:  69%|██████▊   | 470/685 [00:14<00:05, 40.34it/s]
+Loading anima-base-v1.0.safetensors:  69%|██████▉   | 476/685 [00:14<00:07, 28.97it/s]
+Loading anima-base-v1.0.safetensors:  70%|███████   | 481/685 [00:14<00:06, 30.93it/s]
+Loading anima-base-v1.0.safetensors:  72%|███████▏  | 490/685 [00:14<00:04, 40.48it/s]
+Loading anima-base-v1.0.safetensors:  72%|███████▏  | 496/685 [00:15<00:06, 29.76it/s]
+Loading anima-base-v1.0.safetensors:  73%|███████▎  | 502/685 [00:15<00:05, 31.71it/s]
+Loading anima-base-v1.0.safetensors:  75%|███████▍  | 513/685 [00:15<00:04, 36.75it/s]
+Loading anima-base-v1.0.safetensors:  76%|███████▌  | 518/685 [00:15<00:05, 31.21it/s]
+Loading anima-base-v1.0.safetensors:  76%|███████▌  | 522/685 [00:15<00:05, 31.09it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 533/685 [00:16<00:04, 36.76it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 537/685 [00:16<00:04, 30.04it/s]
+Loading anima-base-v1.0.safetensors:  79%|███████▉  | 542/685 [00:16<00:04, 31.89it/s]
+Loading anima-base-v1.0.safetensors:  81%|████████  | 553/685 [00:16<00:03, 37.38it/s]
+Loading anima-base-v1.0.safetensors:  81%|████████▏ | 557/685 [00:16<00:04, 29.90it/s]
+Loading anima-base-v1.0.safetensors:  82%|████████▏ | 562/685 [00:16<00:03, 32.18it/s]
+Loading anima-base-v1.0.safetensors:  85%|████████▍ | 581/685 [00:17<00:01, 61.21it/s]
+Loading anima-base-v1.0.safetensors:  86%|████████▌ | 590/685 [00:17<00:01, 61.43it/s]
+Loading anima-base-v1.0.safetensors:  88%|████████▊ | 603/685 [00:17<00:01, 75.61it/s]
+Loading anima-base-v1.0.safetensors:  90%|█████████ | 617/685 [00:17<00:00, 89.94it/s]
+Loading anima-base-v1.0.safetensors:  92%|█████████▏| 628/685 [00:17<00:00, 84.34it/s]
+Loading anima-base-v1.0.safetensors:  94%|█████████▎| 642/685 [00:17<00:00, 96.08it/s]
+Loading anima-base-v1.0.safetensors:  96%|█████████▌| 658/685 [00:17<00:00, 112.03it/s]
+Loading anima-base-v1.0.safetensors:  98%|█████████▊| 671/685 [00:17<00:00, 104.02it/s]
+Loading anima-base-v1.0.safetensors: 100%|█████████▉| 683/685 [00:18<00:00, 54.53it/s]
 
-2026-05-26 12:54:29 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+2026-05-28 13:03:29 INFO     [key normalization] 685 key(s)   anima_utils.py:81
                              renamed. Examples:
                              [('net.blocks.0.adaln_modulation
                              _cross_attn.1.weight',
@@ -318,7 +393,7 @@ Loading anima-base-v1.0.safetensors:  99%|█████████▉| 678/68
                     INFO     NO LR skipping!                       lora.py:1321
                     INFO     NO LR skipping!                       lora.py:1321
                     INFO     use AdamW optimizer | {}        train_util.py:5230
-2026-05-26 12:54:39 INFO     unet dtype: torch.bfloat16,  train_network.py:1476
+2026-05-28 13:03:40 INFO     unet dtype: torch.bfloat16,  train_network.py:1476
                              device: cuda:0
                     INFO     text_encoder [0] dtype:      train_network.py:1482
                              torch.bfloat16, device:
@@ -336,174 +411,102 @@ running training / 学習開始
   gradient accumulation steps / 勾配を合計するステップ数 = 1
   total optimization steps / 学習ステップ数: 60
 
-steps:   0%|          | 0/60 [00:00<?, ?it/s]2026-05-26 12:54:40 INFO     epoch is incremented.            train_util.py:791
+steps:   0%|          | 0/60 [00:00<?, ?it/s]                    INFO     epoch is incremented.            train_util.py:791
                              current_epoch: 0, epoch: 1
 
-steps:   2%|▏         | 1/60 [00:01<01:39,  1.69s/it]
-steps:   2%|▏         | 1/60 [00:01<01:39,  1.69s/it, avr_loss=0.0556]
-steps:   3%|▎         | 2/60 [00:02<01:25,  1.47s/it, avr_loss=0.0556]
-steps:   3%|▎         | 2/60 [00:02<01:25,  1.47s/it, avr_loss=0.0637]
-steps:   5%|▌         | 3/60 [00:04<01:19,  1.40s/it, avr_loss=0.0637]
-steps:   5%|▌         | 3/60 [00:04<01:19,  1.40s/it, avr_loss=0.0617]
-steps:   7%|▋         | 4/60 [00:05<01:17,  1.38s/it, avr_loss=0.0617]
-steps:   7%|▋         | 4/60 [00:05<01:17,  1.38s/it, avr_loss=0.0591]
-steps:   8%|▊         | 5/60 [00:06<01:15,  1.37s/it, avr_loss=0.0591]
-steps:   8%|▊         | 5/60 [00:06<01:15,  1.37s/it, avr_loss=0.0593]
-steps:  10%|█         | 6/60 [00:08<01:12,  1.34s/it, avr_loss=0.0593]
-steps:  10%|█         | 6/60 [00:08<01:12,  1.34s/it, avr_loss=0.0529]
+steps:   2%|▏         | 1/60 [00:02<02:11,  2.23s/it]
+steps:   2%|▏         | 1/60 [00:02<02:11,  2.23s/it, avr_loss=0.0556]
+steps:   3%|▎         | 2/60 [00:03<01:40,  1.74s/it, avr_loss=0.0556]
+steps:   3%|▎         | 2/60 [00:03<01:40,  1.74s/it, avr_loss=0.0637]
+steps:   5%|▌         | 3/60 [00:04<01:29,  1.58s/it, avr_loss=0.0637]
+steps:   5%|▌         | 3/60 [00:04<01:29,  1.58s/it, avr_loss=0.0617]
+steps:   7%|▋         | 4/60 [00:05<01:23,  1.49s/it, avr_loss=0.0617]
+steps:   7%|▋         | 4/60 [00:05<01:23,  1.49s/it, avr_loss=0.0591]
+steps:   8%|▊         | 5/60 [00:07<01:19,  1.45s/it, avr_loss=0.0591]
+steps:   8%|▊         | 5/60 [00:07<01:19,  1.45s/it, avr_loss=0.0593]
+steps:  10%|█         | 6/60 [00:08<01:16,  1.41s/it, avr_loss=0.0593]
+steps:  10%|█         | 6/60 [00:08<01:16,  1.41s/it, avr_loss=0.0529]
 epoch 1/10
 
-grad_norm=0.070434 lr=0.00009993
-grad_norm=0.099515 lr=0.00009973
-grad_norm=1.001917 lr=0.00009938
-grad_norm=0.113927 lr=0.00009891
-grad_norm=0.169913 lr=0.00009830
-grad_norm=0.137769 lr=0.00009755
+grad_norm=0.070477 lr=0.00009993
+grad_norm=0.078505 lr=0.00009973
+grad_norm=0.199587 lr=0.00009938
+grad_norm=0.125277 lr=0.00009891
+grad_norm=0.154139 lr=0.00009830
+grad_norm=0.144961 lr=0.00009755
 
 
 epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
 
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.16it/s]
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.25it/s]
 
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.16it/s, val_epoch_avg_loss=0.0397, timestep=200]
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.24it/s, val_epoch_avg_loss=0.0398, timestep=200]
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.19it/s, val_epoch_avg_loss=0.0397, timestep=200]
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0398, timestep=200]
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.19it/s, val_epoch_avg_loss=0.042, timestep=400] 
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.042, timestep=400] 
 
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.22it/s, val_epoch_avg_loss=0.042, timestep=400]
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.24it/s, val_epoch_avg_loss=0.042, timestep=400]
 
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.22it/s, val_epoch_avg_loss=0.0518, timestep=600]
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.24it/s, val_epoch_avg_loss=0.052, timestep=600]
 
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.22it/s, val_epoch_avg_loss=0.0518, timestep=600]
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.28it/s, val_epoch_avg_loss=0.052, timestep=600]
 
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.22it/s, val_epoch_avg_loss=0.0509, timestep=800]2026-05-26 12:54:49 INFO     [EarlyStopping] 初回計測     train_network.py:1874
-                             val_loss=0.050913
-                             train_loss=0.052944
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.28it/s, val_epoch_avg_loss=0.0511, timestep=800]2026-05-28 13:03:50 INFO     [EarlyStopping] 初回計測     train_network.py:1874
+                             val_loss=0.051092
+                             train_loss=0.052949
                              監視を開始します。
-                    INFO     epoch is incremented.            train_util.py:791
-                             current_epoch: 1, epoch: 2
+                    INFO     Generating sample images  anima_train_utils.py:427
+                             at step 6
+                    INFO       prompt: 1girl, size:    anima_train_utils.py:522
+                             1024x1024, steps: 30,
+                             scale: 7.5, flow_shift:
+                             3, seed: 42
 
-steps:  12%|█▏        | 7/60 [00:09<01:10,  1.33s/it, avr_loss=0.0529]
-steps:  12%|█▏        | 7/60 [00:09<01:10,  1.33s/it, avr_loss=0.0519]
-steps:  13%|█▎        | 8/60 [00:10<01:08,  1.32s/it, avr_loss=0.0519]
-steps:  13%|█▎        | 8/60 [00:10<01:08,  1.32s/it, avr_loss=0.0436]
-steps:  15%|█▌        | 9/60 [00:11<01:06,  1.31s/it, avr_loss=0.0436]
-steps:  15%|█▌        | 9/60 [00:11<01:06,  1.31s/it, avr_loss=0.0411]
-steps:  17%|█▋        | 10/60 [00:13<01:06,  1.32s/it, avr_loss=0.0411]
-steps:  17%|█▋        | 10/60 [00:13<01:06,  1.32s/it, avr_loss=0.044]
-steps:  18%|█▊        | 11/60 [00:14<01:04,  1.31s/it, avr_loss=0.044]
-steps:  18%|█▊        | 11/60 [00:14<01:04,  1.31s/it, avr_loss=0.0434]
-steps:  20%|██        | 12/60 [00:15<01:02,  1.31s/it, avr_loss=0.0434]
-steps:  20%|██        | 12/60 [00:15<01:02,  1.31s/it, avr_loss=0.0533]
-[EarlyStopping] 初回計測  val_loss=0.050913  train_loss=0.052944  監視を開始します。
+[EarlyStopping] 初回計測  val_loss=0.051092  train_loss=0.052949  監視を開始します。
 
 saving checkpoint: E:\Animerge\lora\lora_output-000001.safetensors
 
-epoch 2/10
-
-grad_norm=0.167956 lr=0.00009668
-grad_norm=0.164494 lr=0.00009568
-grad_norm=0.181364 lr=0.00009455
-grad_norm=0.351238 lr=0.00009330
-grad_norm=0.240322 lr=0.00009193
-grad_norm=0.245911 lr=0.00009045
 
 
-
-epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
-epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.36s/it, val_epoch_avg_loss=0.0509, timestep=800]
+Sampling:   0%|          | 0/30 [00:00<?, ?it/s]
 
 
-
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.13it/s]
-
-
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.13it/s, val_epoch_avg_loss=0.0393, timestep=200]
+Sampling:   3%|▎         | 1/30 [00:01<00:44,  1.52s/it]
 
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.22it/s, val_epoch_avg_loss=0.0393, timestep=200]
+Sampling:   7%|▋         | 2/30 [00:03<00:44,  1.60s/it]
 
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.22it/s, val_epoch_avg_loss=0.0418, timestep=400]
+Sampling:  10%|█         | 3/30 [00:04<00:44,  1.63s/it]
 
 
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0418, timestep=400]
+Sampling:  13%|█▎        | 4/30 [00:06<00:42,  1.64s/it]
 
 
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0504, timestep=600]
+Sampling:  17%|█▋        | 5/30 [00:08<00:41,  1.65s/it]
 
 
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.25it/s, val_epoch_avg_loss=0.0504, timestep=600]
+Sampling:  20%|██        | 6/30 [00:09<00:39,  1.66s/it]
 
 
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.25it/s, val_epoch_avg_loss=0.0488, timestep=800]2026-05-26 12:54:58 INFO     [正常] Val Loss は良好です   train_network.py:1874
-                             val_loss: 0.050913 →
-                             0.048800  train_loss:
-                             0.053256
-2026-05-26 12:54:59 INFO     epoch is incremented.            train_util.py:791
-                             current_epoch: 2, epoch: 3
-
-steps:  22%|██▏       | 13/60 [00:16<01:01,  1.31s/it, avr_loss=0.0533]
-steps:  22%|██▏       | 13/60 [00:16<01:01,  1.31s/it, avr_loss=0.0523]
-steps:  23%|██▎       | 14/60 [00:18<00:59,  1.30s/it, avr_loss=0.0523]
-steps:  23%|██▎       | 14/60 [00:18<00:59,  1.30s/it, avr_loss=0.0566]
-steps:  25%|██▌       | 15/60 [00:19<00:58,  1.30s/it, avr_loss=0.0566]
-steps:  25%|██▌       | 15/60 [00:19<00:58,  1.30s/it, avr_loss=0.057]
-steps:  27%|██▋       | 16/60 [00:20<00:57,  1.30s/it, avr_loss=0.057]
-steps:  27%|██▋       | 16/60 [00:20<00:57,  1.30s/it, avr_loss=0.0532]
-steps:  28%|██▊       | 17/60 [00:22<00:55,  1.30s/it, avr_loss=0.0532]
-steps:  28%|██▊       | 17/60 [00:22<00:55,  1.30s/it, avr_loss=0.0471]
-steps:  30%|███       | 18/60 [00:23<00:54,  1.29s/it, avr_loss=0.0471]
-steps:  30%|███       | 18/60 [00:23<00:54,  1.29s/it, avr_loss=0.0448]
-[正常] Val Loss は良好です  val_loss: 0.050913 → 0.048800  train_loss: 0.053256
-
-saving checkpoint: E:\Animerge\lora\lora_output-000002.safetensors
-
-epoch 3/10
-
-grad_norm=0.284447 lr=0.00008886
-grad_norm=0.283965 lr=0.00008716
-grad_norm=0.289321 lr=0.00008536
-grad_norm=0.312572 lr=0.00008346
-grad_norm=0.306066 lr=0.00008147
-grad_norm=0.314579 lr=0.00007939
+Sampling:  23%|██▎       | 7/30 [00:11<00:38,  1.67s/it]
 
 
-epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
-epoch validation steps: 100%|██████████| 4/4 [00:09<00:00,  2.34s/it, val_epoch_avg_loss=0.0488, timestep=800]
+Sampling:  27%|██▋       | 8/30 [00:13<00:36,  1.68s/it]
 
 
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.07it/s]
+Sampling:  30%|███       | 9/30 [00:14<00:35,  1.69s/it]
 
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.07it/s, val_epoch_avg_loss=0.0384, timestep=200]
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.06it/s, val_epoch_avg_loss=0.0384, timestep=200]
-
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.06it/s, val_epoch_avg_loss=0.0414, timestep=400]
-
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.10it/s, val_epoch_avg_loss=0.0414, timestep=400]
-
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.09it/s, val_epoch_avg_loss=0.0511, timestep=600]
-
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.12it/s, val_epoch_avg_loss=0.0511, timestep=600]
-
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.12it/s, val_epoch_avg_loss=0.0489, timestep=800]2026-05-26 12:55:08 INFO     [正常] Val Loss は良好です   train_network.py:1874
-                             val_loss: 0.048800 →
-                             0.048903  train_loss:
-                             0.044815
-                    INFO     epoch is incremented.            train_util.py:791
-                             current_epoch: 3, epoch: 4
-
-steps:  32%|███▏      | 19/60 [00:24<00:52,  1.29s/it, avr_loss=0.0448]
-steps:  32%|███▏      | 19/60 [00:24<00:52,  1.29s/it, avr_loss=0.0518]forrtl: error (200): program aborting due to control-BREAK event
+Sampling:  33%|███▎      | 10/30 [00:16<00:33,  1.69s/it]forrtl: error (200): program aborting due to control-BREAK event
 Image              PC                Routine            Line        Source
-KERNELBASE.dll     00007FF8AC8D348D  Unknown               Unknown  Unknown
-KERNEL32.DLL       00007FF8AF57E957  Unknown               Unknown  Unknown
-ntdll.dll          00007FF8AFDE427C  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFE09903ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFE0AE4E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFE0C507C1C  Unknown               Unknown  Unknown
 forrtl: error (200): program aborting due to control-BREAK event
 Image              PC                Routine            Line        Source
-KERNELBASE.dll     00007FF8AC8D348D  Unknown               Unknown  Unknown
-KERNEL32.DLL       00007FF8AF57E957  Unknown               Unknown  Unknown
-ntdll.dll          00007FF8AFDE427C  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFE09903ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFE0AE4E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFE0C507C1C  Unknown               Unknown  Unknown
 [LoRA Train] 完了 (return code: 1)
