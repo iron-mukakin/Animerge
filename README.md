@@ -1,11 +1,11 @@
 # Animerge
 
-For Japanese documentation, see [README.ja.md](./README.ja.md).
+For Japanese documentation, see [README_ja.md](./README_ja.md).
 
 Animerge is a desktop GUI tool for working with Anima model checkpoints and LoRA files. The current build is centered on `app/gui.py`, with merge, analysis, model I/O, and LoRA training support split into related modules under `app/`.
 
 <p align="center">
-  <img src="./docs/anima_preview.png" alt="Animerge GUI Screenshot" width="50%">
+  <img src="./docs/anima_preview.png" alt="Animerge GUI Screenshot" width="80%">
 </p>
 
 ## Model / Model Distribution

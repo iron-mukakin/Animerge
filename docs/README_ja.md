@@ -3,7 +3,7 @@
 Animerge は Anima モデルのチェックポイントと LoRA ファイルを扱うためのデスクトップ GUI ツールです。現時点の実装はマージ、解析、LoRA 学習機能です。全ての機能で階層指定に対応しています。
 
 <p align="center">
-  <img src="./anima_preview.png" alt="Animerge GUI スクリーンショット" width="50%">
+  <img src="./anima_preview.png" alt="Animerge GUI スクリーンショット" width="80%">
 </p>
 
 ## モデル / モデル配布
