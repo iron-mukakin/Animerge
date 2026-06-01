@@ -1,0 +1,20 @@
+# LECO Prompt Settings
+# action: "erase" で target 概念を消去 / "enhance" で強調
+# multiplier: 学習時の LoRA 強度（デフォルト 1.0）
+# weight: このエントリの loss 重み（デフォルト 1.0）
+# guidance_scale: ターゲット構築時のスケール（大きいほど効果が強い）
+# resolution: 整数 512 または [height, width] 形式
+
+[[prompts]]
+target        = "@hisahiko"
+positive      = "@hisahiko"
+unconditional = ""
+neutral       = ""
+action        = "erase"
+guidance_scale = 1.0
+resolution    = 512
+batch_size    = 1
+multiplier    = 1.0
+weight        = 1.0
+
+

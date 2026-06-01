@@ -28,6 +28,7 @@ from .analysis import (
 )
 from .analysis_viewer import build_viewer_tab
 from .lora_train import build_lora_train_tab
+from .leco_train import build_leco_train_tab
 
 
 MATRIX_BLOCKS = ("Input", "Middle", "Output")
@@ -157,11 +158,13 @@ class AnimaModelEditor(tk.Tk):
         analysis_main = ttk.Frame(self.main_notebook, padding=4)
         viewer_main   = ttk.Frame(self.main_notebook, padding=4)
         train_main    = ttk.Frame(self.main_notebook, padding=4)
+        leco_main     = ttk.Frame(self.main_notebook, padding=4)
         self.main_notebook.add(model_main,    text="  本体マージ  ")
         self.main_notebook.add(lora_main,     text="  LoRAマージ  ")
         self.main_notebook.add(analysis_main, text="  レイヤー分析  ")
         self.main_notebook.add(viewer_main,   text="  詳細分析  ")
         self.main_notebook.add(train_main,    text="  LoRA学習  ")
+        self.main_notebook.add(leco_main,     text="  LECO学習  ")
 
         # 各主タブ内の共通エリアを構築
         self._build_main_tab_content(model_main, tab_type="model")
@@ -170,6 +173,12 @@ class AnimaModelEditor(tk.Tk):
         build_viewer_tab(viewer_main, self.paths.log_analysis, self.log)
         self._lora_train_state = build_lora_train_tab(
             train_main,
+            self.paths,
+            self.log,
+            lambda: self.model_choices,
+        )
+        self._leco_train_state = build_leco_train_tab(
+            leco_main,
             self.paths,
             self.log,
             lambda: self.model_choices,
@@ -199,6 +208,9 @@ class AnimaModelEditor(tk.Tk):
         elif idx == 4:
             self._active_tab_type = "lora_train"
             return  # LoRA学習タブは merge 系のコントロール再構築不要
+        elif idx == 5:
+            self._active_tab_type = "leco_train"
+            return  # LECO学習タブは merge 系のコントロール再構築不要
         self.rebuild_parameter_controls()
 
     def _build_main_tab_content(self, parent: ttk.Frame, tab_type: str) -> None:
@@ -951,6 +963,17 @@ class AnimaModelEditor(tk.Tk):
                     proc.terminate()
                 proc.wait(timeout=10)
                 self.log("[Unload] LoRA学習プロセスを終了しました。")
+        # LECO学習プロセスが動いている場合は先に終了させる
+        if hasattr(self, "_leco_train_state") and self._leco_train_state is not None:
+            proc = getattr(self._leco_train_state, "_proc", None)
+            if proc is not None and proc.poll() is None:
+                import os, signal
+                try:
+                    os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
+                except Exception:
+                    proc.terminate()
+                proc.wait(timeout=10)
+                self.log("[Unload] LECO学習プロセスを終了しました。")
         try:
             import gc
             import torch
