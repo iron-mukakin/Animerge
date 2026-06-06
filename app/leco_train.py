@@ -92,6 +92,7 @@ def build_leco_train_tab(
     tab_train          = ttk.Frame(nb, padding=8)
     tab_adv            = ttk.Frame(nb, padding=8)
     tab_layer          = ttk.Frame(nb, padding=8)
+    tab_sample         = ttk.Frame(nb, padding=8)
     tab_monitor        = ttk.Frame(nb, padding=8)
     tab_monitor_layer  = ttk.Frame(nb, padding=8)
     tab_preset         = ttk.Frame(nb, padding=8)
@@ -102,6 +103,7 @@ def build_leco_train_tab(
     nb.add(tab_train,          text="  学習設定  ")
     nb.add(tab_adv,            text="  詳細  ")
     nb.add(tab_layer,          text="  階層学習  ")
+    nb.add(tab_sample,         text="  サンプル生成  ")
     nb.add(tab_monitor,        text="  モニターグラフ  ")
     nb.add(tab_monitor_layer,  text="  モニター階層  ")
     nb.add(tab_preset,         text="  プリセット  ")
@@ -112,6 +114,7 @@ def build_leco_train_tab(
     _build_train_tab(tab_train,       state)
     _build_adv_tab(tab_adv,           state)
     _build_layer_train_tab(tab_layer, state)
+    _build_leco_sample_tab(tab_sample, state)
     _build_monitor_tab(tab_monitor,   state)
     _build_monitor_layer_tab(tab_monitor_layer, state)
     _build_leco_preset_tab(tab_preset, state)
@@ -195,17 +198,22 @@ class _LecoTrainState:
         self._monitor_queue:       queue.Queue[str] = queue.Queue()
         self._monitor_layer_queue: queue.Queue[str] = queue.Queue()
 
-        # ── サンプル生成（将来実装用・プリセット保存領域確保） ───
-        self.sample_enabled        = tk.BooleanVar(value=False)
-        self.sample_every_n_steps  = tk.StringVar(value="100")
-        self.sample_prompt         = tk.StringVar(value="")
+        # ── サンプル生成 共通設定 ────────────────────────────────
+        self.sample_every_n_steps   = tk.StringVar(value="100")
+        self.sample_width           = tk.IntVar(value=512)
+        self.sample_height          = tk.IntVar(value=512)
+        self.sample_steps           = tk.IntVar(value=20)
+        self.sample_scale           = tk.DoubleVar(value=7.5)
+        self.sample_flow_shift      = tk.DoubleVar(value=3.0)
+        self.sample_keep_vae        = tk.BooleanVar(value=False)
+        # サンプルA
+        self.sample_enabled         = tk.BooleanVar(value=False)
+        self.sample_prompt          = tk.StringVar(value="")
         self.sample_negative_prompt = tk.StringVar(value="")
-        self.sample_width          = tk.IntVar(value=512)
-        self.sample_height         = tk.IntVar(value=512)
-        self.sample_steps          = tk.IntVar(value=20)
-        self.sample_scale          = tk.DoubleVar(value=7.5)
-        self.sample_flow_shift     = tk.DoubleVar(value=3.0)
-        self.sample_seed           = tk.StringVar(value="42")
+        # サンプルB
+        self.sample_b_enabled          = tk.BooleanVar(value=False)
+        self.sample_b_prompt           = tk.StringVar(value="")
+        self.sample_b_negative_prompt  = tk.StringVar(value="")
 
         # ステータス
         self.status_var       = tk.StringVar(value="待機中")
@@ -694,6 +702,15 @@ def _build_command(s: _LecoTrainState) -> list[str]:
         if var.get():
             cmd.append(flag)
 
+    # サンプル生成
+    if s.sample_enabled.get() or s.sample_b_enabled.get():
+        _spf = _leco_write_sample_prompt_file(s)
+        cmd += ["--sample_every_n_steps", s.sample_every_n_steps.get().strip() or "100"]
+        cmd += ["--sample_prompts",   str(_spf)]
+        cmd += ["--sample_save_dir",  str(s.paths.root / "log" / "sample_gen")]
+        if s.sample_keep_vae.get():
+            cmd.append("--sample_keep_vae")
+
     # 階層学習
     if s.layer_train_enabled.get():
         _mode   = s.layer_display_mode.get()
@@ -744,6 +761,16 @@ def _validate(s: _LecoTrainState) -> str | None:
         return "max_train_steps は1以上を指定してください。"
     if s.save_every_n_steps.get() < 1:
         return "save_every_n_steps は1以上を指定してください。"
+    if s.sample_enabled.get() and not s.sample_prompt.get().strip():
+        return "サンプルAが有効ですが、promptが未設定です。"
+    if s.sample_b_enabled.get() and not s.sample_b_prompt.get().strip():
+        return "サンプルBが有効ですが、promptが未設定です。"
+    if s.sample_enabled.get() or s.sample_b_enabled.get():
+        try:
+            if int(s.sample_every_n_steps.get().strip() or "100") <= 0:
+                return "サンプル出力のstep間隔は1以上を指定してください。"
+        except ValueError:
+            return "サンプル出力のstep間隔は整数で指定してください。"
     return None
 
 
@@ -1250,18 +1277,21 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
                 k: round(float(v.get()), 4)
                 for k, v in s.layer_parameter_vars.items()
             },
-            # サンプル生成（将来実装用プレースホルダ）
+            # サンプル生成
             "sample": {
-                "enabled":         bool(s.sample_enabled.get()),
-                "every_n_steps":   s.sample_every_n_steps.get(),
-                "prompt":          s.sample_prompt.get(),
-                "negative_prompt": s.sample_negative_prompt.get(),
-                "width":           int(s.sample_width.get()),
-                "height":          int(s.sample_height.get()),
-                "steps":           int(s.sample_steps.get()),
-                "scale":           float(s.sample_scale.get()),
-                "flow_shift":      float(s.sample_flow_shift.get()),
-                "seed":            s.sample_seed.get(),
+                "every_n_steps":            s.sample_every_n_steps.get(),
+                "keep_vae":                 bool(s.sample_keep_vae.get()),
+                "width":                    int(s.sample_width.get()),
+                "height":                   int(s.sample_height.get()),
+                "steps":                    int(s.sample_steps.get()),
+                "scale":                    float(s.sample_scale.get()),
+                "flow_shift":               float(s.sample_flow_shift.get()),
+                "a_enabled":                bool(s.sample_enabled.get()),
+                "a_prompt":                 s.sample_prompt.get(),
+                "a_negative_prompt":        s.sample_negative_prompt.get(),
+                "b_enabled":                bool(s.sample_b_enabled.get()),
+                "b_prompt":                 s.sample_b_prompt.get(),
+                "b_negative_prompt":        s.sample_b_negative_prompt.get(),
             },
         }
         # TOMLエディタの内容を同梱（オプション）
@@ -1329,19 +1359,22 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
                 except (ValueError, tk.TclError):
                     pass
 
-        # サンプル生成設定（将来実装用）
+        # サンプル生成設定
         sample = data.get("sample", {})
         if sample:
-            _s(s.sample_enabled,         "enabled",         False)
-            _s(s.sample_every_n_steps,   "every_n_steps",   "100")
-            _s(s.sample_prompt,          "prompt",          "")
-            _s(s.sample_negative_prompt, "negative_prompt", "")
-            _s(s.sample_width,           "width",           512)
-            _s(s.sample_height,          "height",          512)
-            _s(s.sample_steps,           "steps",           20)
-            _s(s.sample_scale,           "scale",           7.5)
-            _s(s.sample_flow_shift,      "flow_shift",      3.0)
-            _s(s.sample_seed,            "seed",            "42")
+            _s(s.sample_every_n_steps,      "every_n_steps",      "100")
+            _s(s.sample_keep_vae,           "keep_vae",           False)
+            _s(s.sample_width,              "width",              512)
+            _s(s.sample_height,             "height",             512)
+            _s(s.sample_steps,              "steps",              20)
+            _s(s.sample_scale,              "scale",              7.5)
+            _s(s.sample_flow_shift,         "flow_shift",         3.0)
+            _s(s.sample_enabled,            "a_enabled",          False)
+            _s(s.sample_prompt,             "a_prompt",           "")
+            _s(s.sample_negative_prompt,    "a_negative_prompt",  "")
+            _s(s.sample_b_enabled,          "b_enabled",          False)
+            _s(s.sample_b_prompt,           "b_prompt",           "")
+            _s(s.sample_b_negative_prompt,  "b_negative_prompt",  "")
 
         # TOMLエディタに内容を復元（同梱されている場合）
         toml_content = data.get("prompts_toml_content")
@@ -1452,3 +1485,213 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         ttk.Button(btn_row, text=text, command=cmd).pack(side=tk.LEFT, padx=4, pady=4)
 
     _refresh_list()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# サンプル生成ヘルパー（leco_train.py 用）
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _leco_sample_dir(s: "_LecoTrainState") -> Path:
+    return s.paths.root / "log" / "sample_gen"
+
+
+def _leco_sample_prompt_path(s: "_LecoTrainState") -> Path:
+    return _leco_sample_dir(s) / "_sample_prompt.txt"
+
+
+def _leco_build_prompt_line(
+    prompt: str, neg: str, s: "_LecoTrainState", seed: int = 42
+) -> str:
+    width      = max(64, int(s.sample_width.get()))
+    height     = max(64, int(s.sample_height.get()))
+    steps      = max(1,  int(s.sample_steps.get()))
+    scale      = float(s.sample_scale.get())
+    flow_shift = float(s.sample_flow_shift.get())
+    line = (
+        f"{prompt} --w {width} --h {height} --s {steps} "
+        f"--l {scale:g} --fs {flow_shift:g} --d {seed}"
+    )
+    if neg:
+        line += f" --n {neg}"
+    return line
+
+
+SAMPLE_FIXED_SEED = 42
+
+
+def _leco_write_sample_prompt_file(s: "_LecoTrainState") -> Path:
+    lines = []
+    if s.sample_enabled.get() and s.sample_prompt.get().strip():
+        lines.append(_leco_build_prompt_line(
+            s.sample_prompt.get().strip(),
+            s.sample_negative_prompt.get().strip(),
+            s,
+            seed=SAMPLE_FIXED_SEED,
+        ))
+    if s.sample_b_enabled.get() and s.sample_b_prompt.get().strip():
+        lines.append(_leco_build_prompt_line(
+            s.sample_b_prompt.get().strip(),
+            s.sample_b_negative_prompt.get().strip(),
+            s,
+            seed=SAMPLE_FIXED_SEED + 1,
+        ))
+    path = _leco_sample_prompt_path(s)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    return path
+
+
+def _build_leco_sample_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
+    """LECO サンプル生成タブ。lora_train._build_sample_tab_common を流用。"""
+    # lora_train モジュールが同一パッケージにある前提で動的インポート
+    try:
+        from . import lora_train as _lt
+        _lt._build_sample_tab_common(parent, s, is_leco=True)
+    except Exception:
+        # フォールバック: 直接インポートが使えない場合は簡易UI
+        _build_leco_sample_tab_inline(parent, s)
+
+
+def _build_leco_sample_tab_inline(
+    parent: ttk.Frame, s: "_LecoTrainState"
+) -> None:
+    """_build_sample_tab_common の leco_train 内スタンドアロン版。"""
+    parent.columnconfigure(0, weight=1)
+    parent.rowconfigure(1, weight=1)
+
+    common = ttk.LabelFrame(parent, text="共通生成条件")
+    common.grid(row=0, column=0, sticky=tk.EW, pady=(0, 6))
+    common.columnconfigure(1, weight=1)
+    common.columnconfigure(3, weight=1)
+
+    ttk.Label(common, text="step間隔", width=16, anchor=tk.W).grid(
+        row=0, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    ttk.Spinbox(common, from_=1, to=99999, textvariable=s.sample_every_n_steps, width=8).grid(
+        row=0, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Label(common, text=f"seed固定: {SAMPLE_FIXED_SEED}", foreground="#64748B").grid(
+        row=0, column=2, columnspan=2, sticky=tk.W, padx=(0, 4), pady=3)
+
+    ttk.Label(common, text="width / height", width=16, anchor=tk.W).grid(
+        row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    sf = ttk.Frame(common)
+    sf.grid(row=1, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Spinbox(sf, from_=64, to=4096, increment=16, textvariable=s.sample_width,  width=7).pack(side=tk.LEFT)
+    ttk.Label(sf, text=" x ").pack(side=tk.LEFT)
+    ttk.Spinbox(sf, from_=64, to=4096, increment=16, textvariable=s.sample_height, width=7).pack(side=tk.LEFT)
+
+    ttk.Label(common, text="steps", width=10, anchor=tk.W).grid(
+        row=1, column=2, sticky=tk.W, padx=(0, 2), pady=3)
+    ttk.Spinbox(common, from_=1, to=1000, textvariable=s.sample_steps, width=8).grid(
+        row=1, column=3, sticky=tk.W, padx=(0, 4), pady=3)
+
+    ttk.Label(common, text="scale", width=16, anchor=tk.W).grid(
+        row=2, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    ttk.Entry(common, textvariable=s.sample_scale, width=10).grid(
+        row=2, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Label(common, text="flow_shift", width=10, anchor=tk.W).grid(
+        row=2, column=2, sticky=tk.W, padx=(0, 2), pady=3)
+    ttk.Entry(common, textvariable=s.sample_flow_shift, width=10).grid(
+        row=2, column=3, sticky=tk.W, padx=(0, 4), pady=3)
+
+    ttk.Checkbutton(
+        common, text="VAEを学習中保持 (sample_keep_vae)",
+        variable=s.sample_keep_vae,
+    ).grid(row=3, column=0, columnspan=4, sticky=tk.W, padx=(4, 4), pady=3)
+
+    ab_nb = ttk.Notebook(parent)
+    ab_nb.grid(row=1, column=0, sticky=tk.NSEW)
+    tab_a = ttk.Frame(ab_nb, padding=4)
+    tab_b = ttk.Frame(ab_nb, padding=4)
+    ab_nb.add(tab_a, text="  サンプルA  ")
+    ab_nb.add(tab_b, text="  サンプルB  ")
+
+    def _ab_panel(tab, enabled_var, prompt_var, neg_var, label):
+        tab.columnconfigure(0, weight=1)
+        tab.rowconfigure(1, weight=1)
+        top = ttk.Frame(tab)
+        top.grid(row=0, column=0, sticky=tk.EW, pady=(0, 4))
+        top.columnconfigure(1, weight=1)
+        ttk.Checkbutton(top, text=f"サンプル{label}を有効にする",
+                        variable=enabled_var).grid(
+            row=0, column=0, columnspan=4, sticky=tk.W, padx=2, pady=2)
+        _sdir = s.paths.root / "log" / "sample_gen"
+        _glob_pat = f"*_{label.lower()}_*.png"
+        ttk.Label(top, text="出力先:", foreground="#475569").grid(
+            row=1, column=0, sticky=tk.W, padx=(2, 0), pady=2)
+        ttk.Label(top, text=str(_sdir), foreground="#1D4ED8").grid(
+            row=1, column=1, columnspan=3, sticky=tk.W, pady=2)
+        ttk.Label(top, text="prompt", width=16, anchor=tk.W).grid(
+            row=2, column=0, sticky=tk.W, padx=(2, 2), pady=2)
+        ttk.Entry(top, textvariable=prompt_var).grid(
+            row=2, column=1, columnspan=3, sticky=tk.EW, padx=(0, 4), pady=2)
+        ttk.Label(top, text="negative", width=16, anchor=tk.W).grid(
+            row=3, column=0, sticky=tk.W, padx=(2, 2), pady=2)
+        ttk.Entry(top, textvariable=neg_var).grid(
+            row=3, column=1, columnspan=3, sticky=tk.EW, padx=(0, 4), pady=2)
+
+        gallery = ttk.LabelFrame(tab, text=f"最新サンプル{label}")
+        gallery.grid(row=1, column=0, sticky=tk.NSEW)
+        for c in range(5):
+            gallery.columnconfigure(c, weight=1, uniform=f"lc_{label}")
+        for r in range(2):
+            gallery.rowconfigure(r, weight=1, uniform=f"lr_{label}")
+
+        cells: list = []
+        photo_refs: list = [None] * 10
+        for idx in range(10):
+            cell = ttk.Frame(gallery, padding=4)
+            cell.grid(row=idx // 5, column=idx % 5, sticky=tk.NSEW)
+            cell.columnconfigure(0, weight=1)
+            cell.rowconfigure(0, weight=1)
+            il = ttk.Label(cell, anchor=tk.CENTER)
+            il.grid(row=0, column=0, sticky=tk.NSEW)
+            el = ttk.Label(cell, text="step -", anchor=tk.CENTER)
+            el.grid(row=1, column=0, sticky=tk.EW, pady=(3, 0))
+            cells.append((il, el))
+
+        def _re_search(pat, text):
+            import re as _re
+            m = _re.search(pat, text)
+            return m
+
+        def _refresh(schedule_next=False):
+            files = sorted(
+                _sdir.glob(_glob_pat), key=lambda p: p.stat().st_mtime, reverse=True
+            )[:10] if _sdir.exists() else []
+            try:
+                from PIL import Image as _Im, ImageTk as _ITk
+            except Exception:
+                _Im = _ITk = None
+            for idx, (il, el) in enumerate(cells):
+                if idx >= len(files):
+                    il.configure(image="", text="")
+                    el.configure(text="step -")
+                    photo_refs[idx] = None
+                    continue
+                p = files[idx]
+                m = _re_search(r"step([0-9]+)", p.stem)
+                el.configure(text=f"step {m.group(1)}" if m else p.name)
+                if _Im is None:
+                    il.configure(image="", text=p.name)
+                    photo_refs[idx] = None
+                    continue
+                try:
+                    with _Im.open(p) as im:
+                        im.thumbnail((220, 220))
+                        ph = _ITk.PhotoImage(im.copy())
+                    photo_refs[idx] = ph
+                    il.configure(image=ph, text="")
+                except Exception:
+                    il.configure(image="", text=p.name)
+                    photo_refs[idx] = None
+            if schedule_next:
+                tab.after(2000, lambda: _refresh(True))
+
+        btn_row = ttk.Frame(top)
+        btn_row.grid(row=4, column=0, columnspan=4, sticky=tk.W, pady=(4, 2))
+        ttk.Button(btn_row, text="表示更新", command=lambda: _refresh(False)).pack(
+            side=tk.LEFT, padx=(0, 6))
+        _refresh(True)
+
+    _ab_panel(tab_a, s.sample_enabled,   s.sample_prompt,   s.sample_negative_prompt,   "A")
+    _ab_panel(tab_b, s.sample_b_enabled, s.sample_b_prompt, s.sample_b_negative_prompt, "B")

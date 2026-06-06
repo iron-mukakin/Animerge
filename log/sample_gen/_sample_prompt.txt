@@ -1,1 +1,2 @@
-1girl --w 1024 --h 1024 --s 30 --l 7.5 --fs 3 --d 42
+1girl, solo, full body --w 512 --h 512 --s 20 --l 4.5 --fs 3 --d 42 --n worst quality, low quality, score_1, score_2, score_3
+1boy, solo, full body --w 512 --h 512 --s 20 --l 4.5 --fs 3 --d 43 --n worst quality, low quality, score_1, score_2, score_3

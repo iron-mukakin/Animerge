@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import math
 import random
+import re
+from pathlib import Path
 from typing import Optional
 
 import torch
@@ -49,6 +52,7 @@ from library import (
     strategy_anima,
     train_util,
 )
+import anima_sample_gen
 from library.custom_train_functions import apply_snr_weight
 from library.leco_train_util import (
     PromptEmbedsCache,
@@ -293,6 +297,17 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cache_latents_to_disk", action="store_true", default=False, help=argparse.SUPPRESS)
     parser.add_argument("--deepspeed", action="store_true", default=False, help=argparse.SUPPRESS)
 
+    # Sample generation
+    # --sample_every_n_steps / --sample_prompts / --sample_save_dir は
+    # train_util.add_training_arguments() で登録済みのため追加不要。
+    parser.add_argument(
+        "--sample_keep_vae", action="store_true",
+        help=(
+            "Keep VAE loaded in VRAM throughout training for sample generation. "
+            "Default: reload VAE each time samples are generated, then unload."
+        ),
+    )
+
     return parser
 
 
@@ -339,8 +354,15 @@ def main():
     )
     vae.to(weight_dtype)
     vae.eval()
-    # VAE is not needed after this point for LECO (no image dataset)
-    del vae
+
+    # VAE 保持オプション: keep_vae=True のときはVRAMに残す
+    _keep_vae = getattr(args, "sample_keep_vae", False) and getattr(args, "sample_every_n_steps", None)
+    if _keep_vae:
+        logger.info("sample_keep_vae=True: VAE をVRAMに保持します。")
+        _vae_for_sample = vae
+    else:
+        del vae
+        _vae_for_sample = None
     clean_memory_on_device(device)
 
     attn_mode = getattr(args, "attn_mode", "torch") or "torch"
@@ -571,6 +593,35 @@ def main():
                         accelerator, network, args, save_dtype,
                         prompt_settings, global_step, last=False,
                     )
+
+            # ── サンプル生成 ──────────────────────────────────────────────
+            if (
+                getattr(args, "sample_every_n_steps", None)
+                and global_step % args.sample_every_n_steps == 0
+                and args.sample_prompts
+                and args.sample_save_dir
+                and accelerator.is_main_process
+            ):
+                # LECO: LoRA を推論モードへ切り替えてサンプル生成
+                net_unwrapped = accelerator.unwrap_model(network)
+                net_unwrapped.set_multiplier(1.0)
+                net_unwrapped.eval()
+                dit_unwrapped = accelerator.unwrap_model(dit)
+                try:
+                    anima_sample_gen.sample_images_from_prompts(
+                        args=args,
+                        dit=dit_unwrapped,
+                        vae_for_sample=_vae_for_sample,
+                        text_encoder=qwen3_text_encoder,
+                        tokenize_strategy=tokenize_strategy,
+                        text_encoding_strategy=text_encoding_strategy,
+                        accelerator=accelerator,
+                        epoch=None,
+                        global_step=global_step,
+                    )
+                finally:
+                    net_unwrapped.train()
+                    net_unwrapped.set_multiplier(0.0)
 
     accelerator.wait_for_everyone()
     if accelerator.is_main_process:

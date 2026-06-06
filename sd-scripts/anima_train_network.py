@@ -21,6 +21,7 @@ from library import (
     strategy_base,
     train_util,
 )
+import anima_sample_gen
 import train_network
 from library.utils import setup_logging
 
@@ -184,26 +185,7 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             with accelerator.autocast():
                 dataset.new_cache_text_encoder_outputs(text_encoders, accelerator)
 
-            # cache sample prompts
-            if args.sample_prompts is not None:
-                logger.info(f"cache Text Encoder outputs for sample prompts: {args.sample_prompts}")
-
-                tokenize_strategy = strategy_base.TokenizeStrategy.get_strategy()
-                text_encoding_strategy = strategy_base.TextEncodingStrategy.get_strategy()
-
-                prompts = train_util.load_prompts(args.sample_prompts)
-                sample_prompts_te_outputs = {}
-                with accelerator.autocast(), torch.no_grad():
-                    for prompt_dict in prompts:
-                        for p in [prompt_dict.get("prompt", ""), prompt_dict.get("negative_prompt", "")]:
-                            if p not in sample_prompts_te_outputs:
-                                logger.info(f"  cache TE outputs for: {p}")
-                                tokens_and_masks = tokenize_strategy.tokenize(p)
-                                sample_prompts_te_outputs[p] = text_encoding_strategy.encode_tokens(
-                                    tokenize_strategy, text_encoders, tokens_and_masks
-                                )
-                self.sample_prompts_te_outputs = sample_prompts_te_outputs
-
+            # sample_prompts_te_outputs は anima_sample_gen が毎回エンコードするため不要
             accelerator.wait_for_everyone()
 
             # move text encoder back to cpu
@@ -220,25 +202,36 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             text_encoders[0].to(accelerator.device)
 
     def sample_images(self, accelerator, args, epoch, global_step, device, vae, tokenizer, text_encoder, unet):
-        text_encoders = text_encoder if isinstance(text_encoder, list) else [text_encoder]  # compatibility
+        if not accelerator.is_main_process:
+            return
+
+        text_encoders = text_encoder if isinstance(text_encoder, list) else [text_encoder]
         te = self.get_models_for_text_encoding(args, accelerator, text_encoders)
         qwen3_te = te[0] if te is not None else None
 
+        # cache_text_encoder_outputs=True の場合 te=None になる。
+        # サンプル生成にはTEが必要なので text_encoders[0] を直接使う。
+        if qwen3_te is None and text_encoders:
+            qwen3_te = accelerator.unwrap_model(text_encoders[0])
+        if qwen3_te is None:
+            logger.warning("[SampleGen] text_encoder が None のためスキップします")
+            return
+
         text_encoding_strategy = strategy_base.TextEncodingStrategy.get_strategy()
         tokenize_strategy = strategy_base.TokenizeStrategy.get_strategy()
-        anima_train_utils.sample_images(
-            accelerator,
-            args,
-            epoch,
-            global_step,
-            unet,
-            vae,
-            qwen3_te,
-            tokenize_strategy,
-            text_encoding_strategy,
-            self.sample_prompts_te_outputs,
-        )
+        dit = accelerator.unwrap_model(unet)
 
+        anima_sample_gen.sample_images_from_prompts(
+            args=args,
+            dit=dit,
+            vae=vae,
+            text_encoder=qwen3_te,
+            tokenize_strategy=tokenize_strategy,
+            text_encoding_strategy=text_encoding_strategy,
+            accelerator=accelerator,
+            epoch=epoch,
+            global_step=global_step,
+        )
     def get_noise_scheduler(self, args: argparse.Namespace, device: torch.device) -> Any:
         noise_scheduler = sd3_train_utils.FlowMatchEulerDiscreteScheduler(num_train_timesteps=1000, shift=args.discrete_flow_shift)
         return noise_scheduler
