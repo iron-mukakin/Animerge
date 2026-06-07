@@ -1,6 +1,6 @@
 CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_leco_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --prompts_file E:/Animerge/preset/leco_train/leco_test.toml --output_dir E:\Animerge\lora --output_name leco_output --network_module networks.lora --network_dim 4 --network_alpha 1.0 --learning_rate 1e-4 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --max_train_steps 500 --save_every_n_steps 100 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --max_denoising_steps 20 --leco_denoise_guidance_scale 3.0 --attn_mode torch --discrete_flow_shift 1.0 --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --gradient_checkpointing --sample_every_n_steps 2 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen --sample_keep_vae --network_args anima_matrix_scales={"Input_Attention":0.0,"Input_MLP":0.0,"Input_Norm":0.0,"Input_ResNet":0.0,"Input_Timestep":0.0,"Middle_Attention":0.0,"Middle_MLP":0.0,"Middle_Norm":0.0,"Middle_ResNet":0.0,"Middle_Timestep":0.0,"Output_Attention":1.0,"Output_MLP":1.0,"Output_Norm":1.0,"Output_ResNet":1.0,"Output_Timestep":1.0}
 
-2026-06-06 13:40:51 INFO     Loaded 1 LECO prompt       anima_train_leco.py:339
+2026-06-07 18:38:22 INFO     Loaded 1 LECO prompt       anima_train_leco.py:339
                              settings from
                              E:/Animerge/preset/leco_tr
                              ain/leco_test.toml
@@ -10,13 +10,13 @@ CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_
                              F:/Game_Files/ComfyUI_windows_p
                              ortable/ComfyUI/models/clip/qwe
                              n_3_06b_base.safetensors
-2026-06-06 13:41:00 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+2026-06-07 18:38:31 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
                              keys matched successfully>
                     INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
                              Parameters: 596,049,920
                     INFO     Loading Anima VAE...       anima_train_leco.py:349
                     INFO     Initializing VAE qwen_image_autoencoder_kl.py:1609
-2026-06-06 13:41:01 INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
+2026-06-07 18:38:32 INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
                              F:/Game_Files/Co
                              mfyUI_windows_po
                              rtable/ComfyUI/m
@@ -36,7 +36,7 @@ CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_
                              をVRAMに保持します。
                     INFO     Loading Anima DiT model    anima_train_leco.py:372
                              (attn_mode=torch)...
-2026-06-06 13:41:02 INFO     Loading DiT model from          anima_utils.py:166
+2026-06-07 18:38:33 INFO     Loading DiT model from          anima_utils.py:166
                              F:/Game_Files/ComfyUI_windows_p
                              ortable/ComfyUI/models/diffusio
                              n_models/anima-base-v1.0.safete
@@ -53,20 +53,20 @@ CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_
 accelerator device: cuda
 
 Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
-Loading anima-base-v1.0.safetensors:   8%|▊         | 53/685 [00:00<00:01, 479.67it/s]
-Loading anima-base-v1.0.safetensors:  15%|█▍        | 101/685 [00:00<00:01, 416.61it/s]
-Loading anima-base-v1.0.safetensors:  22%|██▏       | 153/685 [00:00<00:01, 426.48it/s]
-Loading anima-base-v1.0.safetensors:  29%|██▊       | 196/685 [00:00<00:01, 423.44it/s]
-Loading anima-base-v1.0.safetensors:  35%|███▍      | 239/685 [00:00<00:01, 413.82it/s]
-Loading anima-base-v1.0.safetensors:  41%|████▏     | 283/685 [00:00<00:00, 419.96it/s]
-Loading anima-base-v1.0.safetensors:  49%|████▊     | 333/685 [00:00<00:00, 436.14it/s]
-Loading anima-base-v1.0.safetensors:  55%|█████▌    | 377/685 [00:00<00:00, 424.00it/s]
-Loading anima-base-v1.0.safetensors:  63%|██████▎   | 431/685 [00:00<00:00, 444.50it/s]
-Loading anima-base-v1.0.safetensors:  69%|██████▉   | 476/685 [00:01<00:00, 432.37it/s]
-Loading anima-base-v1.0.safetensors:  76%|███████▋  | 524/685 [00:01<00:00, 431.99it/s]
-Loading anima-base-v1.0.safetensors:  86%|████████▌ | 588/685 [00:01<00:00, 475.86it/s]
+Loading anima-base-v1.0.safetensors:   7%|▋         | 51/685 [00:00<00:01, 506.59it/s]
+Loading anima-base-v1.0.safetensors:  15%|█▍        | 102/685 [00:00<00:01, 439.75it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 151/685 [00:00<00:01, 458.06it/s]
+Loading anima-base-v1.0.safetensors:  29%|██▉       | 198/685 [00:00<00:01, 430.01it/s]
+Loading anima-base-v1.0.safetensors:  36%|███▌      | 244/685 [00:00<00:01, 438.64it/s]
+Loading anima-base-v1.0.safetensors:  42%|████▏     | 291/685 [00:00<00:00, 448.04it/s]
+Loading anima-base-v1.0.safetensors:  49%|████▉     | 337/685 [00:00<00:00, 422.88it/s]
+Loading anima-base-v1.0.safetensors:  56%|█████▌    | 384/685 [00:00<00:00, 436.46it/s]
+Loading anima-base-v1.0.safetensors:  63%|██████▎   | 432/685 [00:00<00:00, 448.47it/s]
+Loading anima-base-v1.0.safetensors:  70%|██████▉   | 478/685 [00:01<00:00, 430.56it/s]
+Loading anima-base-v1.0.safetensors:  76%|███████▋  | 524/685 [00:01<00:00, 438.69it/s]
+Loading anima-base-v1.0.safetensors:  85%|████████▍ | 579/685 [00:01<00:00, 469.93it/s]
 
-2026-06-06 13:41:04 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+2026-06-07 18:38:34 INFO     [key normalization] 685 key(s)   anima_utils.py:81
                              renamed. Examples:
                              [('net.blocks.0.adaln_modulation
                              _cross_attn.1.weight',
@@ -86,7 +86,7 @@ Loading anima-base-v1.0.safetensors:  86%|████████▌ | 588/685 
                              n_models/anima-base-v1.0.safete
                              nsors, unexpected missing keys:
                              0, unexpected keys: 0
-2026-06-06 13:41:07 INFO     anima_matrix_scales detected: using    lora.py:468
+2026-06-07 18:38:37 INFO     anima_matrix_scales detected: using    lora.py:468
                              per-module LR via
                              get_lr_weight_for_lora
                     INFO     create LoRA network. base dim (rank): lora.py:1039
@@ -140,10 +140,10 @@ Loading anima-base-v1.0.safetensors:  86%|████████▌ | 588/685 
                     INFO     use AdamW optimizer | {}        train_util.py:5230
 
 steps:   0%|          | 0/500 [00:00<?, ?it/s]
-steps:   0%|          | 0/500 [00:03<?, ?it/s, loss=0.0008]
-steps:   0%|          | 1/500 [00:03<26:02,  3.13s/it, loss=0.0008]
-steps:   0%|          | 1/500 [00:11<26:02,  3.13s/it, loss=0.0027]
-steps:   0%|          | 2/500 [00:11<51:59,  6.26s/it, loss=0.0027]2026-06-06 13:41:19 INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
+steps:   0%|          | 0/500 [00:03<?, ?it/s, loss=0.0044]
+steps:   0%|          | 1/500 [00:03<26:26,  3.18s/it, loss=0.0044]
+steps:   0%|          | 1/500 [00:11<26:26,  3.18s/it, loss=0.0031]
+steps:   0%|          | 2/500 [00:11<52:20,  6.31s/it, loss=0.0031]2026-06-07 18:38:49 INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
                              solo, full body',
                              neg='worst quality, low
                              quality, score_1, score_2,
@@ -155,13 +155,14 @@ steps:   0%|          | 2/500 [00:11<51:59,  6.26s/it, loss=0.0027]2026-06-06 13
                              body' qwen3_nonzero=7/512
                              qwen3_norm=267.5838
                              qwen3_mean=0.025024
-                             t5_nonzero=9 t5_ids=[3, 2,
-                             3, 2, 3, 2, 3, 2, 1]
+                             t5_nonzero=8 t5_ids=[209,
+                             18722, 6, 6729, 6, 423,
+                             643, 1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
-                             t5_nonzero=9/512,
-                             crossattn_emb norm=13.5507
-                             valid_rows_norm=13.5507
-                             mean_abs=0.001839
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=16.8282
+                             valid_rows_norm=16.8282
+                             mean_abs=0.002213
                              shape=(1, 512, 1024)
                     INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
                              prompt='worst quality, low
@@ -169,16 +170,17 @@ steps:   0%|          | 2/500 [00:11<51:59,  6.26s/it, loss=0.0027]2026-06-06 13
                              qwen3_nonzero=18/512
                              qwen3_norm=426.5021
                              qwen3_mean=0.062988
-                             t5_nonzero=15 t5_ids=[3, 2,
-                             3, 2, 3, 2, 3, 2, 3, 2, 3,
-                             2, 3, 2, 1]
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
-                             t5_nonzero=15/512,
-                             crossattn_emb norm=13.7951
-                             valid_rows_norm=13.7951
-                             mean_abs=0.002289
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4444
+                             valid_rows_norm=25.4444
+                             mean_abs=0.004578
                              shape=(1, 512, 1024)
-                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+2026-06-07 18:38:50 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
                              latents norm=257.5315
                              shape=(1, 16, 1, 64, 64)
                              sigmas[0]=1.0000
@@ -188,70 +190,70 @@ steps:   0%|          | 2/500 [00:11<51:59,  6.26s/it, loss=0.0027]2026-06-06 13
                              flow_shift=3.0
 
 
-Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-06 13:41:20 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
-                             cond_norm=291.6841
-                             uncond_norm=291.1195
-                             cond-uncond_norm=2.5588
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=296.9570
+                             uncond_norm=281.6160
+                             cond-uncond_norm=42.9669
                              (CFG前)
                     INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
-                             noise_pred norm=293.8241
+                             noise_pred norm=385.1181
                              latents norm=257.5315
 
 
-Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.42it/s]
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.21it/s]
 
-Sampling:  10%|█         | 2/20 [00:00<00:07,  2.54it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.39it/s]
 
-Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.32it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.40it/s]
 
-Sampling:  20%|██        | 4/20 [00:01<00:07,  2.23it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.38it/s]
 
-Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.33it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.34it/s]
 
-Sampling:  30%|███       | 6/20 [00:02<00:05,  2.40it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.34it/s]
 
-Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.41it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.35it/s]
 
-Sampling:  40%|████      | 8/20 [00:03<00:04,  2.44it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.29it/s]
 
-Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.45it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.38it/s]
 
-Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.43it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.36it/s]
 
-Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.40it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.38it/s]
 
-Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.36it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.40it/s]
 
-Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.32it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.40it/s]
 
-Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.36it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.43it/s]
 
-Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.35it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.39it/s]
 
-Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.38it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.43it/s]
 
-Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.42it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.37it/s]
 
-Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.45it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.28it/s]
 
-Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.45it/s]2026-06-06 13:41:28 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
-                             cond_norm=282.2158
-                             uncond_norm=282.2649
-                             cond-uncond_norm=2.5421
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.33it/s]2026-06-07 18:38:58 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=327.2627
+                             uncond_norm=327.1486
+                             cond-uncond_norm=4.3910
                              (CFG前)
                     INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
-                             noise_pred norm=282.2214
-                             latents norm=167.8169
+                             noise_pred norm=328.1253
+                             latents norm=194.7057
 
 
-Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.44it/s]
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.30it/s]
 
                                                                              INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
-                             latents norm=189.2346
-                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             latents norm=221.2496
+2026-06-07 18:38:59 INFO     [SampleGen] saved:         anima_sample_gen.py:555
                              E:\Animerge\log\sample_gen
                              \leco_output_000002_00_202
-                             60606134128_42.png
+                             60607183859_42.png
                     INFO     [SampleGen] prompt='1boy,  anima_sample_gen.py:275
                              solo, full body',
                              neg='worst quality, low
@@ -259,18 +261,19 @@ Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.44it/s]
                              score_3', 512x512,
                              steps=20, scale=4.5,
                              flow_shift=3.0, seed=43
-2026-06-06 13:41:29 INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
                              prompt='1boy, solo, full
                              body' qwen3_nonzero=7/512
                              qwen3_norm=250.1436
                              qwen3_mean=0.023926
-                             t5_nonzero=9 t5_ids=[3, 2,
-                             3, 2, 3, 2, 3, 2, 1]
+                             t5_nonzero=8 t5_ids=[209,
+                             7531, 6, 6729, 6, 423, 643,
+                             1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
-                             t5_nonzero=9/512,
-                             crossattn_emb norm=13.5114
-                             valid_rows_norm=13.5114
-                             mean_abs=0.001816
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=17.0229
+                             valid_rows_norm=17.0229
+                             mean_abs=0.002243
                              shape=(1, 512, 1024)
                     INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
                              prompt='worst quality, low
@@ -278,16 +281,17 @@ Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.44it/s]
                              qwen3_nonzero=18/512
                              qwen3_norm=426.5021
                              qwen3_mean=0.062988
-                             t5_nonzero=15 t5_ids=[3, 2,
-                             3, 2, 3, 2, 3, 2, 3, 2, 3,
-                             2, 3, 2, 1]
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
-                             t5_nonzero=15/512,
-                             crossattn_emb norm=13.7951
-                             valid_rows_norm=13.7951
-                             mean_abs=0.002289
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4444
+                             valid_rows_norm=25.4444
+                             mean_abs=0.004578
                              shape=(1, 512, 1024)
-                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+2026-06-07 18:39:00 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
                              latents norm=255.1707
                              shape=(1, 16, 1, 64, 64)
                              sigmas[0]=1.0000
@@ -297,154 +301,79 @@ Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.44it/s]
                              flow_shift=3.0
 
 
-Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-06 13:41:30 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
-                             cond_norm=288.8474
-                             uncond_norm=288.5585
-                             cond-uncond_norm=2.3095
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=289.8767
+                             uncond_norm=281.2018
+                             cond-uncond_norm=32.4412
                              (CFG前)
                     INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
-                             noise_pred norm=289.9992
+                             noise_pred norm=343.4197
                              latents norm=255.1707
 
 
-Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.35it/s]
+Sampling:   5%|▌         | 1/20 [00:00<00:09,  1.99it/s]
 
-Sampling:  10%|█         | 2/20 [00:00<00:07,  2.30it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.27it/s]
 
-Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.39it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.25it/s]
 
-Sampling:  20%|██        | 4/20 [00:01<00:06,  2.48it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.34it/s]
 
-Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.46it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.41it/s]
 
-Sampling:  30%|███       | 6/20 [00:02<00:05,  2.46it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.33it/s]
 
-Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.47it/s]
-
-Sampling:  40%|████      | 8/20 [00:03<00:04,  2.43it/s]
-
-Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.46it/s]
-
-Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.45it/s]
-
-Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.33it/s]
-
-Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.36it/s]
-
-Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.38it/s]
-
-Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.42it/s]
-
-Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.43it/s]
-
-Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.46it/s]
-
-Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.42it/s]
-
-Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.42it/s]
-
-Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.43it/s]2026-06-06 13:41:37 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
-                             cond_norm=275.0282
-                             uncond_norm=275.0294
-                             cond-uncond_norm=3.1821
-                             (CFG前)
-                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
-                             noise_pred norm=275.3140
-                             latents norm=163.2934
-
-
-Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.32it/s]
-
-                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
-                             latents norm=183.7226
-2026-06-06 13:41:38 INFO     [SampleGen] saved:         anima_sample_gen.py:555
-                             E:\Animerge\log\sample_gen
-                             \leco_output_000002_01_202
-                             60606134138_43.png
-
-steps:   0%|          | 2/500 [00:39<51:59,  6.26s/it, loss=0.0035]
-steps:   1%|          | 3/500 [00:39<2:14:26, 16.23s/it, loss=0.0035]
-steps:   1%|          | 3/500 [00:43<2:14:26, 16.23s/it, loss=0.0007]
-steps:   1%|          | 4/500 [00:43<1:34:15, 11.40s/it, loss=0.0007]2026-06-06 13:41:51 INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
-                             solo, full body',
-                             neg='worst quality, low
-                             quality, score_1, score_2,
-                             score_3', 512x512,
-                             steps=20, scale=4.5,
-                             flow_shift=3.0, seed=42
-                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
-                             prompt='1girl, solo, full
-                             body' qwen3_nonzero=7/512
-                             qwen3_norm=267.5838
-                             qwen3_mean=0.025024
-                             t5_nonzero=9 t5_ids=[3, 2,
-                             3, 2, 3, 2, 3, 2, 1]
-                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
-                             t5_nonzero=9/512,
-                             crossattn_emb norm=13.5099
-                             valid_rows_norm=13.5099
-                             mean_abs=0.001831
-                             shape=(1, 512, 1024)
-                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
-                             prompt='worst quality, low
-                             quality, score_1, sco'
-                             qwen3_nonzero=18/512
-                             qwen3_norm=426.5021
-                             qwen3_mean=0.062988
-                             t5_nonzero=15 t5_ids=[3, 2,
-                             3, 2, 3, 2, 3, 2, 3, 2, 3,
-                             2, 3, 2, 1]
-                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
-                             t5_nonzero=15/512,
-                             crossattn_emb norm=13.7816
-                             valid_rows_norm=13.7816
-                             mean_abs=0.002304
-                             shape=(1, 512, 1024)
-                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
-                             latents norm=257.5315
-                             shape=(1, 16, 1, 64, 64)
-                             sigmas[0]=1.0000
-                             sigmas[-1]=0.0000
-                             do_cfg=True
-                             guidance_scale=4.5
-                             flow_shift=3.0
-
-
-Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-06 13:41:52 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
-                             cond_norm=291.6198
-                             uncond_norm=291.0159
-                             cond-uncond_norm=2.6851
-                             (CFG前)
-                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
-                             noise_pred norm=293.9159
-                             latents norm=257.5315
-
-
-Sampling:   5%|▌         | 1/20 [00:00<00:09,  2.02it/s]
-
-Sampling:  10%|█         | 2/20 [00:00<00:08,  2.24it/s]
-
-Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.28it/s]
-
-Sampling:  20%|██        | 4/20 [00:01<00:06,  2.37it/s]
-
-Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.36it/s]
-
-Sampling:  30%|███       | 6/20 [00:02<00:06,  2.29it/s]
-
-Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.31it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.39it/s]
 
 Sampling:  40%|████      | 8/20 [00:03<00:05,  2.29it/s]
 
-Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.28it/s]forrtl: error (200): program aborting due to control-BREAK event
-Image              PC                Routine            Line        Source
-KERNELBASE.dll     00007FFCDD013ECD  Unknown               Unknown  Unknown
-KERNEL32.DLL       00007FFCDD8AE957  Unknown               Unknown  Unknown
-ntdll.dll          00007FFCDFA27C1C  Unknown               Unknown  Unknown
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.35it/s]
+
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.38it/s]
+
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.39it/s]
+
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.44it/s]
+
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.33it/s]
+
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.38it/s]
+
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.26it/s]
+
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.15it/s]
+
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.20it/s]
+
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.22it/s]
+
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.22it/s]2026-06-07 18:39:08 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=320.8266
+                             uncond_norm=320.7703
+                             cond-uncond_norm=4.4078
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=321.4978
+                             latents norm=187.7611
 
 
-Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.29it/s]forrtl: error (200): program aborting due to control-BREAK event
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.22it/s]
+
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=213.1593
+2026-06-07 18:39:09 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \leco_output_000002_01_202
+                             60607183909_43.png
+
+steps:   0%|          | 2/500 [00:40<52:20,  6.31s/it, loss=0.0047]
+steps:   1%|          | 3/500 [00:40<2:17:54, 16.65s/it, loss=0.0047]forrtl: error (200): program aborting due to control-BREAK event
 Image              PC                Routine            Line        Source
-KERNELBASE.dll     00007FFCDD013ECD  Unknown               Unknown  Unknown
-KERNEL32.DLL       00007FFCDD8AE957  Unknown               Unknown  Unknown
-ntdll.dll          00007FFCDFA27C1C  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFADCC13ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFADE10E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFADF587C1C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFADCC13ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFADE10E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFADF587C1C  Unknown               Unknown  Unknown

@@ -57,12 +57,12 @@
     "Output_Timestep": 1.0
   },
   "sample": {
-    "every_n_steps": "100",
+    "every_n_steps": "2",
     "keep_vae": true,
     "width": 512,
     "height": 512,
     "steps": 20,
-    "scale": 7.5,
+    "scale": 4.5,
     "flow_shift": 3.0,
     "a_enabled": true,
     "a_prompt": "1girl, solo, full body",
@@ -71,5 +71,5 @@
     "b_prompt": "1boy, solo, full body",
     "b_negative_prompt": "worst quality, low quality, score_1, score_2, score_3"
   },
-  "prompts_toml_content": "# LECO Prompt Settings\n# action: \"erase\" で target 概念を消去 / \"enhance\" で強調\n# multiplier: 学習時の LoRA 強度（デフォルト 1.0）\n# weight: このエントリの loss 重み（デフォルト 1.0）\n# guidance_scale: ターゲット構築時のスケール（大きいほど効果が強い）\n# resolution: 整数 512 または [height, width] 形式\n\n[[prompts]]\ntarget        = \"@hisahiko\"\npositive      = \"@hisahiko\"\nunconditional = \"\"\nneutral       = \"\"\naction        = \"erase\"\nguidance_scale = 1.0\nresolution    = 512\nbatch_size    = 1\nmultiplier    = 1.0\nweight        = 1.0\n\n\n\n\n"
+  "prompts_toml_content": "# LECO Prompt Settings\n# action: \"erase\" で target 概念を消去 / \"enhance\" で強調\n# multiplier: 学習時の LoRA 強度（デフォルト 1.0）\n# weight: このエントリの loss 重み（デフォルト 1.0）\n# guidance_scale: ターゲット構築時のスケール（大きいほど効果が強い）\n# resolution: 整数 512 または [height, width] 形式\n\n[[prompts]]\ntarget        = \"@hisahiko\"\npositive      = \"@hisahiko\"\nunconditional = \"\"\nneutral       = \"\"\naction        = \"erase\"\nguidance_scale = 1.0\nresolution    = 512\nbatch_size    = 1\nmultiplier    = 1.0\nweight        = 1.0\n\n\n\n\n\n"
 }

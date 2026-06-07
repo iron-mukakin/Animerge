@@ -103,9 +103,9 @@ def build_leco_train_tab(
     nb.add(tab_train,          text="  学習設定  ")
     nb.add(tab_adv,            text="  詳細  ")
     nb.add(tab_layer,          text="  階層学習  ")
-    nb.add(tab_sample,         text="  サンプル生成  ")
     nb.add(tab_monitor,        text="  モニターグラフ  ")
     nb.add(tab_monitor_layer,  text="  モニター階層  ")
+    nb.add(tab_sample,         text="  サンプル生成  ")
     nb.add(tab_preset,         text="  プリセット  ")
 
     _build_model_tab(tab_model,       state)
@@ -114,9 +114,9 @@ def build_leco_train_tab(
     _build_train_tab(tab_train,       state)
     _build_adv_tab(tab_adv,           state)
     _build_layer_train_tab(tab_layer, state)
-    _build_leco_sample_tab(tab_sample, state)
     _build_monitor_tab(tab_monitor,   state)
     _build_monitor_layer_tab(tab_monitor_layer, state)
+    _build_leco_sample_tab(tab_sample, state)
     _build_leco_preset_tab(tab_preset, state)
 
     for tab in (tab_model, tab_prompts, tab_network, tab_train):
@@ -1362,19 +1362,28 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         # サンプル生成設定
         sample = data.get("sample", {})
         if sample:
-            _s(s.sample_every_n_steps,      "every_n_steps",      "100")
-            _s(s.sample_keep_vae,           "keep_vae",           False)
-            _s(s.sample_width,              "width",              512)
-            _s(s.sample_height,             "height",             512)
-            _s(s.sample_steps,              "steps",              20)
-            _s(s.sample_scale,              "scale",              7.5)
-            _s(s.sample_flow_shift,         "flow_shift",         3.0)
-            _s(s.sample_enabled,            "a_enabled",          False)
-            _s(s.sample_prompt,             "a_prompt",           "")
-            _s(s.sample_negative_prompt,    "a_negative_prompt",  "")
-            _s(s.sample_b_enabled,          "b_enabled",          False)
-            _s(s.sample_b_prompt,           "b_prompt",           "")
-            _s(s.sample_b_negative_prompt,  "b_negative_prompt",  "")
+            def _ss(var, key, default):
+                """sample サブ dict から値を取得して tk.Var にセットする。"""
+                try:
+                    var.set(sample.get(key, default))
+                except (tk.TclError, ValueError):
+                    try:
+                        var.set(default)
+                    except Exception:
+                        pass
+            _ss(s.sample_every_n_steps,       "every_n_steps",      "100")
+            _ss(s.sample_keep_vae,            "keep_vae",           False)
+            _ss(s.sample_width,               "width",              512)
+            _ss(s.sample_height,              "height",             512)
+            _ss(s.sample_steps,               "steps",              20)
+            _ss(s.sample_scale,               "scale",              7.5)
+            _ss(s.sample_flow_shift,          "flow_shift",         3.0)
+            _ss(s.sample_enabled,             "a_enabled",          False)
+            _ss(s.sample_prompt,              "a_prompt",           "")
+            _ss(s.sample_negative_prompt,     "a_negative_prompt",  "")
+            _ss(s.sample_b_enabled,           "b_enabled",          False)
+            _ss(s.sample_b_prompt,            "b_prompt",           "")
+            _ss(s.sample_b_negative_prompt,   "b_negative_prompt",  "")
 
         # TOMLエディタに内容を復元（同梱されている場合）
         toml_content = data.get("prompts_toml_content")
@@ -1615,7 +1624,7 @@ def _build_leco_sample_tab_inline(
                         variable=enabled_var).grid(
             row=0, column=0, columnspan=4, sticky=tk.W, padx=2, pady=2)
         _sdir = s.paths.root / "log" / "sample_gen"
-        _glob_pat = f"*_{label.lower()}_*.png"
+        _glob_pat = "*_00_*.png" if label == "A" else "*_01_*.png"
         ttk.Label(top, text="出力先:", foreground="#475569").grid(
             row=1, column=0, sticky=tk.W, padx=(2, 0), pady=2)
         ttk.Label(top, text=str(_sdir), foreground="#1D4ED8").grid(
@@ -1669,8 +1678,8 @@ def _build_leco_sample_tab_inline(
                     photo_refs[idx] = None
                     continue
                 p = files[idx]
-                m = _re_search(r"step([0-9]+)", p.stem)
-                el.configure(text=f"step {m.group(1)}" if m else p.name)
+                m = _re_search(r"_([0-9]{6})_", p.stem)
+                el.configure(text=f"step {int(m.group(1))}" if m else p.name)
                 if _Im is None:
                     il.configure(image="", text=p.name)
                     photo_refs[idx] = None

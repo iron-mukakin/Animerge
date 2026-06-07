@@ -1,6 +1,6 @@
 CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_train_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --train_data_dir E:/lora_training/Data/input/dq3_yusha --output_dir E:\Animerge\lora --output_name lora_output --resolution 512,512 --train_batch_size 1 --caption_extension .txt --keep_tokens 1 --network_module networks.lora --network_dim 16 --network_alpha 8.0 --learning_rate 1e-4 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --optimizer_type AdamW --max_train_epochs 10 --save_every_n_epochs 1 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --timestep_sampling sigmoid --discrete_flow_shift 1.0 --sigmoid_scale 1.0 --weighting_scheme none --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --max_data_loader_n_workers 0 --seed 42 --cache_latents --enable_bucket --bucket_no_upscale --network_train_unet_only --gradient_checkpointing --min_bucket_reso 256 --max_bucket_reso 1024 --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":1.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":0.0,"Output_MLP":0.0,"Output_Norm":1.0,"Output_ResNet":0.0,"Output_Timestep":1.0} --validation_split 0.1 --early_stopping --early_stopping_mode epoch --early_stopping_patience 3 --early_stopping_threshold 0.01 --sample_every_n_epochs 1 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen
 
-2026-06-06 14:04:25 INFO     Using DreamBooth method.      train_network.py:646
+2026-06-07 00:03:33 INFO     Using DreamBooth method.      train_network.py:646
                     INFO     prepare images.                 train_util.py:2185
                     INFO     get image size from name of     train_util.py:2060
                              cache files
@@ -127,7 +127,7 @@ read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
                     INFO     loading image sizes.             train_util.py:999
 
   0%|          | 0/6 [00:00<?, ?it/s]
-100%|██████████| 6/6 [00:00<00:00, 380.55it/s]
+100%|██████████| 6/6 [00:00<00:00, 305.13it/s]
                     INFO     make buckets                    train_util.py:1022
                     WARNING  min_bucket_reso and             train_util.py:1039
                              max_bucket_reso are ignored if
@@ -182,13 +182,13 @@ read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
                              F:/Game_Files/ComfyUI_windows_p
                              ortable/ComfyUI/models/clip/qwe
                              n_3_06b_base.safetensors
-2026-06-06 14:04:34 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+2026-06-07 00:03:42 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
                              keys matched successfully>
                     INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
                              Parameters: 596,049,920
-                    INFO     Loading Anima VAE...     anima_train_network.py:92
+2026-06-07 00:03:43 INFO     Loading Anima VAE...     anima_train_network.py:92
                     INFO     Initializing VAE qwen_image_autoencoder_kl.py:1609
-2026-06-06 14:04:35 INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
+                    INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
                              F:/Game_Files/Co
                              mfyUI_windows_po
                              rtable/ComfyUI/m
@@ -211,25 +211,25 @@ read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
 accelerator device: cuda
 
   0%|          | 0/6 [00:00<?, ?it/s]
- 17%|█▋        | 1/6 [00:00<00:02,  1.89it/s]
- 33%|███▎      | 2/6 [00:00<00:01,  3.03it/s]
- 50%|█████     | 3/6 [00:00<00:00,  3.66it/s]
- 67%|██████▋   | 4/6 [00:01<00:00,  4.05it/s]
- 83%|████████▎ | 5/6 [00:01<00:00,  4.29it/s]
+ 17%|█▋        | 1/6 [00:00<00:02,  1.80it/s]
+ 33%|███▎      | 2/6 [00:00<00:01,  2.94it/s]
+ 50%|█████     | 3/6 [00:00<00:00,  3.58it/s]
+ 67%|██████▋   | 4/6 [00:01<00:00,  3.95it/s]
+ 83%|████████▎ | 5/6 [00:01<00:00,  4.27it/s]
 100%|██████████| 6/6 [00:01<00:00,  4.46it/s]
-100%|██████████| 6/6 [00:01<00:00,  3.88it/s]
-2026-06-06 14:04:37 INFO     [Dataset 0]                     train_util.py:2740
+100%|██████████| 6/6 [00:01<00:00,  3.82it/s]
+2026-06-07 00:03:45 INFO     [Dataset 0]                     train_util.py:2740
                     INFO     caching latents with caching    train_util.py:1128
                              strategy.
                     INFO     caching latents...              train_util.py:1178
 
   0%|          | 0/1 [00:00<?, ?it/s]
-100%|██████████| 1/1 [00:00<00:00,  4.52it/s]
-100%|██████████| 1/1 [00:00<00:00,  4.52it/s]
-2026-06-06 14:04:38 INFO     Loading Anima DiT model anima_train_network.py:113
+100%|██████████| 1/1 [00:00<00:00,  4.50it/s]
+100%|██████████| 1/1 [00:00<00:00,  4.50it/s]
+2026-06-07 00:03:46 INFO     Loading Anima DiT model anima_train_network.py:113
                              with attn_mode=torch,
                              split_attn: False...
-                    INFO     Loading DiT model from          anima_utils.py:166
+2026-06-07 00:03:47 INFO     Loading DiT model from          anima_utils.py:166
                              F:/Game_Files/ComfyUI_windows_p
                              ortable/ComfyUI/models/diffusio
                              n_models/anima-base-v1.0.safete
@@ -245,28 +245,28 @@ accelerator device: cuda
                              False
 
 Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
-Loading anima-base-v1.0.safetensors:   5%|▍         | 33/685 [00:00<00:02, 294.61it/s]
-Loading anima-base-v1.0.safetensors:   9%|▉         | 63/685 [00:00<00:02, 257.75it/s]
-Loading anima-base-v1.0.safetensors:  14%|█▎        | 93/685 [00:00<00:02, 257.41it/s]
-Loading anima-base-v1.0.safetensors:  17%|█▋        | 119/685 [00:00<00:02, 253.19it/s]
-Loading anima-base-v1.0.safetensors:  22%|██▏       | 151/685 [00:00<00:02, 264.19it/s]
-Loading anima-base-v1.0.safetensors:  26%|██▌       | 178/685 [00:00<00:02, 246.76it/s]
-Loading anima-base-v1.0.safetensors:  31%|███       | 212/685 [00:00<00:01, 265.03it/s]
-Loading anima-base-v1.0.safetensors:  35%|███▍      | 239/685 [00:00<00:01, 247.75it/s]
-Loading anima-base-v1.0.safetensors:  40%|███▉      | 272/685 [00:01<00:01, 261.94it/s]
-Loading anima-base-v1.0.safetensors:  44%|████▎     | 299/685 [00:01<00:01, 245.66it/s]
-Loading anima-base-v1.0.safetensors:  48%|████▊     | 331/685 [00:01<00:01, 263.78it/s]
-Loading anima-base-v1.0.safetensors:  52%|█████▏    | 358/685 [00:01<00:01, 252.50it/s]
-Loading anima-base-v1.0.safetensors:  57%|█████▋    | 391/685 [00:01<00:01, 265.89it/s]
-Loading anima-base-v1.0.safetensors:  61%|██████    | 418/685 [00:01<00:01, 258.91it/s]
-Loading anima-base-v1.0.safetensors:  66%|██████▌   | 449/685 [00:01<00:00, 264.58it/s]
-Loading anima-base-v1.0.safetensors:  69%|██████▉   | 476/685 [00:01<00:00, 247.43it/s]
-Loading anima-base-v1.0.safetensors:  74%|███████▍  | 508/685 [00:01<00:00, 266.19it/s]
-Loading anima-base-v1.0.safetensors:  78%|███████▊  | 535/685 [00:02<00:00, 249.28it/s]
-Loading anima-base-v1.0.safetensors:  82%|████████▏ | 561/685 [00:02<00:00, 252.05it/s]
-Loading anima-base-v1.0.safetensors:  96%|█████████▌| 658/685 [00:02<00:00, 451.12it/s]
+Loading anima-base-v1.0.safetensors:   5%|▍         | 33/685 [00:00<00:02, 314.66it/s]
+Loading anima-base-v1.0.safetensors:   9%|▉         | 65/685 [00:00<00:02, 278.92it/s]
+Loading anima-base-v1.0.safetensors:  14%|█▎        | 94/685 [00:00<00:02, 254.09it/s]
+Loading anima-base-v1.0.safetensors:  18%|█▊        | 120/685 [00:00<00:02, 255.88it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 151/685 [00:00<00:01, 272.20it/s]
+Loading anima-base-v1.0.safetensors:  26%|██▌       | 179/685 [00:00<00:02, 250.72it/s]
+Loading anima-base-v1.0.safetensors:  31%|███       | 213/685 [00:00<00:01, 268.73it/s]
+Loading anima-base-v1.0.safetensors:  35%|███▌      | 241/685 [00:00<00:01, 252.06it/s]
+Loading anima-base-v1.0.safetensors:  40%|███▉      | 271/685 [00:01<00:01, 263.09it/s]
+Loading anima-base-v1.0.safetensors:  44%|████▎     | 298/685 [00:01<00:01, 251.45it/s]
+Loading anima-base-v1.0.safetensors:  48%|████▊     | 328/685 [00:01<00:01, 264.27it/s]
+Loading anima-base-v1.0.safetensors:  52%|█████▏    | 355/685 [00:01<00:01, 251.26it/s]
+Loading anima-base-v1.0.safetensors:  56%|█████▋    | 386/685 [00:01<00:01, 259.28it/s]
+Loading anima-base-v1.0.safetensors:  60%|██████    | 414/685 [00:01<00:01, 257.43it/s]
+Loading anima-base-v1.0.safetensors:  65%|██████▍   | 442/685 [00:01<00:00, 255.37it/s]
+Loading anima-base-v1.0.safetensors:  69%|██████▉   | 473/685 [00:01<00:00, 262.82it/s]
+Loading anima-base-v1.0.safetensors:  73%|███████▎  | 500/685 [00:01<00:00, 256.87it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 533/685 [00:02<00:00, 269.48it/s]
+Loading anima-base-v1.0.safetensors:  82%|████████▏ | 560/685 [00:02<00:00, 250.95it/s]
+Loading anima-base-v1.0.safetensors:  97%|█████████▋| 666/685 [00:02<00:00, 456.06it/s]
 
-2026-06-06 14:04:41 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+2026-06-07 00:03:49 INFO     [key normalization] 685 key(s)   anima_utils.py:81
                              renamed. Examples:
                              [('net.blocks.0.adaln_modulation
                              _cross_attn.1.weight',
@@ -318,7 +318,7 @@ Loading anima-base-v1.0.safetensors:  96%|█████████▌| 658/68
                     INFO     NO LR skipping!                       lora.py:1321
                     INFO     NO LR skipping!                       lora.py:1321
                     INFO     use AdamW optimizer | {}        train_util.py:5230
-2026-06-06 14:04:52 INFO     unet dtype: torch.bfloat16,  train_network.py:1476
+2026-06-07 00:04:00 INFO     unet dtype: torch.bfloat16,  train_network.py:1476
                              device: cuda:0
                     INFO     text_encoder [0] dtype:      train_network.py:1482
                              torch.bfloat16, device:
@@ -339,49 +339,49 @@ running training / 学習開始
 steps:   0%|          | 0/60 [00:00<?, ?it/s]                    INFO     epoch is incremented.            train_util.py:791
                              current_epoch: 0, epoch: 1
 
-steps:   2%|▏         | 1/60 [00:01<01:50,  1.88s/it]
-steps:   2%|▏         | 1/60 [00:01<01:50,  1.88s/it, avr_loss=0.0507]
-steps:   3%|▎         | 2/60 [00:03<01:32,  1.59s/it, avr_loss=0.0507]
-steps:   3%|▎         | 2/60 [00:03<01:32,  1.59s/it, avr_loss=0.0609]
-steps:   5%|▌         | 3/60 [00:04<01:23,  1.47s/it, avr_loss=0.0609]
-steps:   5%|▌         | 3/60 [00:04<01:23,  1.47s/it, avr_loss=0.0564]
-steps:   7%|▋         | 4/60 [00:05<01:20,  1.44s/it, avr_loss=0.0564]
-steps:   7%|▋         | 4/60 [00:05<01:20,  1.44s/it, avr_loss=0.053]
-steps:   8%|▊         | 5/60 [00:07<01:17,  1.41s/it, avr_loss=0.053]
+steps:   2%|▏         | 1/60 [00:01<01:42,  1.74s/it]
+steps:   2%|▏         | 1/60 [00:01<01:42,  1.74s/it, avr_loss=0.0507]
+steps:   3%|▎         | 2/60 [00:03<01:30,  1.55s/it, avr_loss=0.0507]
+steps:   3%|▎         | 2/60 [00:03<01:30,  1.55s/it, avr_loss=0.0609]
+steps:   5%|▌         | 3/60 [00:04<01:23,  1.46s/it, avr_loss=0.0609]
+steps:   5%|▌         | 3/60 [00:04<01:23,  1.46s/it, avr_loss=0.0564]
+steps:   7%|▋         | 4/60 [00:05<01:19,  1.43s/it, avr_loss=0.0564]
+steps:   7%|▋         | 4/60 [00:05<01:19,  1.43s/it, avr_loss=0.0529]
+steps:   8%|▊         | 5/60 [00:07<01:17,  1.41s/it, avr_loss=0.0529]
 steps:   8%|▊         | 5/60 [00:07<01:17,  1.41s/it, avr_loss=0.0524]
-steps:  10%|█         | 6/60 [00:08<01:14,  1.38s/it, avr_loss=0.0524]
-steps:  10%|█         | 6/60 [00:08<01:14,  1.38s/it, avr_loss=0.0469]
+steps:  10%|█         | 6/60 [00:08<01:15,  1.39s/it, avr_loss=0.0524]
+steps:  10%|█         | 6/60 [00:08<01:15,  1.39s/it, avr_loss=0.0469]
 epoch 1/10
 
-grad_norm=0.053137 lr=0.00009993
-grad_norm=0.076656 lr=0.00009973
-grad_norm=0.144883 lr=0.00009938
-grad_norm=0.120209 lr=0.00009891
-grad_norm=0.998968 lr=0.00009830
-grad_norm=0.118902 lr=0.00009755
+grad_norm=0.053200 lr=0.00009993
+grad_norm=0.098798 lr=0.00009973
+grad_norm=0.146208 lr=0.00009938
+grad_norm=0.113821 lr=0.00009891
+grad_norm=0.179264 lr=0.00009830
+grad_norm=0.120834 lr=0.00009755
 
 
 epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
 
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.33it/s]
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:01,  2.96it/s]
 
-epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.33it/s, val_epoch_avg_loss=0.037, timestep=200]
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:01,  2.96it/s, val_epoch_avg_loss=0.037, timestep=200]
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.31it/s, val_epoch_avg_loss=0.037, timestep=200]
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.03it/s, val_epoch_avg_loss=0.037, timestep=200]
 
-epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.31it/s, val_epoch_avg_loss=0.0402, timestep=400]
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.03it/s, val_epoch_avg_loss=0.0402, timestep=400]
 
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.33it/s, val_epoch_avg_loss=0.0402, timestep=400]
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.12it/s, val_epoch_avg_loss=0.0402, timestep=400]
 
-epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.33it/s, val_epoch_avg_loss=0.0449, timestep=600]
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.12it/s, val_epoch_avg_loss=0.0448, timestep=600]
 
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.33it/s, val_epoch_avg_loss=0.0449, timestep=600]
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.14it/s, val_epoch_avg_loss=0.0448, timestep=600]
 
-epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.33it/s, val_epoch_avg_loss=0.0437, timestep=800]2026-06-06 14:05:01 INFO     [EarlyStopping] 初回計測     train_network.py:1874
-                             val_loss=0.043719
-                             train_loss=0.046913
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.14it/s, val_epoch_avg_loss=0.0436, timestep=800]2026-06-07 00:04:09 INFO     [EarlyStopping] 初回計測     train_network.py:1874
+                             val_loss=0.043570
+                             train_loss=0.046872
                              監視を開始します。
-2026-06-06 14:05:02 INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
+2026-06-07 00:04:10 INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
                              solo, full body',
                              neg='worst quality, low
                              quality, score_1, score_2,
@@ -398,8 +398,8 @@ epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  
                              643, 1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
                              t5_nonzero=8/512,
-                             crossattn_emb norm=16.8479
-                             valid_rows_norm=16.8479
+                             crossattn_emb norm=16.8078
+                             valid_rows_norm=16.8078
                              mean_abs=0.002213
                              shape=(1, 512, 1024)
                     INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
@@ -414,9 +414,9 @@ epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  
                              2604, 834, 519, 1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
                              t5_nonzero=16/512,
-                             crossattn_emb norm=25.5352
-                             valid_rows_norm=25.5352
-                             mean_abs=0.004608
+                             crossattn_emb norm=25.4894
+                             valid_rows_norm=25.4894
+                             mean_abs=0.004578
                              shape=(1, 512, 1024)
                     INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
                              latents norm=257.5315
@@ -427,97 +427,97 @@ epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  
                              guidance_scale=4.5
                              flow_shift=3.0
 
-[EarlyStopping] 初回計測  val_loss=0.043719  train_loss=0.046913  監視を開始します。
+[EarlyStopping] 初回計測  val_loss=0.043570  train_loss=0.046872  監視を開始します。
 
 saving checkpoint: E:\Animerge\lora\lora_output-000001.safetensors
 
 
 
-Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-06 14:05:03 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
-                             cond_norm=298.0197
-                             uncond_norm=282.6047
-                             cond-uncond_norm=42.5081
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-07 00:04:11 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=298.2430
+                             uncond_norm=282.8236
+                             cond-uncond_norm=42.6947
                              (CFG前)
                     INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
-                             noise_pred norm=385.4879
+                             noise_pred norm=386.0278
                              latents norm=257.5315
 
 
 
-Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.25it/s]
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.37it/s]
 
 
-Sampling:  10%|█         | 2/20 [00:00<00:08,  2.20it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.41it/s]
 
 
-Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.33it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.39it/s]
 
 
-Sampling:  20%|██        | 4/20 [00:01<00:06,  2.33it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.44it/s]
 
 
-Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.39it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.38it/s]
 
 
-Sampling:  30%|███       | 6/20 [00:02<00:05,  2.44it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.43it/s]
 
 
-Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.47it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.40it/s]
 
 
-Sampling:  40%|████      | 8/20 [00:03<00:05,  2.36it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.39it/s]
 
 
-Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.39it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.43it/s]
 
 
-Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.41it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.47it/s]
 
 
-Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.44it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.46it/s]
 
 
-Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.47it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.48it/s]
 
 
-Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.48it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.47it/s]
 
 
-Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.48it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.43it/s]
 
 
-Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.47it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.46it/s]
 
 
-Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.45it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.47it/s]
 
 
-Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.39it/s]
+Sampling:  85%|████████▌ | 17/20 [00:06<00:01,  2.45it/s]
 
 
-Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.42it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.45it/s]
 
 
-Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.42it/s]2026-06-06 14:05:11 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
-                             cond_norm=326.9998
-                             uncond_norm=326.9576
-                             cond-uncond_norm=4.4668
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.47it/s]2026-06-07 00:04:19 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=326.5121
+                             uncond_norm=326.3936
+                             cond-uncond_norm=4.6452
                              (CFG前)
                     INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
-                             noise_pred norm=327.6274
-                             latents norm=194.1100
+                             noise_pred norm=327.4457
+                             latents norm=194.0122
 
 
 
-Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.13it/s]
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.46it/s]
 
 
                                                                              INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
-                             latents norm=220.5721
+                             latents norm=220.5107
                     INFO     [SampleGen] saved:         anima_sample_gen.py:555
                              E:\Animerge\log\sample_gen
                              \lora_output_e000001_00_20
-                             260606140511_42.png
+                             260607000419_42.png
                     INFO     [SampleGen] prompt='1boy,  anima_sample_gen.py:275
                              solo, full body',
                              neg='worst quality, low
@@ -535,8 +535,8 @@ Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.13it/s]
                              1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
                              t5_nonzero=8/512,
-                             crossattn_emb norm=17.0127
-                             valid_rows_norm=17.0127
+                             crossattn_emb norm=17.0382
+                             valid_rows_norm=17.0382
                              mean_abs=0.002243
                              shape=(1, 512, 1024)
                     INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
@@ -551,11 +551,11 @@ Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.13it/s]
                              2604, 834, 519, 1]
                     INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
                              t5_nonzero=16/512,
-                             crossattn_emb norm=25.5352
-                             valid_rows_norm=25.5352
-                             mean_abs=0.004608
+                             crossattn_emb norm=25.4894
+                             valid_rows_norm=25.4894
+                             mean_abs=0.004578
                              shape=(1, 512, 1024)
-2026-06-06 14:05:12 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
                              latents norm=255.1707
                              shape=(1, 16, 1, 64, 64)
                              sigmas[0]=1.0000
@@ -566,100 +566,126 @@ Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.13it/s]
 
 
 
-Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
-                             cond_norm=291.2023
-                             uncond_norm=281.9364
-                             cond-uncond_norm=32.9805
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-07 00:04:20 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=291.2613
+                             uncond_norm=281.8775
+                             cond-uncond_norm=33.3938
                              (CFG前)
                     INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
-                             noise_pred norm=347.1562
+                             noise_pred norm=348.1673
                              latents norm=255.1707
 
 
 
-Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.44it/s]
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.54it/s]
 
 
-Sampling:  10%|█         | 2/20 [00:00<00:07,  2.34it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.44it/s]
 
 
-Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.34it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.47it/s]
 
 
-Sampling:  20%|██        | 4/20 [00:01<00:06,  2.44it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.46it/s]
 
 
-Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.40it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.49it/s]
 
 
-Sampling:  30%|███       | 6/20 [00:02<00:05,  2.41it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.40it/s]
 
 
-Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.44it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.42it/s]
 
 
-Sampling:  40%|████      | 8/20 [00:03<00:05,  2.35it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.36it/s]
 
 
-Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.37it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.34it/s]
 
 
-Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.33it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.38it/s]
 
 
-Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.30it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.36it/s]
 
 
-Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.33it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.36it/s]
 
 
 Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.36it/s]
 
 
-Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.41it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.35it/s]
 
 
-Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.41it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.39it/s]
 
 
-Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.26it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.42it/s]
 
 
-Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.21it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.43it/s]
 
 
-Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.29it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.35it/s]
 
 
-Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.26it/s]2026-06-06 14:05:20 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
-                             cond_norm=321.2546
-                             uncond_norm=321.1860
-                             cond-uncond_norm=4.4813
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.38it/s]2026-06-07 00:04:28 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=321.0336
+                             uncond_norm=320.9388
+                             cond-uncond_norm=4.5154
                              (CFG前)
                     INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
-                             noise_pred norm=321.9863
-                             latents norm=188.1121
+                             noise_pred norm=321.8644
+                             latents norm=188.4206
 
 
 
-Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.33it/s]
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.39it/s]
 
 
                                                                              INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
-                             latents norm=213.6542
-2026-06-06 14:05:21 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             latents norm=214.0126
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
                              E:\Animerge\log\sample_gen
                              \lora_output_e000001_01_20
-                             260606140521_43.png
+                             260607000428_43.png
                     INFO     epoch is incremented.            train_util.py:791
                              current_epoch: 1, epoch: 2
 
-steps:  12%|█▏        | 7/60 [00:09<01:12,  1.37s/it, avr_loss=0.0469]
-steps:  12%|█▏        | 7/60 [00:09<01:12,  1.37s/it, avr_loss=0.0461]
-steps:  13%|█▎        | 8/60 [00:10<01:10,  1.36s/it, avr_loss=0.0461]
-steps:  13%|█▎        | 8/60 [00:10<01:10,  1.36s/it, avr_loss=0.0375]
-steps:  15%|█▌        | 9/60 [00:12<01:09,  1.37s/it, avr_loss=0.0375]
-steps:  15%|█▌        | 9/60 [00:12<01:09,  1.37s/it, avr_loss=0.0356]forrtl: error (200): program aborting due to control-BREAK event
+steps:  12%|█▏        | 7/60 [00:09<01:13,  1.38s/it, avr_loss=0.0469]
+steps:  12%|█▏        | 7/60 [00:09<01:13,  1.38s/it, avr_loss=0.046]
+steps:  13%|█▎        | 8/60 [00:10<01:11,  1.37s/it, avr_loss=0.046]
+steps:  13%|█▎        | 8/60 [00:10<01:11,  1.37s/it, avr_loss=0.0375]
+steps:  15%|█▌        | 9/60 [00:12<01:09,  1.36s/it, avr_loss=0.0375]
+steps:  15%|█▌        | 9/60 [00:12<01:09,  1.36s/it, avr_loss=0.0356]
+steps:  17%|█▋        | 10/60 [00:13<01:07,  1.35s/it, avr_loss=0.0356]
+steps:  17%|█▋        | 10/60 [00:13<01:07,  1.35s/it, avr_loss=0.0366]
+steps:  18%|█▊        | 11/60 [00:14<01:05,  1.35s/it, avr_loss=0.0366]
+steps:  18%|█▊        | 11/60 [00:14<01:05,  1.35s/it, avr_loss=0.0369]
+steps:  20%|██        | 12/60 [00:16<01:04,  1.34s/it, avr_loss=0.0369]
+steps:  20%|██        | 12/60 [00:16<01:04,  1.34s/it, avr_loss=0.047]
+epoch 2/10
+
+grad_norm=0.158529 lr=0.00009668
+grad_norm=0.139022 lr=0.00009568
+grad_norm=0.155781 lr=0.00009455
+grad_norm=0.463407 lr=0.00009330
+grad_norm=0.212295 lr=0.00009193
+grad_norm=0.201593 lr=0.00009045
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
+epoch validation steps: 100%|██████████| 4/4 [00:27<00:00,  6.98s/it, val_epoch_avg_loss=0.0436, timestep=800]
+
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:01,  2.84it/s]
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:01,  2.82it/s, val_epoch_avg_loss=0.0361, timestep=200]forrtl: error (200): program aborting due to control-BREAK event
 Image              PC                Routine            Line        Source
 KERNELBASE.dll     00007FFCDD013ECD  Unknown               Unknown  Unknown
 KERNEL32.DLL       00007FFCDD8AE957  Unknown               Unknown  Unknown
@@ -669,3 +695,4 @@ Image              PC                Routine            Line        Source
 KERNELBASE.dll     00007FFCDD013ECD  Unknown               Unknown  Unknown
 KERNEL32.DLL       00007FFCDD8AE957  Unknown               Unknown  Unknown
 ntdll.dll          00007FFCDFA27C1C  Unknown               Unknown  Unknown
+[LoRA Train] 完了 (return code: 1)
