@@ -219,6 +219,7 @@ class _LecoTrainState:
         self.status_var       = tk.StringVar(value="待機中")
         self._log_widgets: list[tk.Text] = []
         self._log_drain_started = False
+        self._log_primary_set = False  # 最初の log_text のみを drain 対象にする
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -602,13 +603,16 @@ def _build_run_panel(parent: ttk.Frame, s: _LecoTrainState) -> None:
     log_text.configure(yscrollcommand=log_scroll.set)
     log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
     log_text.pack(fill=tk.BOTH, expand=True)
-    s._log_widgets.append(log_text)
+    if not s._log_primary_set:
+        s._log_primary_set = True
+        s._log_widgets.append(log_text)
 
     def _drain():
         while True:
             try:
                 msg = s._log_queue.get_nowait()
-                for w in s._log_widgets:
+                if s._log_widgets:
+                    w = s._log_widgets[0]
                     w.insert(tk.END, msg + "\n")
                     w.see(tk.END)
             except queue.Empty:
@@ -631,11 +635,14 @@ def _build_command(s: _LecoTrainState) -> list[str]:
     wrapper = sd_scripts_root / "_gui_leco_wrapper.py"
     wrapper.write_text(
         "import sys, os\n"
-        f"sys.path.insert(0, '{sd_scripts_root.as_posix()}')\n"
-        f"os.chdir('{sd_scripts_root.as_posix()}')\n"
-        f"with open('{train_script.as_posix()}', encoding='utf-8') as _f:\n"
-        "    _code = compile(_f.read(), _f.name, 'exec')\n"
-        f"exec(_code, {{'__name__': '__main__', '__file__': '{train_script.as_posix()}'}})\n",
+        "from pathlib import Path\n"
+        "_root = Path(__file__).resolve().parent\n"
+        "sys.path.insert(0, str(_root))\n"
+        "os.chdir(str(_root))\n"
+        "_train = _root / 'anima_train_leco.py'\n"
+        "with open(_train, encoding='utf-8') as _f:\n"
+        "    _code = compile(_f.read(), str(_train), 'exec')\n"
+        "exec(_code, {'__name__': '__main__', '__file__': str(_train)})\n",
         encoding="utf-8",
     )
 
@@ -807,6 +814,7 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
         try:
             env = os.environ.copy()
             env["PYTHONUTF8"] = "1"
+            env["PYTHONUNBUFFERED"] = "1"
             existing = env.get("PYTHONPATH", "")
             env["PYTHONPATH"] = str(sd_scripts_root) + (os.pathsep + existing if existing else "")
             CREATE_NEW_PROCESS_GROUP = 0x00000200
@@ -816,6 +824,7 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                bufsize=1,
                 encoding="utf-8",
                 errors="replace",
                 env=env,
@@ -824,8 +833,18 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
             s._proc = proc
             with open(log_path, "a", encoding="utf-8") as lf:
                 lf.write(f"CMD: {' '.join(cmd)}\n\n")
-                for line in proc.stdout:
-                    line = _re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', line.rstrip())
+                for raw_line in proc.stdout:
+                    # ANSI エスケープ除去
+                    raw_line = _re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', raw_line)
+                    # tqdm は \r で行を上書きするため同一チャンクに複数セグメントが混在する
+                    # 最後の非空セグメントのみ使用することで重複表示を防ぐ
+                    segs = raw_line.split("\r")
+                    line = next(
+                        (s.rstrip() for s in reversed(segs) if s.rstrip()),
+                        "",
+                    )
+                    if not line:
+                        continue
                     s._log_queue.put(line)
                     s._monitor_queue.put(line)
                     s._monitor_layer_queue.put(line)
@@ -1552,12 +1571,21 @@ def _leco_write_sample_prompt_file(s: "_LecoTrainState") -> Path:
 
 def _build_leco_sample_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     """LECO サンプル生成タブ。lora_train._build_sample_tab_common を流用。"""
-    # lora_train モジュールが同一パッケージにある前提で動的インポート
+    import importlib as _il
+    import importlib.util as _ilu
+    import logging as _lg
+    _log = _lg.getLogger(__name__)
     try:
-        from . import lora_train as _lt
+        # 同ディレクトリの lora_train.py を __file__ 基準で絶対パス解決
+        _here = Path(__file__).resolve().parent
+        _spec = _ilu.spec_from_file_location("lora_train", _here / "lora_train.py")
+        if _spec is None or _spec.loader is None:
+            raise ImportError(f"spec_from_file_location failed: {_here / 'lora_train.py'}")
+        _lt = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_lt)
         _lt._build_sample_tab_common(parent, s, is_leco=True)
-    except Exception:
-        # フォールバック: 直接インポートが使えない場合は簡易UI
+    except Exception as _e:
+        _log.error("[_build_leco_sample_tab] lora_train ロード失敗、フォールバックへ: %s", _e)
         _build_leco_sample_tab_inline(parent, s)
 
 
@@ -1624,7 +1652,7 @@ def _build_leco_sample_tab_inline(
                         variable=enabled_var).grid(
             row=0, column=0, columnspan=4, sticky=tk.W, padx=2, pady=2)
         _sdir = s.paths.root / "log" / "sample_gen"
-        _glob_pat = "*_00_*.png" if label == "A" else "*_01_*.png"
+        _glob_pat = "leco_output_*_00_*.png" if label == "A" else "leco_output_*_01_*.png"
         ttk.Label(top, text="出力先:", foreground="#475569").grid(
             row=1, column=0, sticky=tk.W, padx=(2, 0), pady=2)
         ttk.Label(top, text=str(_sdir), foreground="#1D4ED8").grid(
@@ -1663,10 +1691,20 @@ def _build_leco_sample_tab_inline(
             m = _re.search(pat, text)
             return m
 
+        # デバッグログを有効にするには True にする
+        _SAMPLE_DEBUG: bool = False
+
         def _refresh(schedule_next=False):
+            import traceback as _tb
             files = sorted(
                 _sdir.glob(_glob_pat), key=lambda p: p.stat().st_mtime, reverse=True
             )[:10] if _sdir.exists() else []
+            if _SAMPLE_DEBUG:
+                import logging as _lg
+                _lg.getLogger(__name__).debug(
+                    "[SamplePreview-%s] _sdir=%s exists=%s files=%d glob=%s",
+                    label, _sdir, _sdir.exists(), len(files), _glob_pat,
+                )
             try:
                 from PIL import Image as _Im, ImageTk as _ITk
             except Exception:
@@ -1675,24 +1713,39 @@ def _build_leco_sample_tab_inline(
                 if idx >= len(files):
                     il.configure(image="", text="")
                     el.configure(text="step -")
-                    photo_refs[idx] = None
+                    # ウィジェット属性の参照もクリア
+                    il._photo_ref = None  # type: ignore[attr-defined]
                     continue
                 p = files[idx]
                 m = _re_search(r"_([0-9]{6})_", p.stem)
                 el.configure(text=f"step {int(m.group(1))}" if m else p.name)
                 if _Im is None:
                     il.configure(image="", text=p.name)
-                    photo_refs[idx] = None
+                    il._photo_ref = None  # type: ignore[attr-defined]
                     continue
                 try:
                     with _Im.open(p) as im:
                         im.thumbnail((220, 220))
                         ph = _ITk.PhotoImage(im.copy())
-                    photo_refs[idx] = ph
+                    # ウィジェット自身に参照を保持させることで GC を防ぐ
+                    il._photo_ref = ph  # type: ignore[attr-defined]
                     il.configure(image=ph, text="")
-                except Exception:
-                    il.configure(image="", text=p.name)
-                    photo_refs[idx] = None
+                    if _SAMPLE_DEBUG:
+                        import logging as _lg
+                        _lg.getLogger(__name__).debug(
+                            "[SamplePreview-%s] idx=%d loaded %s", label, idx, p.name
+                        )
+                except Exception as _exc:
+                    # 例外内容をラベルに表示してデバッグを容易にする
+                    _err_msg = f"[ERR] {type(_exc).__name__}: {_exc}"
+                    il.configure(image="", text=_err_msg)
+                    il._photo_ref = None  # type: ignore[attr-defined]
+                    if _SAMPLE_DEBUG:
+                        import logging as _lg
+                        _lg.getLogger(__name__).error(
+                            "[SamplePreview-%s] idx=%d file=%s\n%s",
+                            label, idx, p.name, _tb.format_exc(),
+                        )
             if schedule_next:
                 tab.after(2000, lambda: _refresh(True))
 

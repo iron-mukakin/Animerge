@@ -579,7 +579,9 @@ def main():
                 "network_multiplier": setting.multiplier,
             }
             accelerator.log(logs, step=global_step)
-            progress_bar.set_postfix(loss=f"{logs['loss']:.4f}")
+            # set_postfix(refresh=False) で描画を抑制し update(1) の1回で出力する
+            # （別々に呼ぶと tqdm が2行出力しログに重複が生じるため）
+            progress_bar.set_postfix(loss=f"{logs['loss']:.4f}", refresh=False)
             progress_bar.update(1)
 
             if (

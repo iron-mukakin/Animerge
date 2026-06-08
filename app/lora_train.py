@@ -1036,13 +1036,21 @@ def _write_sample_prompt_file(s: _TrainState) -> Path:
 
 
 def _extract_sample_epoch(path: Path) -> str:
+    # lora ファイル名: lora_output_e000001_00_... → e プレフィックスあり
     m = re.search(r"(?:^|_)e(\d+)(?:_|$)", path.stem)
-    if not m:
-        return "-"
-    try:
-        return str(int(m.group(1)))
-    except ValueError:
-        return m.group(1)
+    if m:
+        try:
+            return str(int(m.group(1)))
+        except ValueError:
+            return m.group(1)
+    # leco ファイル名: leco_output_000002_00_... → e プレフィックスなし6桁数字
+    m = re.search(r"(?:^|_)(\d{6})(?:_|$)", path.stem)
+    if m:
+        try:
+            return str(int(m.group(1)))
+        except ValueError:
+            return m.group(1)
+    return "-"
 
 
 def _build_sample_ab_panel(
@@ -1054,6 +1062,7 @@ def _build_sample_ab_panel(
     sample_dir: Path,
     glob_pattern: str,
     label: str,
+    is_leco: bool = False,
 ) -> None:
     parent.columnconfigure(0, weight=1)
     parent.rowconfigure(1, weight=1)
@@ -1099,7 +1108,7 @@ def _build_sample_ab_panel(
         cell.rowconfigure(0, weight=1)
         img_lbl = ttk.Label(cell, anchor=tk.CENTER)
         img_lbl.grid(row=0, column=0, sticky=tk.NSEW)
-        ep_lbl = ttk.Label(cell, text="step -", anchor=tk.CENTER)
+        ep_lbl = ttk.Label(cell, text="step -" if is_leco else "epoch -", anchor=tk.CENTER)
         ep_lbl.grid(row=1, column=0, sticky=tk.EW, pady=(3, 0))
         cells.append((img_lbl, ep_lbl))
 
@@ -1119,11 +1128,12 @@ def _build_sample_ab_panel(
         for idx, (il, el) in enumerate(cells):
             if idx >= len(files):
                 il.configure(image="", text="")
-                el.configure(text="step -")
+                el.configure(text="step -" if is_leco else "epoch -")
                 photo_refs[idx] = None
                 continue
             p = files[idx]
-            el.configure(text=f"step {_extract_sample_epoch(p)}")
+            _lbl_prefix = "step" if is_leco else "epoch"
+            el.configure(text=f"{_lbl_prefix} {_extract_sample_epoch(p)}")
             if _Im is None:
                 il.configure(image="", text=p.name)
                 photo_refs[idx] = None
@@ -1253,8 +1263,8 @@ def _build_sample_tab_common(
     #   B = promptファイル2行目 → _01.png
     # LECO: _generate_samples_leco が step{N:06d}_a_s{seed}.png / _b_ を生成
     sample_dir = _sample_dir(s) if not is_leco else (s.paths.root / "log" / "sample_gen")
-    pat_a = "*_a_*.png" if is_leco else "*_e*_00_*.png"
-    pat_b = "*_b_*.png" if is_leco else "*_e*_01_*.png"
+    pat_a = "leco_output_*_00_*.png" if is_leco else "*_e*_00_*.png"
+    pat_b = "leco_output_*_01_*.png" if is_leco else "*_e*_01_*.png"
 
     _build_sample_ab_panel(
         tab_a, s,
@@ -1264,6 +1274,7 @@ def _build_sample_tab_common(
         sample_dir=sample_dir,
         glob_pattern=pat_a,
         label="A",
+        is_leco=is_leco,
     )
     _build_sample_ab_panel(
         tab_b, s,
@@ -1273,6 +1284,7 @@ def _build_sample_tab_common(
         sample_dir=sample_dir,
         glob_pattern=pat_b,
         label="B",
+        is_leco=is_leco,
     )
 
 
