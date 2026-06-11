@@ -45,7 +45,7 @@ class AnimaModelEditor(tk.Tk):
         self.paths = paths or AppPaths.from_root()
         self.paths.ensure()
         self._mode = mode  # "cpu" or "cuda"
-        self.title("Animerge v1.0")
+        self.title("Animerge v3.0")
         self.geometry("1120x820")
         self.minsize(980, 720)
         self.log_queue: queue.Queue[str] = queue.Queue()

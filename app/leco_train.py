@@ -215,6 +215,10 @@ class _LecoTrainState:
         self.sample_b_prompt           = tk.StringVar(value="")
         self.sample_b_negative_prompt  = tk.StringVar(value="")
 
+        # ── EarlyStopping ────────────────────────────────────────────
+        self.es_enabled   = tk.BooleanVar(value=False)
+        self.es_patience  = tk.IntVar(value=5)   # 連続上昇で警告/停止する step 数
+
         # ステータス
         self.status_var       = tk.StringVar(value="待機中")
         self._log_widgets: list[tk.Text] = []
@@ -570,6 +574,19 @@ def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
                     variable=s.vae_disable_cache).grid(
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
 
+    lf3 = ttk.LabelFrame(parent, text="EarlyStopping（モニター）")
+    lf3.pack(fill=tk.X, pady=(8, 0))
+    ttk.Checkbutton(lf3, text="Train Loss 連続上昇で警告/停止",
+                    variable=s.es_enabled).grid(row=0, column=0, sticky=tk.W, padx=8, pady=4)
+    ttk.Label(lf3, text="監視 step 数:", anchor=tk.W).grid(
+        row=0, column=1, sticky=tk.W, padx=(12, 2), pady=4)
+    ttk.Spinbox(lf3, from_=2, to=500, textvariable=s.es_patience, width=6).grid(
+        row=0, column=2, sticky=tk.W, padx=(0, 8), pady=4)
+    ttk.Label(lf3, text="（50%→警告 / 100%→緊急停止）",
+              foreground="#64748B").grid(row=0, column=3, sticky=tk.W, padx=(0, 8), pady=4)
+
+
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 実行パネル
@@ -603,18 +620,18 @@ def _build_run_panel(parent: ttk.Frame, s: _LecoTrainState) -> None:
     log_text.configure(yscrollcommand=log_scroll.set)
     log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
     log_text.pack(fill=tk.BOTH, expand=True)
-    if not s._log_primary_set:
-        s._log_primary_set = True
-        s._log_widgets.append(log_text)
+    s._log_widgets.append(log_text)
 
     def _drain():
         while True:
             try:
                 msg = s._log_queue.get_nowait()
-                if s._log_widgets:
-                    w = s._log_widgets[0]
-                    w.insert(tk.END, msg + "\n")
-                    w.see(tk.END)
+                for _w in list(s._log_widgets):
+                    try:
+                        _w.insert(tk.END, msg + "\n")
+                        _w.see(tk.END)
+                    except Exception:
+                        pass
             except queue.Empty:
                 break
         parent.after(200, _drain)
@@ -1162,14 +1179,49 @@ def _layer_scales_to_block_weights(mode: str, scales: dict[str, float]) -> list[
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _build_monitor_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
-    """モニターグラフタブ（後実装予定）。"""
-    ttk.Label(
-        parent,
-        text="モニターグラフ（実装予定）\n\n学習開始後にリアルタイムでLoss/LRグラフを表示します。",
-        foreground="#64748B",
-        font=("TkDefaultFont", 10),
-        justify=tk.CENTER,
-    ).pack(expand=True)
+    """モニターグラフタブ: LecoMonitorGraph + 学習ログウィジェットを組み込む。"""
+    import importlib.util as _ilu
+    import logging as _log
+
+    # row=0 グラフ領域 / row=1 ログ欄
+    parent.rowconfigure(0, weight=1)
+    parent.rowconfigure(1, weight=0)
+    parent.columnconfigure(0, weight=1)
+
+    graph_frame = ttk.Frame(parent)
+    graph_frame.grid(row=0, column=0, sticky=tk.NSEW)
+
+    try:
+        _here = Path(__file__).resolve().parent
+        _spec = _ilu.spec_from_file_location(
+            "monitor_graph_leco", _here / "monitor_graph_leco.py"
+        )
+        if _spec is None or _spec.loader is None:
+            raise ImportError(
+                f"spec_from_file_location failed: {_here / 'monitor_graph_leco.py'}"
+            )
+        _mod = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _mod.LecoMonitorGraph(graph_frame, s)
+    except Exception as _e:
+        _log.getLogger(__name__).error(
+            "[_build_monitor_tab] monitor_graph_leco ロード失敗: %s", _e
+        )
+        ttk.Label(
+            graph_frame,
+            text=f"モニターグラフの読み込みに失敗しました。\n{_e}",
+            foreground="#EF4444",
+            justify=tk.LEFT,
+        ).pack(padx=16, pady=16, anchor=tk.NW)
+
+    log_frame = ttk.LabelFrame(parent, text="学習ログ")
+    log_frame.grid(row=1, column=0, sticky=tk.EW, pady=(4, 0))
+    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
+    log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
+    log_text.configure(yscrollcommand=log_scroll.set)
+    log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+    log_text.pack(fill=tk.BOTH, expand=True)
+    s._log_widgets.append(log_text)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1177,14 +1229,46 @@ def _build_monitor_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _build_monitor_layer_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
-    """モニター階層タブ（後実装予定）。"""
-    ttk.Label(
-        parent,
-        text="モニター階層（実装予定）\n\n階層学習が有効な場合、ブロック別の実効LRをリアルタイム表示します。",
-        foreground="#64748B",
-        font=("TkDefaultFont", 10),
-        justify=tk.CENTER,
-    ).pack(expand=True)
+    """モニター階層タブ: MonitorLayerGraph を組み込む（lora_train と同仕様）。"""
+    import importlib.util as _ilu
+    import logging as _log
+
+    try:
+        _here = Path(__file__).resolve().parent
+        _spec = _ilu.spec_from_file_location(
+            "monitor_layer", _here / "monitor_layer.py"
+        )
+        if _spec is None or _spec.loader is None:
+            raise ImportError(
+                f"spec_from_file_location failed: {_here / 'monitor_layer.py'}"
+            )
+        _mod = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _mod.MonitorLayerGraph(parent, s, _group_names_for_mode_leco)
+    except Exception as _e:
+        _log.getLogger(__name__).error(
+            "[_build_monitor_layer_tab] monitor_layer ロード失敗: %s", _e
+        )
+        ttk.Label(
+            parent,
+            text=f"モニター階層の読み込みに失敗しました。\n{_e}",
+            foreground="#EF4444",
+            justify=tk.LEFT,
+        ).pack(padx=16, pady=16, anchor=tk.NW)
+
+
+def _group_names_for_mode_leco(mode: str) -> list[str]:
+    """表示モードに対応するグループ名リストを返す (lora_train と同仕様)。"""
+    if mode == "Transformer":
+        return [f"blocks.{i}" for i in range(28)]
+    elif mode == "Matrix":
+        names: list[str] = []
+        for block in MATRIX_BLOCKS:
+            for comp in MATRIX_COMPONENTS:
+                names.append(f"{block}_{comp}")
+        return names
+    else:  # Component
+        return list(COMPONENT_GROUPS)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
