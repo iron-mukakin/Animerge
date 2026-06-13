@@ -552,5 +552,6 @@
   "leco_es_watch_steps": "Watch steps:",
   "leco_validate_prompts_missing": "prompts_file not found:\n{path}",
   "leco_sample_tab_load_error": "[_build_leco_sample_tab] Failed to load lora_train, using fallback: %s",
-  "leco_preset_include_toml": "Include TOML"
+  "leco_preset_include_toml": "Include TOML",
+  "compat_divergence_rate": "divergence"
 }

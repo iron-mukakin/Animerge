@@ -961,7 +961,7 @@ def _generate_compat_report(
 
         lines.append(
             f"  {block:<10}: {compat}  "
-            f"(乖離率={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})"
+            f"({gettext('compat_divergence_rate')}={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})"
         )
     lines.append("")
 

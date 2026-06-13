@@ -552,5 +552,6 @@
   "leco_es_watch_steps": "監視 step 数:",
   "leco_validate_prompts_missing": "prompts_file が見つかりません:\n{path}",
   "leco_sample_tab_load_error": "[_build_leco_sample_tab] lora_train ロード失敗、フォールバックへ: %s",
-  "leco_preset_include_toml": "TOMLを同梱"
+  "leco_preset_include_toml": "TOMLを同梱",
+  "compat_divergence_rate": "乖離率"
 }
