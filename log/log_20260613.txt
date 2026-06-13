@@ -1,0 +1,172 @@
+2026-06-13 00:18:16 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:18:45 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:21:02 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:22:24 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:36:04 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:40:11 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:45:31 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:50:01 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 00:52:31 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-06-13 01:06:43 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 01:16:20 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 01:17:26 [Rescan Folders]
+  Checkpoints: 1
+  LoRA files : 0
+
+2026-06-13 01:19:03 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-06-13 01:26:31 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 01:26:42 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 01:27:22 [本体マージ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-06-13 01:28:19 [Load Base Structure]
+  Layers: 685
+
+2026-06-13 01:29:00 [LoRAフューズ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-06-13 02:23:10 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 02:24:40 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 02:24:49 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 05:00:00 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 05:11:53 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 05:19:37 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 05:19:56 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 05:21:22 [Load Base Structure]
+  Layers: 685
+
+2026-06-13 05:22:30 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 14:51:11 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 14:51:30 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 14:52:12 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 14:52:19 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-06-13 15:25:20 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 15:27:14 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 15:39:42 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 15:40:07 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-06-13 15:43:09 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 15:47:31 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 15:47:49 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 16:03:00 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 16:05:06 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+

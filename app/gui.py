@@ -10,6 +10,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from .config import AppPaths, MergeOptions
+from .i18n import gettext, load_language
 from .merge import (
     adjustment_group,
     extract_lora_difference,
@@ -96,6 +97,7 @@ class AnimaModelEditor(tk.Tk):
         self.analysis_key_correction_var = tk.BooleanVar(value=False)
         self._analysis_result_report: AnalysisReport | None = None
 
+        load_language()
         self._build_ui()
         self.refresh_files()
         self.rebuild_parameter_controls()
@@ -159,17 +161,20 @@ class AnimaModelEditor(tk.Tk):
         viewer_main   = ttk.Frame(self.main_notebook, padding=4)
         train_main    = ttk.Frame(self.main_notebook, padding=4)
         leco_main     = ttk.Frame(self.main_notebook, padding=4)
-        self.main_notebook.add(model_main,    text="  本体マージ  ")
-        self.main_notebook.add(lora_main,     text="  LoRAマージ  ")
-        self.main_notebook.add(analysis_main, text="  レイヤー分析  ")
-        self.main_notebook.add(viewer_main,   text="  詳細分析  ")
-        self.main_notebook.add(train_main,    text="  LoRA学習  ")
-        self.main_notebook.add(leco_main,     text="  LECO学習  ")
+        settings_main = ttk.Frame(self.main_notebook, padding=4)
+        self.main_notebook.add(model_main,    text=gettext("main_tab_model_merge"))
+        self.main_notebook.add(lora_main,     text=gettext("main_tab_lora_merge"))
+        self.main_notebook.add(analysis_main, text=gettext("main_tab_analysis"))
+        self.main_notebook.add(viewer_main,   text=gettext("main_tab_viewer"))
+        self.main_notebook.add(train_main,    text=gettext("main_tab_lora_train"))
+        self.main_notebook.add(leco_main,     text=gettext("main_tab_leco_train"))
+        self.main_notebook.add(settings_main, text=gettext("settings_tab"))
 
         # 各主タブ内の共通エリアを構築
         self._build_main_tab_content(model_main, tab_type="model")
         self._build_main_tab_content(lora_main, tab_type="lora")
         self._build_analysis_tab(analysis_main)
+        self._build_settings_tab(settings_main)
         build_viewer_tab(viewer_main, self.paths.log_analysis, self.log)
         self._lora_train_state = build_lora_train_tab(
             train_main,
@@ -185,7 +190,7 @@ class AnimaModelEditor(tk.Tk):
         )
 
         # ログ（最下部）
-        log_frame = ttk.LabelFrame(root, text="Log")
+        log_frame = ttk.LabelFrame(root, text=gettext("log_label"))
         log_frame.pack(fill=tk.X, pady=(8, 0))
         self.log_text = tk.Text(log_frame, height=5, wrap=tk.WORD)
         self.log_text.pack(fill=tk.BOTH, expand=True)
@@ -211,49 +216,52 @@ class AnimaModelEditor(tk.Tk):
         elif idx == 5:
             self._active_tab_type = "leco_train"
             return  # LECO学習タブは merge 系のコントロール再構築不要
+        elif idx == 6:
+            self._active_tab_type = "settings"
+            return  # 設定タブは merge 系のコントロール再構築不要
         self.rebuild_parameter_controls()
 
     def _build_main_tab_content(self, parent: ttk.Frame, tab_type: str) -> None:
         """主タブ内に共通エリア + 副タブを構築する。ウィジェット参照はタブ別に保存。"""
         # Global System
-        system = ttk.LabelFrame(parent, text="Global System")
+        system = ttk.LabelFrame(parent, text=gettext("global_system"))
         system.pack(fill=tk.X)
-        _mode_text = "GPU Mode" if self._mode == "cuda" else "CPU Mode"
+        _mode_text = gettext("gpu_mode") if self._mode == "cuda" else gettext("cpu_mode")
         _mode_fg = "#22C55E" if self._mode == "cuda" else "#64748B"
-        ttk.Label(system, text="Device").grid(row=0, column=0, padx=8, pady=8, sticky=tk.W)
+        ttk.Label(system, text=gettext("device_label")).grid(row=0, column=0, padx=8, pady=8, sticky=tk.W)
         ttk.Label(system, text=_mode_text, foreground=_mode_fg, font=("TkDefaultFont", 10, "bold")).grid(row=0, column=1, columnspan=2, padx=4, pady=8, sticky=tk.W)
-        ttk.Button(system, text="Rescan folders", command=self.refresh_files).grid(row=0, column=3, padx=8)
-        ttk.Button(system, text="モデルをアンロード", command=self.unload_models).grid(row=0, column=4, padx=8)
+        ttk.Button(system, text=gettext("rescan_folders"), command=self.refresh_files).grid(row=0, column=3, padx=8)
+        ttk.Button(system, text=gettext("unload_models"), command=self.unload_models).grid(row=0, column=4, padx=8)
         ttk.Label(system, text=f"checkpoints: {self.paths.checkpoints}").grid(row=1, column=0, columnspan=5, padx=8, sticky=tk.W)
         ttk.Label(system, text=f"lora: {self.paths.lora}").grid(row=2, column=0, columnspan=5, padx=8, sticky=tk.W)
 
         # Merge Parameters
-        params = ttk.LabelFrame(parent, text="Merge Parameters")
+        params = ttk.LabelFrame(parent, text=gettext("merge_params"))
         params.pack(fill=tk.X, pady=(8, 0))
-        ttk.Label(params, text="Alpha").grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
+        ttk.Label(params, text=gettext("alpha_label")).grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
         alpha_scale = ttk.Scale(params, from_=0.0, to=1.0, variable=self.alpha_var, orient=tk.HORIZONTAL)
         alpha_scale.grid(row=0, column=1, sticky=tk.EW)
         alpha_scale.bind("<ButtonRelease-1>", lambda e: self._snap_scale(self.alpha_var))
         alpha_entry = ttk.Entry(params, textvariable=self.alpha_var, width=8)
         alpha_entry.grid(row=0, column=2, padx=8)
         alpha_entry.bind("<FocusOut>", lambda e: self._clamp_var(self.alpha_var))
-        ttk.Checkbutton(params, text="Cosine auto-correction", variable=self.auto_var).grid(row=0, column=3, padx=8)
-        ttk.Label(params, text="Cosine threshold").grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
+        ttk.Checkbutton(params, text=gettext("cosine_auto"), variable=self.auto_var).grid(row=0, column=3, padx=8)
+        ttk.Label(params, text=gettext("cosine_threshold")).grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
         ttk.Entry(params, textvariable=self.cosine_var, width=8).grid(row=1, column=1, sticky=tk.W)
-        ttk.Checkbutton(params, text="Dry-run validation", variable=self.dry_run_var).grid(row=1, column=3, padx=8)
+        ttk.Checkbutton(params, text=gettext("dry_run"), variable=self.dry_run_var).grid(row=1, column=3, padx=8)
         freeze_bar = ttk.Frame(params)
         freeze_bar.grid(row=2, column=0, columnspan=4, sticky=tk.W, padx=8, pady=4)
-        ttk.Checkbutton(freeze_bar, text="Freeze Input bias", variable=self.freeze_input_var).pack(side=tk.LEFT, padx=(0, 16))
-        ttk.Checkbutton(freeze_bar, text="Freeze Middle bias", variable=self.freeze_middle_var).pack(side=tk.LEFT, padx=(0, 16))
-        ttk.Checkbutton(freeze_bar, text="Freeze Output bias", variable=self.freeze_output_var).pack(side=tk.LEFT)
+        ttk.Checkbutton(freeze_bar, text=gettext("freeze_input"), variable=self.freeze_input_var).pack(side=tk.LEFT, padx=(0, 16))
+        ttk.Checkbutton(freeze_bar, text=gettext("freeze_middle"), variable=self.freeze_middle_var).pack(side=tk.LEFT, padx=(0, 16))
+        ttk.Checkbutton(freeze_bar, text=gettext("freeze_output"), variable=self.freeze_output_var).pack(side=tk.LEFT)
         params.columnconfigure(1, weight=1)
 
         # Layer Adjustment
-        adjust_frame = ttk.LabelFrame(parent, text="Layer Adjustment")
+        adjust_frame = ttk.LabelFrame(parent, text=gettext("layer_adjustment"))
         adjust_frame.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
         top = ttk.Frame(adjust_frame)
         top.pack(fill=tk.X, padx=8, pady=6)
-        ttk.Label(top, text="Layer display").pack(side=tk.LEFT)
+        ttk.Label(top, text=gettext("layer_display")).pack(side=tk.LEFT)
 
         # タブ別の layer_mode_var は共有（どちらのタブでも同じモードを使う）
         mode_combo = ttk.Combobox(
@@ -266,9 +274,9 @@ class AnimaModelEditor(tk.Tk):
         mode_combo.pack(side=tk.LEFT, padx=8)
         mode_combo.bind("<<ComboboxSelected>>", lambda _e: self.rebuild_parameter_controls())
 
-        ttk.Button(top, text="Load base structure", command=self.load_base_structure).pack(side=tk.LEFT, padx=8)
+        ttk.Button(top, text=gettext("load_base_structure"), command=self.load_base_structure).pack(side=tk.LEFT, padx=8)
 
-        status_var = tk.StringVar(value="Matrix mode uses rule-based groups.")
+        status_var = tk.StringVar(value=gettext("matrix_mode_status"))
         ttk.Label(top, textvariable=status_var).pack(side=tk.LEFT, padx=8)
 
         canvas_holder = ttk.Frame(adjust_frame)
@@ -315,68 +323,68 @@ class AnimaModelEditor(tk.Tk):
     # ─── 副タブ ───────────────────────────────────────────────
     def _build_model_merge_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
-        notebook.add(tab, text=" 1-1 Model-to-Model ")
-        ttk.Label(tab, text="Base Model").grid(row=0, column=0, sticky=tk.W, pady=6)
+        notebook.add(tab, text=gettext("tab_model_merge"))
+        ttk.Label(tab, text=gettext("base_model")).grid(row=0, column=0, sticky=tk.W, pady=6)
         self.base_combo = ttk.Combobox(tab, textvariable=self.base_model_var, state="readonly")
         self.base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text="Secondary Model").grid(row=1, column=0, sticky=tk.W, pady=6)
+        ttk.Label(tab, text=gettext("secondary_model")).grid(row=1, column=0, sticky=tk.W, pady=6)
         self.secondary_combo = ttk.Combobox(tab, textvariable=self.secondary_model_var, state="readonly")
         self.secondary_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
         self._output_controls(tab, 2)
         _bf_mm = ttk.Frame(tab)
         _bf_mm.grid(row=3, column=1, sticky=tk.E, pady=12)
-        ttk.Button(_bf_mm, text="■  Stop", command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
-        ttk.Button(_bf_mm, text="▶  Run model merge", style="Run.TButton", command=self.start_model_merge).pack(side=tk.LEFT)
+        ttk.Button(_bf_mm, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
+        ttk.Button(_bf_mm, text=gettext("run_model_merge"), style="Run.TButton", command=self.start_model_merge).pack(side=tk.LEFT)
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_fuse_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
-        notebook.add(tab, text=" 1-2 LoRA-to-Model ")
-        ttk.Label(tab, text="Base Model").grid(row=0, column=0, sticky=tk.W, pady=6)
+        notebook.add(tab, text=gettext("tab_lora_fuse"))
+        ttk.Label(tab, text=gettext("base_model")).grid(row=0, column=0, sticky=tk.W, pady=6)
         self.lora_base_combo = ttk.Combobox(tab, textvariable=self.base_model_var, state="readonly")
         self.lora_base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text="LoRA").grid(row=1, column=0, sticky=tk.W, pady=6)
+        ttk.Label(tab, text=gettext("lora_label")).grid(row=1, column=0, sticky=tk.W, pady=6)
         self.lora_combo = ttk.Combobox(tab, textvariable=self.lora_var, state="readonly")
         self.lora_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
         self._output_controls(tab, 2)
         _bf_lf = ttk.Frame(tab)
         _bf_lf.grid(row=3, column=1, sticky=tk.E, pady=12)
-        ttk.Button(_bf_lf, text="■  Stop", command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
-        ttk.Button(_bf_lf, text="▶  Run LoRA fuse", style="Run.TButton", command=self.start_lora_fuse).pack(side=tk.LEFT)
+        ttk.Button(_bf_lf, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
+        ttk.Button(_bf_lf, text=gettext("run_lora_fuse"), style="Run.TButton", command=self.start_lora_fuse).pack(side=tk.LEFT)
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_merge_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
-        notebook.add(tab, text=" 2-1 LoRA Merge ")
-        ttk.Label(tab, text="Base LoRA").grid(row=0, column=0, sticky=tk.W, pady=6)
+        notebook.add(tab, text=gettext("tab_lora_merge"))
+        ttk.Label(tab, text=gettext("base_lora")).grid(row=0, column=0, sticky=tk.W, pady=6)
         self.lora_merge_base_combo = ttk.Combobox(tab, textvariable=self.lora_var, state="readonly")
         self.lora_merge_base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text="Secondary LoRA").grid(row=1, column=0, sticky=tk.W, pady=6)
+        ttk.Label(tab, text=gettext("secondary_lora")).grid(row=1, column=0, sticky=tk.W, pady=6)
         self.secondary_lora_combo = ttk.Combobox(tab, textvariable=self.secondary_lora_var, state="readonly")
         self.secondary_lora_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
         self._output_controls(tab, 2)
         _bf_lm = ttk.Frame(tab)
         _bf_lm.grid(row=3, column=1, sticky=tk.E, pady=12)
-        ttk.Button(_bf_lm, text="■  Stop", command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
-        ttk.Button(_bf_lm, text="▶  Run LoRA merge", style="Run.TButton", command=self.start_lora_merge).pack(side=tk.LEFT)
+        ttk.Button(_bf_lm, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
+        ttk.Button(_bf_lm, text=gettext("run_lora_merge"), style="Run.TButton", command=self.start_lora_merge).pack(side=tk.LEFT)
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_extract_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
-        notebook.add(tab, text=" 2-2 Difference Extract ")
-        ttk.Label(tab, text="Base Model").grid(row=0, column=0, sticky=tk.W, pady=6)
+        notebook.add(tab, text=gettext("tab_diff_extract"))
+        ttk.Label(tab, text=gettext("base_model")).grid(row=0, column=0, sticky=tk.W, pady=6)
         self.extract_base_combo = ttk.Combobox(tab, textvariable=self.base_model_var, state="readonly")
         self.extract_base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text="Target Model").grid(row=1, column=0, sticky=tk.W, pady=6)
+        ttk.Label(tab, text=gettext("target_model")).grid(row=1, column=0, sticky=tk.W, pady=6)
         self.extract_target_combo = ttk.Combobox(tab, textvariable=self.secondary_model_var, state="readonly")
         self.extract_target_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
         self._output_controls(tab, 2)
-        ttk.Label(tab, text="LoRA Rank").grid(row=3, column=0, sticky=tk.W, pady=6)
+        ttk.Label(tab, text=gettext("lora_rank")).grid(row=3, column=0, sticky=tk.W, pady=6)
         ttk.Spinbox(tab, from_=1, to=256, textvariable=self.extract_rank_var, width=8).grid(row=3, column=1, sticky=tk.W, padx=8)
         _bf_le = ttk.Frame(tab)
         _bf_le.grid(row=4, column=1, sticky=tk.E, pady=12)
-        ttk.Button(_bf_le, text="■  Stop", command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
-        ttk.Button(_bf_le, text="▶  Run difference extract", style="Run.TButton", command=self.start_lora_extract).pack(side=tk.LEFT)
+        ttk.Button(_bf_le, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
+        ttk.Button(_bf_le, text=gettext("run_diff_extract"), style="Run.TButton", command=self.start_lora_extract).pack(side=tk.LEFT)
         tab.columnconfigure(1, weight=1)
 
     # --- Preset Tab ---------------------------------------------------
@@ -384,7 +392,7 @@ class AnimaModelEditor(tk.Tk):
         tab = ttk.Frame(notebook, padding=12)
         notebook.add(tab, text=label)
 
-        list_frame = ttk.LabelFrame(tab, text="Saved Presets")
+        list_frame = ttk.LabelFrame(tab, text=gettext("preset_saved_presets"))
         list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
         preset_listbox = tk.Listbox(list_frame, height=8, selectmode=tk.SINGLE)
@@ -396,7 +404,7 @@ class AnimaModelEditor(tk.Tk):
         btn_row = ttk.Frame(tab)
         btn_row.pack(fill=tk.X, pady=(0, 4))
         name_var = tk.StringVar()
-        ttk.Label(btn_row, text="Name:").pack(side=tk.LEFT)
+        ttk.Label(btn_row, text=gettext("preset_name_label")).pack(side=tk.LEFT)
         ttk.Entry(btn_row, textvariable=name_var, width=24).pack(side=tk.LEFT, padx=(4, 8))
 
         def _refresh_list() -> None:
@@ -409,7 +417,7 @@ class AnimaModelEditor(tk.Tk):
         def _save_preset() -> None:
             pname = name_var.get().strip()
             if not pname:
-                messagebox.showerror("Preset", "Enter a preset name.")
+                messagebox.showerror("Preset", gettext("preset_error_no_name"))
                 return
             data = {
                 "alpha": float(self.alpha_var.get()),
@@ -430,21 +438,21 @@ class AnimaModelEditor(tk.Tk):
             dest = _preset_dir / f"{safe}.json"
             dest.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
             _refresh_list()
-            self.log(f"[Preset] Saved: {dest.name}")
+            self.log(gettext("preset_log_saved", name=dest.name))
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._write_action_log([f"{now} [Preset Save] {dest.name}", ""])
 
         def _load_preset() -> None:
             sel = preset_listbox.curselection()
             if not sel:
-                messagebox.showerror("Preset", "Select a preset to load.")
+                messagebox.showerror("Preset", gettext("preset_error_select"))
                 return
             pname = preset_listbox.get(sel[0])
             src = self.paths.root / "preset" / "merge" / f"{pname}.json"
             try:
                 data = json.loads(src.read_text(encoding="utf-8"))
             except Exception as exc:
-                messagebox.showerror("Preset", f"Load failed: {exc}")
+                messagebox.showerror("Preset", gettext("preset_load_failed", error=exc))
                 return
             self.alpha_var.set(data.get("alpha", 0.5))
             self.cosine_var.set(data.get("cosine_threshold", 0.4))
@@ -461,7 +469,7 @@ class AnimaModelEditor(tk.Tk):
             for k, v in scales.items():
                 if k in self.parameter_vars:
                     self.parameter_vars[k].set(v)
-            self.log(f"[Preset] Loaded: {src.name}")
+            self.log(gettext("preset_log_loaded", name=src.name))
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._write_action_log([f"{now} [Preset Load] {src.name}", ""])
 
@@ -471,17 +479,17 @@ class AnimaModelEditor(tk.Tk):
                 return
             pname = preset_listbox.get(sel[0])
             src = self.paths.root / "preset" / "merge" / f"{pname}.json"
-            if messagebox.askyesno("Preset", f"Delete {pname}?"):
+            if messagebox.askyesno("Preset", gettext("preset_confirm_delete", name=pname)):
                 src.unlink(missing_ok=True)
                 _refresh_list()
-                self.log(f"[Preset] Deleted: {src.name}")
+                self.log(gettext("preset_log_deleted", name=src.name))
                 now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self._write_action_log([f"{now} [Preset Delete] {src.name}", ""])
 
         def _export_preset() -> None:
             sel = preset_listbox.curselection()
             if not sel:
-                messagebox.showerror("Preset", "Select a preset to export.")
+                messagebox.showerror("Preset", gettext("preset_error_select_export"))
                 return
             pname = preset_listbox.get(sel[0])
             src = self.paths.root / "preset" / "merge" / f"{pname}.json"
@@ -493,7 +501,7 @@ class AnimaModelEditor(tk.Tk):
             if dest:
                 import shutil
                 shutil.copy2(src, dest)
-                self.log(f"[Preset] Exported: {dest}")
+                self.log(gettext("preset_log_exported", dest=dest))
                 now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self._write_action_log([f"{now} [Preset Export] {dest}", ""])
 
@@ -511,19 +519,19 @@ class AnimaModelEditor(tk.Tk):
             import shutil
             shutil.copy2(src, dest)
             _refresh_list()
-            self.log(f"[Preset] Imported: {dest.name}")
+            self.log(gettext("preset_log_imported", name=dest.name))
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._write_action_log([f"{now} [Preset Import] {dest.name}", ""])
 
-        ttk.Button(btn_row, text="Save",    command=_save_preset).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_row, text="Load",    command=_load_preset).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_row, text="Delete",  command=_delete_preset).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text=gettext("preset_save"),   command=_save_preset).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text=gettext("preset_load"),   command=_load_preset).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text=gettext("preset_delete"), command=_delete_preset).pack(side=tk.LEFT, padx=2)
 
         io_row = ttk.Frame(tab)
         io_row.pack(fill=tk.X)
-        ttk.Button(io_row, text="Export",  command=_export_preset).pack(side=tk.LEFT, padx=2)
-        ttk.Button(io_row, text="Import",  command=_import_preset).pack(side=tk.LEFT, padx=2)
-        ttk.Button(io_row, text="Refresh", command=_refresh_list).pack(side=tk.LEFT, padx=2)
+        ttk.Button(io_row, text=gettext("preset_export"),  command=_export_preset).pack(side=tk.LEFT, padx=2)
+        ttk.Button(io_row, text=gettext("preset_import"),  command=_import_preset).pack(side=tk.LEFT, padx=2)
+        ttk.Button(io_row, text=gettext("preset_refresh"), command=_refresh_list).pack(side=tk.LEFT, padx=2)
 
         _refresh_list()
 
@@ -532,34 +540,34 @@ class AnimaModelEditor(tk.Tk):
         """タブ3「レイヤー分析」の全UIを構築する。"""
 
                 # ── 上部コントロールパネル ────────────────────────────────────────
-        ctrl = ttk.LabelFrame(parent, text="Analysis Controls")
+        ctrl = ttk.LabelFrame(parent, text=gettext("analysis_controls"))
         ctrl.pack(fill=tk.X, padx=0, pady=(0, 6))
 
         # row0: Device ラベル + モード表示 + Rescan + アンロード（左寄せ）
-        _mode_text = "GPU Mode" if self._mode == "cuda" else "CPU Mode"
+        _mode_text = gettext("gpu_mode") if self._mode == "cuda" else gettext("cpu_mode")
         _mode_fg = "#22C55E" if self._mode == "cuda" else "#64748B"
-        ttk.Label(ctrl, text="Device").grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
+        ttk.Label(ctrl, text=gettext("device_label")).grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
         ttk.Label(ctrl, text=_mode_text, foreground=_mode_fg, font=("TkDefaultFont", 10, "bold")).grid(row=0, column=1, padx=4, pady=6, sticky=tk.W)
-        ttk.Button(ctrl, text="Rescan folders", command=self.refresh_files).grid(row=0, column=2, padx=8, pady=6, sticky=tk.W)
-        ttk.Button(ctrl, text="モデルをアンロード", command=self.unload_models).grid(row=0, column=3, padx=8, pady=6, sticky=tk.W)
+        ttk.Button(ctrl, text=gettext("rescan_folders"), command=self.refresh_files).grid(row=0, column=2, padx=8, pady=6, sticky=tk.W)
+        ttk.Button(ctrl, text=gettext("unload_models"), command=self.unload_models).grid(row=0, column=3, padx=8, pady=6, sticky=tk.W)
 
         # row1: 対象種別
-        ttk.Label(ctrl, text="対象種別").grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
+        ttk.Label(ctrl, text=gettext("analysis_target_type")).grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
         type_frame = ttk.Frame(ctrl)
         type_frame.grid(row=1, column=1, columnspan=3, sticky=tk.W)
         ttk.Radiobutton(
-            type_frame, text="本体モデル",
+            type_frame, text=gettext("analysis_target_model"),
             variable=self.analysis_target_type_var, value="model",
             command=self._refresh_analysis_target_combo,
         ).pack(side=tk.LEFT)
         ttk.Radiobutton(
-            type_frame, text="LoRA",
+            type_frame, text=gettext("analysis_target_lora"),
             variable=self.analysis_target_type_var, value="lora",
             command=self._refresh_analysis_target_combo,
         ).pack(side=tk.LEFT, padx=8)
 
         # row2: ターゲット
-        ttk.Label(ctrl, text="ターゲット").grid(row=2, column=0, padx=8, pady=6, sticky=tk.W)
+        ttk.Label(ctrl, text=gettext("analysis_target_label")).grid(row=2, column=0, padx=8, pady=6, sticky=tk.W)
         self.analysis_target_combo = ttk.Combobox(
             ctrl, textvariable=self.analysis_target_var, state="readonly", width=160
         )
@@ -568,7 +576,7 @@ class AnimaModelEditor(tk.Tk):
         # row3: 分析手法 + 表示レイヤー（同行左寄せ）
         method_frame = ttk.Frame(ctrl)
         method_frame.grid(row=3, column=0, columnspan=4, sticky=tk.W, padx=8, pady=6)
-        ttk.Label(method_frame, text="分析手法").pack(side=tk.LEFT)
+        ttk.Label(method_frame, text=gettext("analysis_method_label")).pack(side=tk.LEFT)
         self.analysis_method_combo = ttk.Combobox(
             method_frame,
             textvariable=self.analysis_method_var,
@@ -578,7 +586,7 @@ class AnimaModelEditor(tk.Tk):
         )
         self.analysis_method_combo.pack(side=tk.LEFT, padx=(4, 16))
         self.analysis_method_combo.bind("<<ComboboxSelected>>", self._on_analysis_options_changed)
-        ttk.Label(method_frame, text="表示レイヤー").pack(side=tk.LEFT)
+        ttk.Label(method_frame, text=gettext("analysis_layer_label")).pack(side=tk.LEFT)
         self.analysis_layer_combo = ttk.Combobox(
             method_frame,
             textvariable=self.analysis_layer_mode_var,
@@ -590,37 +598,37 @@ class AnimaModelEditor(tk.Tk):
         self.analysis_layer_combo.bind("<<ComboboxSelected>>", self._on_analysis_options_changed)
         ttk.Checkbutton(
             method_frame,
-            text="Key correction (anima-base-v1.0)",
+            text=gettext("analysis_key_correction"),
             variable=self.analysis_key_correction_var,
         ).pack(side=tk.LEFT, padx=(16, 0))
 
         # row4: 進捗ラベル + Stop/RUN
-        self.analysis_status_var = tk.StringVar(value="分析手法と表示レイヤーを選択後、RUNを押してください。")
+        self.analysis_status_var = tk.StringVar(value=gettext("analysis_status_default"))
         ttk.Label(ctrl, textvariable=self.analysis_status_var, foreground="#334155").grid(
             row=4, column=0, columnspan=2, padx=8, pady=(4, 8), sticky=tk.W
         )
         btn_frame_analysis = ttk.Frame(ctrl)
         btn_frame_analysis.grid(row=4, column=2, columnspan=4, sticky=tk.E, padx=8, pady=(4, 8))
         self.analysis_stop_btn = ttk.Button(
-            btn_frame_analysis, text="■  Stop",
+            btn_frame_analysis, text=gettext("analysis_stop_btn"),
             command=self._stop_analysis,
         )
         self.analysis_stop_btn.pack(side=tk.LEFT, padx=(0, 6))
         self.analysis_run_btn = ttk.Button(
-            btn_frame_analysis, text="▶  Run Analysis", style="Run.TButton",
+            btn_frame_analysis, text=gettext("analysis_run_btn"), style="Run.TButton",
             command=self.start_analysis,
         )
         self.analysis_run_btn.pack(side=tk.LEFT)
 
 
         # ── 結果表示エリア ────────────────────────────────────────────────
-        result_outer = ttk.LabelFrame(parent, text="Analysis Result")
+        result_outer = ttk.LabelFrame(parent, text=gettext("analysis_result"))
         result_outer.pack(fill=tk.BOTH, expand=True)
         result_outer.columnconfigure(0, weight=1)
         result_outer.rowconfigure(0, weight=1)
 
         # 左: グループサマリー表
-        summary_frame = ttk.LabelFrame(result_outer, text="Group Summary")
+        summary_frame = ttk.LabelFrame(result_outer, text=gettext("analysis_group_summary"))
         summary_frame.grid(row=0, column=0, sticky=tk.NSEW, padx=(4, 2), pady=4)
         summary_frame.columnconfigure(0, weight=1)
         summary_frame.rowconfigure(0, weight=1)
@@ -644,7 +652,7 @@ class AnimaModelEditor(tk.Tk):
         right_frame.rowconfigure(1, weight=1)
         right_frame.columnconfigure(0, weight=1)
 
-        ttk.Label(right_frame, text="自動レポート", font=("TkDefaultFont", 9, "bold")).grid(
+        ttk.Label(right_frame, text=gettext("analysis_auto_report"), font=("TkDefaultFont", 9, "bold")).grid(
             row=0, column=0, sticky=tk.W, pady=(0, 2)
         )
         self.analysis_report_text = tk.Text(
@@ -657,7 +665,7 @@ class AnimaModelEditor(tk.Tk):
         self.analysis_report_text.grid(row=1, column=0, sticky=tk.NSEW)
 
         # 詳細レイヤーリスト（下部）
-        detail_frame = ttk.LabelFrame(parent, text="Layer Detail")
+        detail_frame = ttk.LabelFrame(parent, text=gettext("analysis_layer_detail"))
         detail_frame.pack(fill=tk.X, pady=(4, 0))
         detail_frame.columnconfigure(0, weight=1)
 
@@ -694,57 +702,60 @@ class AnimaModelEditor(tk.Tk):
     def _on_analysis_options_changed(self, _event: tk.Event | None = None) -> None:
         method = self.analysis_method_var.get()
         mode = self.analysis_layer_mode_var.get()
-        self.analysis_status_var.set(f"手法: {method}  /  表示レイヤー: {mode}  → RUNで実行")
+        self.analysis_status_var.set(gettext("analysis_status_options", method=method, mode=mode))
 
     def _get_summary_columns(self, method: str) -> tuple[list[str], list[str]]:
         """メソッドに応じてサマリー表のカラム定義を返す。(column_ids, headers)"""
         base = ["group", "layers"]
+        g = gettext("col_group"); lyr = gettext("col_layers")
         if method == "Feature Map":
             return (
                 base + ["mean", "var", "complexity"],
-                ["グループ", "層数", "平均値", "分散", "空間複雑度"],
+                [g, lyr, gettext("col_mean"), gettext("col_var"), gettext("col_complexity")],
             )
         if method == "Statistical":
             return (
                 base + ["mean_l2", "max_l2", "min_l2", "mean_mean", "mean_var"],
-                ["グループ", "層数", "平均L2", "最大L2", "最小L2", "平均値", "分散"],
+                [g, lyr, gettext("col_l2_avg"), gettext("col_l2_max"), gettext("col_l2_min"),
+                 gettext("col_mean_val"), gettext("col_var")],
             )
         if method == "SVD Rank":
             return (
                 base + ["mean_rank", "mean_decay", "mean_cumvar"],
-                ["グループ", "層数", "平均有効ランク", "平均減衰率", "平均累積寄与率"],
+                [g, lyr, gettext("col_eff_rank"), gettext("col_decay"), gettext("col_cumvar")],
             )
         if method == "Attention Map":
             return (
                 base + ["attn_layers", "mean_weight", "head_var"],
-                ["グループ", "層数", "Attn層数", "平均重み", "ヘッド間分散"],
+                [g, lyr, gettext("col_attn_count"), gettext("col_mean_weight"), gettext("col_head_var")],
             )
-        return base, ["グループ", "層数"]
+        return base, [g, lyr]
 
     def _get_detail_columns(self, method: str) -> tuple[list[str], list[str]]:
         """メソッドに応じて詳細テーブルのカラム定義を返す。"""
         base = ["key", "group", "shape"]
+        k = gettext("col_key"); g = gettext("col_group"); sh = gettext("col_shape")
         if method == "Feature Map":
             return (
                 base + ["feat_mean", "feat_var", "complexity"],
-                ["キー", "グループ", "形状", "平均値", "分散", "空間複雑度"],
+                [k, g, sh, gettext("col_feat_mean"), gettext("col_feat_var"), gettext("col_feat_complexity")],
             )
         if method == "Statistical":
             return (
                 base + ["l2", "mean", "var"],
-                ["キー", "グループ", "形状", "L2ノルム", "平均値", "分散"],
+                [k, g, sh, gettext("col_l2"), gettext("col_mean_val"), gettext("col_var")],
             )
         if method == "SVD Rank":
             return (
                 base + ["eff_rank", "decay", "cumvar"],
-                ["キー", "グループ", "形状", "有効ランク", "減衰率", "累積寄与率"],
+                [k, g, sh, gettext("col_svd_rank"), gettext("col_svd_decay"), gettext("col_svd_cumvar")],
             )
         if method == "Attention Map":
             return (
                 base + ["is_attn", "mean_w", "head_var"],
-                ["キー", "グループ", "形状", "Attn層", "平均重み", "ヘッド間分散"],
+                [k, g, sh, gettext("col_is_attn"), gettext("col_attn_weight"), gettext("col_head_var")],
             )
-        return base, ["キー", "グループ", "形状"]
+        return base, [k, g, sh]
 
     def _populate_analysis_result(self, report: AnalysisReport) -> None:
         """分析完了後にUIへ結果を反映する（メインスレッドから呼び出す）。"""
@@ -755,11 +766,14 @@ class AnimaModelEditor(tk.Tk):
         self.analysis_report_text.delete("1.0", tk.END)
         self.analysis_report_text.insert(tk.END, "\n".join(report.auto_report_lines))
         if report.warnings:
-            self.analysis_report_text.insert(tk.END, f"\n\n[警告 {len(report.warnings)}件]\n")
+            _warn_count = len(report.warnings)
+            self.analysis_report_text.insert(tk.END, f"\n\n[Warning {_warn_count}]\n")
             for w in report.warnings[:10]:
                 self.analysis_report_text.insert(tk.END, f"  {w}\n")
-            if len(report.warnings) > 10:
-                self.analysis_report_text.insert(tk.END, f"  ... 他 {len(report.warnings)-10} 件\n")
+            if _warn_count > 10:
+                self.analysis_report_text.insert(
+                    tk.END, f"  ... +{_warn_count - 10}\n"
+                )
         self.analysis_report_text.config(state=tk.DISABLED)
 
         # ── グループサマリー Treeview ─────────────────────────────────────
@@ -879,17 +893,28 @@ class AnimaModelEditor(tk.Tk):
 
         # ログ保存パス表示
         if report.log_path:
-            self.analysis_log_path_var.set(f"保存済み: {report.log_path}")
-        self.analysis_status_var.set(
-            f"完了: {len(report.records)} 層 / {report.method} / {report.layer_mode}"
-            + (f"  [{len(report.warnings)}件の警告]" if report.warnings else "")
-        )
+            self.analysis_log_path_var.set(gettext("analysis_log_saved", path=report.log_path))
+        if report.warnings:
+            self.analysis_status_var.set(
+                gettext("analysis_done_warn",
+                        layers=len(report.records),
+                        method=report.method,
+                        mode=report.layer_mode,
+                        warns=len(report.warnings))
+            )
+        else:
+            self.analysis_status_var.set(
+                gettext("analysis_done",
+                        layers=len(report.records),
+                        method=report.method,
+                        mode=report.layer_mode)
+            )
         self.analysis_run_btn.config(state=tk.NORMAL)
 
     def _output_controls(self, parent: ttk.Frame, row: int) -> None:
-        ttk.Label(parent, text="Output").grid(row=row, column=0, sticky=tk.W, pady=6)
+        ttk.Label(parent, text=gettext("output_label")).grid(row=row, column=0, sticky=tk.W, pady=6)
         ttk.Entry(parent, textvariable=self.output_var).grid(row=row, column=1, sticky=tk.EW, padx=8)
-        ttk.Button(parent, text="Browse", command=self.choose_output).grid(row=row, column=2, sticky=tk.E)
+        ttk.Button(parent, text=gettext("browse"), command=self.choose_output).grid(row=row, column=2, sticky=tk.E)
 
     # ─── スケールのスナップとクランプ ────────────────────────
     def _snap_scale(self, var: tk.DoubleVar) -> None:
@@ -907,7 +932,7 @@ class AnimaModelEditor(tk.Tk):
         """CUDAフォールバック時にGUI device_var をCPUへ同期する。"""
         if resolved != self.device_var.get():
             self.device_var.set(resolved)
-            self.log("[Device] CUDAが利用不可のためCPUに切り替えました。")
+            self.log(gettext("log_cuda_fallback"))
 
     def _make_progress_cb(self, requested_device: str):
         """進捗コールバックを返す。フォールバックメッセージを検知してGUIに反映。"""
@@ -941,7 +966,7 @@ class AnimaModelEditor(tk.Tk):
         # 分析タブ: ターゲット種別に応じてプルダウンを更新
         self._refresh_analysis_target_combo()
 
-        self.log(f"Scanned: {len(models)} checkpoints, {len(loras)} LoRA files")
+        self.log(gettext("log_scanned", models=len(models), loras=len(loras)))
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([
             f"{now} [Rescan Folders]",
@@ -962,7 +987,7 @@ class AnimaModelEditor(tk.Tk):
                 except Exception:
                     proc.terminate()
                 proc.wait(timeout=10)
-                self.log("[Unload] LoRA学習プロセスを終了しました。")
+                self.log(gettext("unload_lora_proc"))
         # LECO学習プロセスが動いている場合は先に終了させる
         if hasattr(self, "_leco_train_state") and self._leco_train_state is not None:
             proc = getattr(self._leco_train_state, "_proc", None)
@@ -973,21 +998,21 @@ class AnimaModelEditor(tk.Tk):
                 except Exception:
                     proc.terminate()
                 proc.wait(timeout=10)
-                self.log("[Unload] LECO学習プロセスを終了しました。")
+                self.log(gettext("unload_leco_proc"))
         try:
             import gc
             import torch
             torch.cuda.empty_cache()
             gc.collect()
             self._loaded_model_names.clear()
-            self.log("Unloaded: VRAM/RAM cache cleared (torch.cuda.empty_cache + gc.collect)")
+            self.log(gettext("log_unload_done"))
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._write_action_log([f"{now} [Unload Models] VRAM/RAM cache cleared", ""])
         except ImportError:
             import gc
             gc.collect()
             self._loaded_model_names.clear()
-            self.log("Unloaded: RAM cache cleared (gc.collect). PyTorch not available.")
+            self.log(gettext("log_unload_no_torch"))
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._write_action_log([f"{now} [Unload Models] RAM cache cleared (no PyTorch)", ""])
 
@@ -1005,7 +1030,7 @@ class AnimaModelEditor(tk.Tk):
         if not base:
             messagebox.showerror("Layer load error", "Select a base model first.")
             return
-        self._tw("status_var").set("Loading base structure...")
+        self._tw("status_var").set(gettext("status_loading"))
 
         def worker() -> None:
             try:
@@ -1017,14 +1042,14 @@ class AnimaModelEditor(tk.Tk):
                 self.after(0, lambda rows=rows: self._set_loaded_structure(rows))
             except Exception as exc:
                 message = str(exc)
-                self.after(0, lambda message=message: messagebox.showerror("Layer load error", message))
-                self.after(0, lambda: self._tw("status_var").set("Layer load failed"))
+                self.after(0, lambda message=message: messagebox.showerror(gettext("log_layer_load_error"), message))
+                self.after(0, lambda: self._tw("status_var").set(gettext("status_load_failed")))
 
         threading.Thread(target=worker, daemon=True).start()
 
     def _set_loaded_structure(self, rows: list[tuple[str, str]]) -> None:
         self.loaded_layers = rows
-        self._tw("status_var").set(f"{len(rows)} merge-target tensor layers loaded.")
+        self._tw("status_var").set(gettext("status_loaded", count=len(rows)))
         self.rebuild_parameter_controls()
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([
@@ -1110,10 +1135,10 @@ class AnimaModelEditor(tk.Tk):
 
     def _status_text(self, mode: str, count: int) -> str:
         if mode == "Matrix":
-            return f"Matrix mode: {count} block x component controls."
+            return gettext("status_matrix_mode", count=count)
         if mode == "Transformer":
-            return f"Transformer mode: {count} parent block controls."
-        return f"Component mode: {count} component controls."
+            return gettext("status_transformer_mode", count=count)
+        return gettext("status_component_mode", count=count)
 
     def _natural_key(self, text: str) -> list[object]:
         return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", text)]
@@ -1136,7 +1161,7 @@ class AnimaModelEditor(tk.Tk):
     def start_model_merge(self) -> None:
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
-        self._write_merge_log("[本体マージ開始]", self.base_model_var.get(), self.secondary_model_var.get())
+        self._write_merge_log(gettext("merge_log_model"), self.base_model_var.get(), self.secondary_model_var.get())
         self._run_background(
             lambda: merge_models(
                 Path(self.base_model_var.get()),
@@ -1151,7 +1176,7 @@ class AnimaModelEditor(tk.Tk):
     def start_lora_fuse(self) -> None:
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
-        self._write_merge_log("[LoRAフューズ開始]", self.base_model_var.get(), self.lora_var.get())
+        self._write_merge_log(gettext("merge_log_lora_fuse"), self.base_model_var.get(), self.lora_var.get())
         self._run_background(
             lambda: fuse_lora_into_model(
                 Path(self.base_model_var.get()),
@@ -1166,7 +1191,7 @@ class AnimaModelEditor(tk.Tk):
     def start_lora_merge(self) -> None:
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
-        self._write_merge_log("[LoRAマージ開始]", self.lora_var.get(), self.secondary_lora_var.get())
+        self._write_merge_log(gettext("merge_log_lora_merge"), self.lora_var.get(), self.secondary_lora_var.get())
         self._run_background(
             lambda: merge_loras(
                 Path(self.lora_var.get()),
@@ -1181,7 +1206,7 @@ class AnimaModelEditor(tk.Tk):
     def start_lora_extract(self) -> None:
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
-        self._write_merge_log("[差分抽出開始]", self.base_model_var.get(), self.secondary_model_var.get())
+        self._write_merge_log(gettext("merge_log_diff_extract"), self.base_model_var.get(), self.secondary_model_var.get())
         self._run_background(
             lambda: extract_lora_difference(
                 Path(self.base_model_var.get()),
@@ -1199,15 +1224,15 @@ class AnimaModelEditor(tk.Tk):
         self._analysis_stop_event.clear()
         target = self.analysis_target_var.get()
         if not target:
-            messagebox.showerror("分析エラー", "分析対象ファイルを選択してください。")
+            messagebox.showerror(gettext("analysis_error_title"), gettext("analysis_error_no_target"))
             return
         method = self.analysis_method_var.get()
         layer_mode = self.analysis_layer_mode_var.get()
         device = self.device_var.get()
 
         self.analysis_run_btn.config(state=tk.DISABLED)
-        self.analysis_status_var.set("分析実行中...")
-        self.log(f"[Analysis] 開始: {Path(target).name} / {method} / {layer_mode}")
+        self.analysis_status_var.set(gettext("analysis_running"))
+        self.log(gettext("analysis_start_log", name=Path(target).name, method=method, mode=layer_mode))
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([
             f"{now} [Analysis 開始]",
@@ -1234,15 +1259,15 @@ class AnimaModelEditor(tk.Tk):
             except DependencyError as exc:
                 message = str(exc)
                 self.log_queue.put(f"[Analysis] Dependency error: {message}")
-                self.after(0, lambda m=message: messagebox.showerror("依存ライブラリエラー", m))
+                self.after(0, lambda m=message: messagebox.showerror(gettext("analysis_dep_error_title"), m))
                 self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
-                self.after(0, lambda: self.analysis_status_var.set("エラーが発生しました。"))
+                self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_error_occurred")))
             except Exception as exc:
                 message = str(exc)
                 self.log_queue.put(f"[Analysis] Error: {message}")
-                self.after(0, lambda m=message: messagebox.showerror("分析エラー", m))
+                self.after(0, lambda m=message: messagebox.showerror(gettext("analysis_error_title"), m))
                 self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
-                self.after(0, lambda: self.analysis_status_var.set("エラーが発生しました。"))
+                self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_error_occurred")))
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -1259,11 +1284,11 @@ class AnimaModelEditor(tk.Tk):
             except DependencyError as exc:
                 message = str(exc)
                 self.log_queue.put(f"Dependency error: {message}")
-                self.after(0, lambda message=message: messagebox.showerror("Dependency error", message))
+                self.after(0, lambda message=message: messagebox.showerror(gettext("log_dep_error"), message))
             except Exception as exc:
                 message = str(exc)
                 self.log_queue.put(f"Error: {message}")
-                self.after(0, lambda message=message: messagebox.showerror("Merge error", message))
+                self.after(0, lambda message=message: messagebox.showerror(gettext("log_merge_error"), message))
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -1279,7 +1304,7 @@ class AnimaModelEditor(tk.Tk):
             with log_file.open("a", encoding="utf-8") as fh:
                 fh.write("\n".join(lines) + "\n")
         except Exception as exc:
-            self.log_queue.put(f"[LOG WARN] ログ書き込み失敗: {exc}")
+            self.log_queue.put(gettext("log_write_failed", error=exc))
 
     def _write_merge_log(self, label: str, model_a: str, model_b: str) -> None:
         """本体マージ・LoRAマージの起動時刻・設定を日付別 log_YYYYMMDD.txt に追記。"""
@@ -1303,23 +1328,23 @@ class AnimaModelEditor(tk.Tk):
             with log_file.open("a", encoding="utf-8") as fh:
                 fh.write("\n".join(lines))
         except Exception as exc:
-            self.log_queue.put(f"[LOG WARN] マージログ書き込み失敗: {exc}")
+            self.log_queue.put(gettext("log_merge_write_failed", error=exc))
 
     def _stop_merge(self) -> None:
         """マージ系 Stop ボタン: stop イベントをセット (merge関数側が対応する場合に有効)。"""
         self._merge_stop_event.set()
-        self.log_queue.put("[Stop] マージ停止要求を送信しました。現在処理中のテンソルが完了後に停止します。")
+        self.log_queue.put(gettext("log_stop_merge"))
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([f"{now} [Stop Merge] 停止要求送信", ""])
 
     def _stop_analysis(self) -> None:
         """分析 Stop ボタン。"""
         self._analysis_stop_event.set()
-        self.log_queue.put("[Stop] 分析停止要求を送信しました。")
+        self.log_queue.put(gettext("log_stop_analysis"))
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([f"{now} [Stop Analysis] 停止要求送信", ""])
         self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
-        self.after(0, lambda: self.analysis_status_var.set("停止しました。"))
+        self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_stopped")))
 
     def log(self, message: str) -> None:
         self.log_text.insert(tk.END, message + "\n")
@@ -1332,6 +1357,65 @@ class AnimaModelEditor(tk.Tk):
             except queue.Empty:
                 break
         self.after(100, self._drain_logs)
+
+
+    # ─── 設定タブ ─────────────────────────────────────────────
+    def _build_settings_tab(self, parent: ttk.Frame) -> None:
+        """設定タブを構築する。言語選択と設定保存ボタンを提供する。"""
+        from .i18n import get_supported_languages, save_language, get_language
+
+        wrapper = ttk.Frame(parent, padding=24)
+        wrapper.pack(anchor=tk.NW)
+
+        ttk.Label(
+            wrapper,
+            text=gettext("settings_language_label"),
+            font=("TkDefaultFont", 11, "bold"),
+        ).grid(row=0, column=0, sticky=tk.W, padx=(0, 12), pady=(0, 4))
+
+        supported = get_supported_languages()
+        # 言語コードを表示名に変換するマッピング
+        lang_display = {
+            lang: gettext(f"lang_{lang}", **{}) or lang
+            for lang in supported
+        }
+        display_names = [lang_display.get(lang, lang) for lang in supported]
+
+        lang_var = tk.StringVar(value=lang_display.get(get_language(), get_language()))
+        lang_combo = ttk.Combobox(
+            wrapper,
+            textvariable=lang_var,
+            values=display_names,
+            state="readonly",
+            width=20,
+        )
+        lang_combo.grid(row=0, column=1, sticky=tk.W, pady=(0, 4))
+
+        ttk.Label(
+            wrapper,
+            text=gettext("settings_language_note"),
+            foreground="#64748B",
+        ).grid(row=1, column=0, columnspan=2, sticky=tk.W, pady=(0, 12))
+
+        def _save_settings() -> None:
+            selected_display = lang_var.get()
+            # 表示名からコードへの逆引き
+            selected_code = next(
+                (code for code, disp in lang_display.items() if disp == selected_display),
+                selected_display,
+            )
+            save_language(selected_code)
+            self.log(gettext("settings_saved"))
+            messagebox.showinfo(
+                gettext("settings_restart_title"),
+                gettext("settings_restart_msg"),
+            )
+
+        ttk.Button(
+            wrapper,
+            text=gettext("preset_save"),  # "Save" / "保存"
+            command=_save_settings,
+        ).grid(row=2, column=0, columnspan=2, sticky=tk.W)
 
 
 def main() -> None:

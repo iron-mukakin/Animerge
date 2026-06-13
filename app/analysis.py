@@ -43,6 +43,7 @@ from .model_io import (
     sha256_file,
     validate_model_path,
 )
+from .i18n import gettext as _
 
 
 # ─── 定数 ────────────────────────────────────────────────────────────────────
@@ -214,7 +215,7 @@ def _iter_analysis_tensors(
         try:
             calc_tensor = tensor.detach().to(device).float()
         except Exception as exc:
-            progress(f"[WARN] テンソル転送失敗: {orig_key} ({exc})")
+            progress(_("analysis_log_tensor_fail", key=orig_key, error=exc))
             continue
 
         group = _group_label(norm_key, layer_mode)
@@ -224,9 +225,9 @@ def _iter_analysis_tensors(
             try:
                 if device.startswith("cuda") and hasattr(torch, "cuda"):
                     allocated = torch.cuda.memory_allocated() / (1024 ** 3)
-                    progress(f"分析中 {processed}/{total} 層 (VRAM: {allocated:.2f} GB)")
+                    progress(_("analysis_log_analyzing_vram", done=processed, total=total, vram=allocated))
                 else:
-                    progress(f"分析中 {processed}/{total} 層")
+                    progress(_("analysis_log_analyzing", done=processed, total=total))
             except Exception:
                 progress(f"分析中 {processed}/{total} 層")
 
@@ -434,11 +435,7 @@ def _generate_auto_report(
         if all_means and block_means["Middle"] > 0:
             global_mean = sum(all_means) / len(all_means)
             if block_means["Middle"] > global_mean * 1.3:
-                lines.append(
-                    "[判定パターンA] 本モデル/LoRAは構図・オブジェクト配置（Middle Block）に"
-                    "学習が偏っています。スタイルやテクスチャを司るInput/Output Blockへの影響は"
-                    "軽微であるため、画風特化型モデル/LoRAとマージする際の競合リスクは低いです。"
-                )
+                lines.append(_("analysis_report_pattern_a"))
 
     # ── 統計: 異常値レイヤー検出 ────────────────────────────────────────
     if method == "Statistical":
@@ -453,9 +450,8 @@ def _generate_auto_report(
             if outliers:
                 keys_str = ", ".join(r.key[:60] for r in outliers[:5])
                 lines.append(
-                    f"[異常値検出] L2ノルムが統計的閾値（{threshold:.4f}）を超えるレイヤーが"
-                    f" {len(outliers)} 層検出されました: {keys_str}"
-                    + ("..." if len(outliers) > 5 else "")
+                    _("analysis_report_outlier", threshold=threshold, count=len(outliers),
+                      keys=keys_str + ("..." if len(outliers) > 5 else ""))
                 )
 
     # ── SVD: 高冗長レイヤー検出 ─────────────────────────────────────────
@@ -463,17 +459,15 @@ def _generate_auto_report(
         high_decay = [r for r in records if r.svd_decay_rate < 0.05 and r.svd_effective_rank > 0]
         if high_decay:
             lines.append(
-                f"[冗長度警告] 特異値の減衰率が極めて低い（高冗長）レイヤーが"
-                f" {len(high_decay)} 層存在します。これらはLoRAランクを削減しても"
-                "モデルの表現力への影響が小さいと推定されます。"
+                _("analysis_report_redundant", count=len(high_decay))
             )
 
     if not lines:
-        lines.append("[自動レポート] 顕著な学習偏りや異常パターンは検出されませんでした。")
+        lines.append(_("analysis_report_no_issue"))
 
     # ── モデル特徴サマリー（マージ・学習共通ヒント） ──────────────
     lines.append("")
-    lines.append("=== モデル特徴 ===")
+    lines.append(_("analysis_report_model_feature"))
 
     if records and aggregated:
         total = len(records)
@@ -482,22 +476,22 @@ def _generate_auto_report(
         priority_groups, discard_groups = _rank_groups_by_score(aggregated, method)
         top_g = max(1, len(aggregated) // 3)
 
-        lines.append("[マージ優先(group)]")
+        lines.append(_("analysis_report_merge_priority_group"))
         for g in priority_groups[:top_g]:
             lines.append(f"  {g}")
 
-        lines.append("[破棄候補(group)]")
+        lines.append(_("analysis_report_discard_group"))
         for g in discard_groups[:top_g]:
             lines.append(f"  {g}")
 
         # --- レイヤーレベル: マージ優先(full) / 破棄候補(full) ---
         lines.append("")
-        lines.append("[マージ優先(full)]")
+        lines.append(_("analysis_report_merge_priority_full"))
         merge_priority = _pick_merge_priority(records, method)
         for r in merge_priority:
             lines.append(f"  {r.key}  ({r.group})")
 
-        lines.append("[破棄候補(full)]")
+        lines.append(_("analysis_report_discard_full"))
         discard_cands = _pick_discard_candidates(records, method)
         for r in discard_cands:
             lines.append(f"  {r.key}  ({r.group})")
@@ -506,8 +500,8 @@ def _generate_auto_report(
         if method == "SVD Rank":
             median_rank = sorted(r.svd_effective_rank for r in records)[total // 2]
             lines.append("")
-            lines.append(f"[LoRAランク推奨] 有効ランク中央値: {median_rank}")
-            lines.append(f"  → 推奨 LoRA rank: {_recommend_lora_rank(median_rank)}")
+            lines.append(_("analysis_report_lora_rank", rank=median_rank))
+            lines.append(_("analysis_report_lora_rank_rec", rank=_recommend_lora_rank(median_rank)))
 
     return lines
 
@@ -689,10 +683,10 @@ def _build_log_text(report: AnalysisReport, aggregated: dict[str, dict[str, floa
     if report.important_layer_keys or report.unimportant_layer_keys:
         lines.append("[MERGE_HINTS]")
         lines.append(_METADATA_SEPARATOR)
-        lines.append("# マージ優先(full) - 高情報密度・表現寄与大")
+        lines.append(_("analysis_report_merge_hint_priority"))
         for k in report.important_layer_keys:
             lines.append(f"PRIORITY(full): {k}")
-        lines.append("# 破棄候補(full) - 低情報密度・高冗長")
+        lines.append(_("analysis_report_merge_hint_discard"))
         for k in report.unimportant_layer_keys:
             lines.append(f"DISCARD(full):  {k}")
         lines.append(_METADATA_SEPARATOR)
@@ -770,12 +764,12 @@ def load_analysis_log(log_path: Path) -> dict[str, Any]:
 
     # METADATA の存在確認（整合性検証）
     if "[METADATA]" not in text:
-        raise ValueError(f"ログファイルのフォーマットが不正です（[METADATA]セクションがありません）: {log_path}")
+        raise ValueError(_("log_format_err", path=log_path))
 
     # METADATA パース
     meta_lines = _extract_section("METADATA")
     if not meta_lines:
-        raise ValueError(f"[METADATA]セクションが空です: {log_path}")
+        raise ValueError(_("log_metadata_empty", path=log_path))
     metadata: dict[str, Any] = {}
     for line in meta_lines:
         if ": " in line:
@@ -784,8 +778,10 @@ def load_analysis_log(log_path: Path) -> dict[str, Any]:
 
     if metadata.get("format_version") != _LOG_FORMAT_VERSION:
         raise ValueError(
-            f"ログのフォーマットバージョンが一致しません "
-            f"(expected={_LOG_FORMAT_VERSION}, got={metadata.get('format_version')}): {log_path}"
+            _("log_version_mismatch",
+              expected=_LOG_FORMAT_VERSION,
+              got=metadata.get('format_version'),
+              path=log_path)
         )
 
     # AUTO_REPORT
@@ -865,20 +861,20 @@ def run_analysis(
     from .model_io import require_torch
 
     if method not in ANALYSIS_METHODS:
-        raise ValueError(f"未知の分析手法: {method}. 選択肢: {ANALYSIS_METHODS}")
+        raise ValueError(_("analysis_warn_bad_method", method=method, choices=ANALYSIS_METHODS))
     if layer_mode not in LAYER_DISPLAY_MODES:
-        raise ValueError(f"未知の表示レイヤー: {layer_mode}. 選択肢: {LAYER_DISPLAY_MODES}")
+        raise ValueError(_("analysis_warn_bad_mode", mode=layer_mode, choices=LAYER_DISPLAY_MODES))
 
     log = progress or (lambda _: None)
     torch = require_torch()
 
     # CUDA フォールバック
     if device.startswith("cuda") and (not hasattr(torch, "cuda") or not torch.cuda.is_available()):
-        log("CUDA は利用できません。CPUにフォールバックします。")
+        log(_("analysis_warn_cuda_fallback"))
         device = "cpu"
 
     validate_model_path(model_path)
-    log(f"モデルを読み込み中: {model_path.name}")
+    log(_("analysis_log_loading", name=model_path.name))
     state_dict = load_state_dict(model_path, device)
 
     is_lora = _is_lora_state_dict(state_dict)
@@ -886,7 +882,7 @@ def run_analysis(
     model_name = model_path.stem
     timestamp = datetime.datetime.now().isoformat(timespec="seconds")
 
-    log(f"SHA256 計算中...")
+    log(_("analysis_log_sha256"))
     sha = sha256_file(model_path)
 
     report = AnalysisReport(
@@ -899,10 +895,10 @@ def run_analysis(
         timestamp=timestamp,
     )
 
-    log(f"分析開始: {method} / {layer_mode} / {model_type} ({model_name})")
+    log(_("analysis_log_start", method=method, mode=layer_mode, type=model_type, name=model_name))
 
     if key_correction:
-        log("キー正規化 (anima-base-v1.0 形式) を適用中...")
+        log(_("analysis_log_key_correct"))
 
     # 段階的レイヤー分析
     for orig_key, norm_key, group, cpu_tensor in _iter_analysis_tensors(
@@ -921,7 +917,7 @@ def run_analysis(
         try:
             result = _run_method(torch, method, cpu_tensor, norm_key)
         except Exception as exc:
-            report.warnings.append(f"分析失敗: {orig_key} ({exc})")
+            report.warnings.append(_("analysis_log_fail", key=orig_key, error=exc))
             continue
 
         # 結果をレコードに書き込む
@@ -937,23 +933,20 @@ def run_analysis(
         torch.cuda.empty_cache()
 
     if not report.records:
-        raise ValueError(
-            "分析対象のテンソルが見つかりませんでした。"
-            "モデルファイルとレイヤー選択を確認してください。"
-        )
+        raise ValueError(_("analysis_warn_no_tensors"))
 
-    log(f"集計中... ({len(report.records)} レイヤー)")
+    log(_("analysis_log_aggregate", count=len(report.records)))
     aggregated = _aggregate_groups(report.records, method, torch)
 
-    log("自動レポート生成中...")
+    log(_("analysis_log_report"))
     report.auto_report_lines = _generate_auto_report(report.records, method, aggregated)
     imp_keys, unimp_keys = _collect_important_keys(report.records, method)
     report.important_layer_keys = imp_keys
     report.unimportant_layer_keys = unimp_keys
 
-    log("ログ保存中...")
+    log(_("analysis_log_saving"))
     log_path = save_analysis_log(report, log_dir, aggregated)
     report.log_path = log_path
-    log(f"保存完了: {log_path.name}")
+    log(_("analysis_log_saved", name=log_path.name))
 
     return report
