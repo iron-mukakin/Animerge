@@ -17,6 +17,17 @@ import json
 import re
 from typing import Callable
 
+try:
+    from .i18n import gettext, load_language
+except ImportError:
+    # importlib による直接ロード時（leco_train 等）のフォールバック
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from i18n import gettext, load_language  # type: ignore[no-redef]
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 定数 (anima_train_utils.py / anima_train_network.py 由来)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -70,16 +81,16 @@ def build_lora_train_tab(
     tab_sample  = ttk.Frame(nb, padding=8)
     tab_preset  = ttk.Frame(nb, padding=8)
 
-    nb.add(tab_model,   text="  モデル  ")
-    nb.add(tab_dataset, text="  データセット  ")
-    nb.add(tab_network, text="  ネットワーク  ")
-    nb.add(tab_train,   text="  学習設定  ")
-    nb.add(tab_adv,     text="  詳細  ")
-    nb.add(tab_layer,   text="  階層学習  ")
-    nb.add(tab_monitor, text="  モニターグラフ  ")
-    nb.add(tab_monitor_layer, text="  モニター階層  ")
-    nb.add(tab_sample,  text="  サンプル生成  ")
-    nb.add(tab_preset,  text="  プリセット  ")
+    nb.add(tab_model,   text=gettext("lora_tab_model"))
+    nb.add(tab_dataset, text=gettext("lora_tab_dataset"))
+    nb.add(tab_network, text=gettext("lora_tab_network"))
+    nb.add(tab_train,   text=gettext("lora_tab_train"))
+    nb.add(tab_adv,     text=gettext("lora_tab_adv"))
+    nb.add(tab_layer,   text=gettext("lora_tab_layer"))
+    nb.add(tab_monitor, text=gettext("lora_tab_monitor"))
+    nb.add(tab_monitor_layer, text=gettext("lora_tab_monitor_layer"))
+    nb.add(tab_sample,  text=gettext("lora_tab_sample"))
+    nb.add(tab_preset,  text=gettext("lora_tab_preset"))
 
     _build_model_tab(tab_model,   state)
     _build_dataset_tab(tab_dataset, state)
@@ -216,7 +227,7 @@ class _TrainState:
         self.early_stopping_threshold = tk.DoubleVar(value=0.01)
 
         # ステータス
-        self.status_var     = tk.StringVar(value="待機中")
+        self.status_var     = tk.StringVar(value=gettext("status_waiting"))
         self._log_widgets: list[tk.Text] = []
         self._log_drain_started = False
 
@@ -233,14 +244,16 @@ def _row(parent, row: int, label: str, widget_factory):
     return w
 
 
-def _browse_file(var: tk.StringVar, title="ファイル選択", filetypes=None, parent=None):
+def _browse_file(var: tk.StringVar, title: str | None = None, filetypes=None, parent=None):
+    title = title or gettext("lora_browse_file_title")
     ft = filetypes or [("safetensors", "*.safetensors"), ("All", "*.*")]
     path = filedialog.askopenfilename(title=title, filetypes=ft)
     if path:
         var.set(path)
 
 
-def _browse_dir(var: tk.StringVar, title="フォルダ選択"):
+def _browse_dir(var: tk.StringVar, title: str | None = None):
+    title = title or gettext("lora_browse_dir_title")
     path = filedialog.askdirectory(title=title)
     if path:
         var.set(path)
@@ -267,31 +280,31 @@ def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
 def _build_model_tab(parent: ttk.Frame, s: _TrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="モデルパス")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_model_paths"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
 
-    _entry_browse_row(lf, 0, "DiT (pretrained_model)", s.model_path,
+    _entry_browse_row(lf, 0, gettext("lora_dit_label"), s.model_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 1, "VAE", s.vae_path,
+    _entry_browse_row(lf, 1, gettext("lora_vae_label"), s.vae_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 2, "Qwen3テキストエンコーダ", s.qwen3_path,
+    _entry_browse_row(lf, 2, gettext("lora_qwen3_label"), s.qwen3_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 3, "LLM Adapter (任意)", s.llm_adapter_path,
+    _entry_browse_row(lf, 3, gettext("lora_llm_adapter_label"), s.llm_adapter_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
-    lf2 = ttk.LabelFrame(parent, text="出力設定")
+    lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
     lf2.pack(fill=tk.X)
     lf2.columnconfigure(1, weight=1)
 
-    _entry_browse_row(lf2, 0, "出力フォルダ", s.output_dir, is_dir=True)
+    _entry_browse_row(lf2, 0, gettext("lora_output_folder"), s.output_dir, is_dir=True)
 
-    ttk.Label(lf2, text="出力ファイル名", width=24, anchor=tk.W).grid(
+    ttk.Label(lf2, text=gettext("lora_output_filename"), width=24, anchor=tk.W).grid(
         row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Entry(lf2, textvariable=s.output_name).grid(
         row=1, column=1, sticky=tk.EW, padx=(0, 4), pady=3)
 
-    ttk.Label(lf2, text="保存精度", width=24, anchor=tk.W).grid(
+    ttk.Label(lf2, text=gettext("lora_save_precision"), width=24, anchor=tk.W).grid(
         row=2, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Combobox(lf2, textvariable=s.precision, values=PRECISIONS,
                  state="readonly", width=10).grid(
@@ -304,23 +317,23 @@ def _build_model_tab(parent: ttk.Frame, s: _TrainState) -> None:
 def _build_dataset_tab(parent: ttk.Frame, s: _TrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="データセット")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_dataset_label"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
 
-    _entry_browse_row(lf, 0, "学習データフォルダ", s.train_data_dir, is_dir=True)
+    _entry_browse_row(lf, 0, gettext("lora_train_data_dir"), s.train_data_dir, is_dir=True)
 
-    ttk.Label(lf, text="解像度 (W,H)", width=24, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_resolution"), width=24, anchor=tk.W).grid(
         row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Entry(lf, textvariable=s.resolution, width=14).grid(
         row=1, column=1, sticky=tk.W, padx=(0, 4), pady=3)
 
-    ttk.Label(lf, text="バッチサイズ", width=24, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_batch_size"), width=24, anchor=tk.W).grid(
         row=2, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Spinbox(lf, from_=1, to=64, textvariable=s.batch_size, width=6).grid(
         row=2, column=1, sticky=tk.W, padx=(0, 4), pady=3)
 
-    ttk.Label(lf, text="キャプション拡張子", width=24, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_caption_ext"), width=24, anchor=tk.W).grid(
         row=3, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Entry(lf, textvariable=s.caption_extension, width=10).grid(
         row=3, column=1, sticky=tk.W, padx=(0, 4), pady=3)
@@ -331,7 +344,7 @@ def _build_dataset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=4, column=1, sticky=tk.W, padx=(0, 4), pady=3)
 
     # チェックボックス群
-    lf2 = ttk.LabelFrame(parent, text="キャッシュ / 拡張")
+    lf2 = ttk.LabelFrame(parent, text=gettext("lora_cache_group"))
     lf2.pack(fill=tk.X, pady=(0, 8))
 
     ttk.Checkbutton(lf2, text="cache_latents", variable=s.cache_latents).grid(
@@ -346,7 +359,7 @@ def _build_dataset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=1, column=1, sticky=tk.W, padx=8, pady=3)
 
     # バケット設定
-    lf3 = ttk.LabelFrame(parent, text="バケット設定")
+    lf3 = ttk.LabelFrame(parent, text=gettext("lora_bucket_settings"))
     lf3.pack(fill=tk.X)
     lf3.columnconfigure(1, weight=1)
 
@@ -374,7 +387,7 @@ def _build_dataset_tab(parent: ttk.Frame, s: _TrainState) -> None:
 def _build_network_tab(parent: ttk.Frame, s: _TrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="LoRAネットワーク設定")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_network_settings"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
 
@@ -395,11 +408,11 @@ def _build_network_tab(parent: ttk.Frame, s: _TrainState) -> None:
     ttk.Entry(lf, textvariable=s.network_alpha, width=10).grid(
         row=2, column=1, sticky=tk.W, padx=(0, 4), pady=3)
 
-    ttk.Checkbutton(lf, text="network_train_unet_only (DiTのみ学習)",
+    ttk.Checkbutton(lf, text="network_train_unet_only (" + gettext("lora_dit_only_short") + ")",
                     variable=s.network_train_unet_only).grid(
         row=3, column=0, columnspan=2, sticky=tk.W, padx=4, pady=3)
 
-    _entry_browse_row(lf, 4, "network_weights (再開用)", s.network_weights,
+    _entry_browse_row(lf, 4, gettext("lora_network_weights_label"), s.network_weights,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
 
@@ -410,7 +423,7 @@ def _build_network_tab(parent: ttk.Frame, s: _TrainState) -> None:
 def _build_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="学習パラメータ")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_train_params"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
     lf.columnconfigure(3, weight=1)
@@ -474,7 +487,7 @@ def _build_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     ttk.Entry(lf, textvariable=s.max_grad_norm, width=10).grid(
         row=5, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
-    lf2 = ttk.LabelFrame(parent, text="メモリ最適化")
+    lf2 = ttk.LabelFrame(parent, text=gettext("lora_memory_opt"))
     lf2.pack(fill=tk.X)
     ttk.Checkbutton(lf2, text="gradient_checkpointing", variable=s.gradient_checkpointing).grid(
         row=0, column=0, sticky=tk.W, padx=8, pady=3)
@@ -486,7 +499,7 @@ def _build_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
 def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="Anima固有設定")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_adv_settings"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
     lf.columnconfigure(3, weight=1)
@@ -519,13 +532,13 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
     ttk.Combobox(lf, textvariable=s.attn_mode, values=ATTN_MODES,
                  state="readonly", width=14).grid(
         row=2, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    ttk.Label(lf, text="blocks_to_swap (0=無効)", width=20, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_blocks_to_swap"), width=20, anchor=tk.W).grid(
         row=2, column=2, sticky=tk.W, padx=(0, 2), pady=3)
     ttk.Spinbox(lf, from_=0, to=100, textvariable=s.blocks_to_swap, width=8).grid(
         row=2, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
     # row 3: vae_chunk_size / qwen3_max_token_length
-    ttk.Label(lf, text="vae_chunk_size (空欄=無効)", width=22, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_vae_chunk_size"), width=22, anchor=tk.W).grid(
         row=3, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Entry(lf, textvariable=s.vae_chunk_size, width=10).grid(
         row=3, column=1, sticky=tk.W, padx=(0, 12), pady=3)
@@ -554,7 +567,7 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
     ).grid(row=0, column=1)
 
     # チェックボックス行
-    lf2 = ttk.LabelFrame(parent, text="オフロード / キャッシュ")
+    lf2 = ttk.LabelFrame(parent, text=gettext("lora_offload_cache_label"))
     lf2.pack(fill=tk.X, pady=(0, 8))
 
     ttk.Checkbutton(lf2, text="split_attn", variable=s.split_attn).grid(
@@ -567,46 +580,46 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
 
     # Validation / EarlyStopping
-    lf4 = ttk.LabelFrame(parent, text="Validation / Early Stopping")
+    lf4 = ttk.LabelFrame(parent, text=gettext("lora_validation_label"))
     lf4.pack(fill=tk.X)
     lf4.columnconfigure(1, weight=1)
     lf4.columnconfigure(3, weight=1)
 
     # row0: validation_split
-    ttk.Label(lf4, text="検証データ分割比率", width=22, anchor=tk.W).grid(
+    ttk.Label(lf4, text=gettext("lora_validation_split"), width=22, anchor=tk.W).grid(
         row=0, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Entry(lf4, textvariable=s.validation_split, width=10).grid(
         row=0, column=1, sticky=tk.W, padx=(0, 4), pady=3)
-    ttk.Label(lf4, text="0.0=無効  例: 0.1 → 学習データの10%を検証用に分割",
+    ttk.Label(lf4, text=gettext("lora_validation_split_note"),
               foreground="#64748B").grid(
         row=0, column=2, columnspan=2, sticky=tk.W, padx=(0, 4), pady=3)
 
     # row1: early_stopping ON/OFF + mode
-    es_cb = ttk.Checkbutton(lf4, text="Early Stopping を有効にする",
+    es_cb = ttk.Checkbutton(lf4, text=gettext("lora_es_enable"),
                             variable=s.early_stopping)
     es_cb.grid(row=1, column=0, columnspan=2, sticky=tk.W, padx=(4, 2), pady=3)
-    ttk.Label(lf4, text="判定タイミング", width=14, anchor=tk.W).grid(
+    ttk.Label(lf4, text=gettext("lora_es_timing"), width=14, anchor=tk.W).grid(
         row=1, column=2, sticky=tk.W, padx=(0, 2), pady=3)
     ttk.Combobox(lf4, textvariable=s.early_stopping_mode,
                  values=["epoch", "step"],
                  state="readonly", width=8).grid(
         row=1, column=3, sticky=tk.W, padx=(0, 4), pady=3)
-    ttk.Label(lf4, text="epoch=エポック終了時に判定 / step=指定ステップごとに判定",
+    ttk.Label(lf4, text=gettext("lora_es_timing_note"),
               foreground="#64748B").grid(
         row=2, column=0, columnspan=4, sticky=tk.W, padx=(4, 4), pady=(0, 3))
 
     # row3: patience / threshold
-    ttk.Label(lf4, text="連続悪化の許容回数", width=22, anchor=tk.W).grid(
+    ttk.Label(lf4, text=gettext("lora_es_patience"), width=22, anchor=tk.W).grid(
         row=3, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Spinbox(lf4, from_=1, to=100,
                 textvariable=s.early_stopping_patience, width=8).grid(
         row=3, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    ttk.Label(lf4, text="悪化判定しきい値", width=16, anchor=tk.W).grid(
+    ttk.Label(lf4, text=gettext("lora_es_threshold"), width=16, anchor=tk.W).grid(
         row=3, column=2, sticky=tk.W, padx=(0, 2), pady=3)
     ttk.Entry(lf4, textvariable=s.early_stopping_threshold, width=10).grid(
         row=3, column=3, sticky=tk.W, padx=(0, 4), pady=3)
     ttk.Label(lf4,
-              text="しきい値: Val Loss が前回比でこの値を超えて上昇したとき悪化とみなす",
+              text=gettext("lora_es_threshold_note"),
               foreground="#64748B").grid(
         row=4, column=0, columnspan=4, sticky=tk.W, padx=(4, 4), pady=(0, 4))
 
@@ -621,12 +634,12 @@ def _build_layer_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     hdr.pack(fill=tk.X, pady=(0, 4))
 
     ttk.Checkbutton(
-        hdr, text="階層学習を有効にする",
+        hdr, text=gettext("lora_layer_train_enable"),
         variable=s.layer_train_enabled,
         command=lambda: _refresh_layer_controls(s, ctrl_canvas, ctrl_inner),
     ).pack(side=tk.LEFT, padx=(0, 12))
 
-    ttk.Label(hdr, text="モード:").pack(side=tk.LEFT)
+    ttk.Label(hdr, text=gettext("lora_layer_mode_label")).pack(side=tk.LEFT)
     mode_cb = ttk.Combobox(
         hdr, textvariable=s.layer_display_mode,
         values=list(LAYER_TRAIN_MODES), state="readonly", width=14,
@@ -638,12 +651,12 @@ def _build_layer_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     )
 
     ttk.Button(
-        hdr, text="プリセット読み込み",
+        hdr, text=gettext("lora_layer_preset_load"),
         command=lambda: _load_layer_preset(s, ctrl_canvas, ctrl_inner),
     ).pack(side=tk.LEFT)
 
     # ── スクロール可能なスライダーエリア ──────────────────────────────
-    canvas_frame = ttk.LabelFrame(parent, text="ブロック別スケール (0.0 = freeze / 1.0 = base LR)")
+    canvas_frame = ttk.LabelFrame(parent, text=gettext("lora_layer_scale_label"))
     canvas_frame.pack(fill=tk.BOTH, expand=True)
 
     ctrl_canvas = tk.Canvas(canvas_frame, highlightthickness=0)
@@ -666,7 +679,7 @@ def _build_layer_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     )
 
     # ── ステータスラベル ──────────────────────────────────────────────
-    s._layer_status_var = tk.StringVar(value="(無効)")
+    s._layer_status_var = tk.StringVar(value=gettext("lora_layer_status_disabled"))
     ttk.Label(parent, textvariable=s._layer_status_var, foreground="#334155").pack(
         anchor=tk.W, padx=4, pady=(2, 0)
     )
@@ -695,10 +708,10 @@ def _refresh_layer_controls(
         child.destroy()
 
     if not s.layer_train_enabled.get():
-        ttk.Label(inner, text="階層学習は無効です。チェックボックスをONにしてください。").grid(
+        ttk.Label(inner, text=gettext("lora_layer_disabled_msg")).grid(
             row=0, column=0, padx=8, pady=8, sticky=tk.W
         )
-        s._layer_status_var.set("(無効)")
+        s._layer_status_var.set(gettext("lora_layer_status_disabled"))
         canvas.configure(scrollregion=canvas.bbox("all"))
         return
 
@@ -736,11 +749,7 @@ def _refresh_layer_controls(
         warn_row = (len(groups) + cols - 1) // cols
         warn_lbl = tk.Label(
             inner,
-            text=(
-                "⚠ Component モードはブロック情報をLoRAキーから分解できないため、"
-                "全ブロック共通の平均スケールとして適用されます。\n"
-                "ブロック別精度が必要な場合は Transformer または Matrix モードを使用してください。"
-            ),
+            text=gettext("lora_layer_component_warn"),
             foreground="red",
             justify=tk.LEFT,
             wraplength=600,
@@ -751,11 +760,10 @@ def _refresh_layer_controls(
         )
         canvas.configure(scrollregion=canvas.bbox("all"))
         s._layer_status_var.set(
-            f"mode={mode}  {len(groups)} グループ  "
-            "[警告] ブロック別精度低下あり・構造限界"
+            gettext("lora_layer_status_warn", mode=mode, count=len(groups))
         )
     else:
-        s._layer_status_var.set(f"mode={mode}  {len(groups)} グループ")
+        s._layer_status_var.set(gettext("lora_layer_status", mode=mode, count=len(groups)))
 
 
 def _snap_scale(var: tk.DoubleVar) -> None:
@@ -884,7 +892,7 @@ def _load_layer_preset(s: _TrainState, canvas: tk.Canvas, inner: ttk.Frame) -> N
     preset_dir = s.paths.root / "preset" / "merge"
     preset_dir.mkdir(parents=True, exist_ok=True)
     path = filedialog.askopenfilename(
-        title="プリセット選択",
+        title=gettext("lora_layer_preset_select_title"),
         initialdir=str(preset_dir),
         filetypes=[("JSON", "*.json"), ("All", "*.*")],
     )
@@ -894,7 +902,7 @@ def _load_layer_preset(s: _TrainState, canvas: tk.Canvas, inner: ttk.Frame) -> N
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except Exception as exc:
         from tkinter import messagebox
-        messagebox.showerror("プリセット読み込みエラー", str(exc))
+        messagebox.showerror(gettext("lora_layer_preset_error"), str(exc))
         return
 
     new_mode = data.get("layer_display_mode", "Matrix")
@@ -918,8 +926,10 @@ def _load_layer_preset(s: _TrainState, canvas: tk.Canvas, inner: ttk.Frame) -> N
                 pass
 
     s.log_fn(
-        f"[LayerLR] プリセット読み込み: {Path(path).name}  "
-        f"preset_mode={new_mode} -> gui_mode={s.layer_display_mode.get()}"
+        gettext("lora_layer_preset_log",
+                name=Path(path).name,
+                preset=new_mode,
+                gui=s.layer_display_mode.get())
     )
 
 
@@ -941,13 +951,13 @@ def _build_monitor_tab(parent: ttk.Frame, s: _TrainState) -> None:
     except Exception as exc:
         ttk.Label(
             graph_frame,
-            text=f"モニターグラフの初期化に失敗しました。\n{exc}",
+            text=gettext("lora_monitor_graph_init_error", error=exc),
             foreground="#EF4444",
             justify=tk.LEFT,
         ).pack(padx=16, pady=24, anchor=tk.W)
 
     # 学習ログ（既存 _build_run_panel と同仕様）
-    log_frame = ttk.LabelFrame(parent, text="学習ログ")
+    log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.grid(row=1, column=0, sticky=tk.EW, pady=(4, 0))
 
     log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 12))
@@ -970,7 +980,7 @@ def _build_monitor_layer_tab(parent: ttk.Frame, s: _TrainState) -> None:
     except Exception as exc:
         ttk.Label(
             parent,
-            text=f"モニター階層の初期化に失敗しました。\n{exc}",
+            text=gettext("lora_monitor_layer_init_error", error=exc),
             foreground="#EF4444",
             justify=tk.LEFT,
         ).pack(padx=16, pady=24, anchor=tk.W)
@@ -1072,10 +1082,10 @@ def _build_sample_ab_panel(
     top.columnconfigure(1, weight=1)
 
     ttk.Checkbutton(
-        top, text=f"サンプル{label}を有効にする", variable=enabled_var
+        top, text=gettext("lora_sample_enable", label=label), variable=enabled_var
     ).grid(row=0, column=0, columnspan=4, sticky=tk.W, padx=(2, 4), pady=2)
 
-    ttk.Label(top, text="出力先: ", foreground="#475569").grid(
+    ttk.Label(top, text=gettext("lora_sample_output_dir"), foreground="#475569").grid(
         row=1, column=0, sticky=tk.W, padx=(2, 0), pady=2)
     ttk.Label(top, text=str(sample_dir), foreground="#1D4ED8").grid(
         row=1, column=1, columnspan=3, sticky=tk.W, pady=2)
@@ -1091,7 +1101,7 @@ def _build_sample_ab_panel(
         row=3, column=1, columnspan=3, sticky=tk.EW, padx=(0, 4), pady=2)
 
     # ── ギャラリー ────────────────────────────────────────────────────────────
-    gallery = ttk.LabelFrame(parent, text=f"最新サンプル{label}")
+    gallery = ttk.LabelFrame(parent, text=gettext("lora_sample_gallery", label=label))
     gallery.grid(row=1, column=0, sticky=tk.NSEW)
     for c in range(5):
         gallery.columnconfigure(c, weight=1, uniform=f"sc_{label}")
@@ -1108,7 +1118,7 @@ def _build_sample_ab_panel(
         cell.rowconfigure(0, weight=1)
         img_lbl = ttk.Label(cell, anchor=tk.CENTER)
         img_lbl.grid(row=0, column=0, sticky=tk.NSEW)
-        ep_lbl = ttk.Label(cell, text="step -" if is_leco else "epoch -", anchor=tk.CENTER)
+        ep_lbl = ttk.Label(cell, text=gettext("lora_sample_step_label") if is_leco else gettext("lora_sample_epoch_label"), anchor=tk.CENTER)
         ep_lbl.grid(row=1, column=0, sticky=tk.EW, pady=(3, 0))
         cells.append((img_lbl, ep_lbl))
 
@@ -1128,7 +1138,7 @@ def _build_sample_ab_panel(
         for idx, (il, el) in enumerate(cells):
             if idx >= len(files):
                 il.configure(image="", text="")
-                el.configure(text="step -" if is_leco else "epoch -")
+                el.configure(text=gettext("lora_sample_step_label") if is_leco else gettext("lora_sample_epoch_label"))
                 photo_refs[idx] = None
                 continue
             p = files[idx]
@@ -1154,10 +1164,10 @@ def _build_sample_ab_panel(
     def _clear_cache() -> None:
         import tkinter as _tk
         dlg = _tk.Toplevel(top)
-        dlg.title("確認")
+        dlg.title(gettext("lora_sample_clear_confirm_title"))
         dlg.resizable(False, False)
         dlg.grab_set()
-        _tk.Label(dlg, text=f"サンプル{label} を全て削除しますか？",
+        _tk.Label(dlg, text=gettext("lora_sample_clear_confirm", label=label),
                   font=("TkDefaultFont", 11), padx=20, pady=16).pack()
         bf = _tk.Frame(dlg)
         bf.pack(pady=(0, 12))
@@ -1173,12 +1183,12 @@ def _build_sample_ab_panel(
                         f.unlink(); deleted += 1
                 except Exception:
                     errors += 1
-            msg = f"[サンプル{label}] {deleted}件削除。"
-            if errors: msg += f" ({errors}件失敗)"
+            msg = gettext("lora_sample_clear_done", label=label, count=deleted)
+            if errors: msg += gettext("lora_sample_clear_err", errors=errors)
             s.log_fn(msg)
             _refresh(False)
-        _tk.Button(bf, text="いいえ", width=10, command=_no).pack(side=_tk.LEFT, padx=(0, 8))
-        _tk.Button(bf, text="はい",   width=10, command=_yes).pack(side=_tk.LEFT)
+        _tk.Button(bf, text=gettext("lora_sample_clear_no"),  width=10, command=_no).pack(side=_tk.LEFT, padx=(0, 8))
+        _tk.Button(bf, text=gettext("lora_sample_clear_yes"), width=10, command=_yes).pack(side=_tk.LEFT)
         dlg.update_idletasks()
         px = top.winfo_rootx() + top.winfo_width()  // 2 - dlg.winfo_width()  // 2
         py = top.winfo_rooty() + top.winfo_height() // 2 - dlg.winfo_height() // 2
@@ -1186,8 +1196,8 @@ def _build_sample_ab_panel(
 
     btn_row = ttk.Frame(top)
     btn_row.grid(row=4, column=0, columnspan=4, sticky=tk.W, pady=(4, 2))
-    ttk.Button(btn_row, text="表示更新",     command=lambda: _refresh(False)).pack(side=tk.LEFT, padx=(0, 6))
-    ttk.Button(btn_row, text="キャッシュクリア", command=_clear_cache).pack(side=tk.LEFT)
+    ttk.Button(btn_row, text=gettext("lora_sample_refresh"), command=lambda: _refresh(False)).pack(side=tk.LEFT, padx=(0, 6))
+    ttk.Button(btn_row, text=gettext("lora_sample_clear"),   command=_clear_cache).pack(side=tk.LEFT)
 
     _refresh(True)
 
@@ -1206,19 +1216,19 @@ def _build_sample_tab_common(
     parent.rowconfigure(1, weight=1)
 
     # ── 共通設定 ─────────────────────────────────────────────────────────────
-    common = ttk.LabelFrame(parent, text="共通生成条件")
+    common = ttk.LabelFrame(parent, text=gettext("lora_sample_common"))
     common.grid(row=0, column=0, sticky=tk.EW, pady=(0, 6))
     common.columnconfigure(1, weight=1)
     common.columnconfigure(3, weight=1)
 
-    interval_label = "step間隔" if is_leco else "epoch間隔"
+    interval_label = gettext("lora_sample_step_interval") if is_leco else gettext("lora_sample_epoch_interval")
     interval_var   = s.sample_every_n_steps if is_leco else s.sample_every_n_epochs
 
     ttk.Label(common, text=interval_label, width=16, anchor=tk.W).grid(
         row=0, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Spinbox(common, from_=1, to=99999, textvariable=interval_var, width=8).grid(
         row=0, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    ttk.Label(common, text=f"seed固定: {SAMPLE_FIXED_SEED}", foreground="#64748B").grid(
+    ttk.Label(common, text=gettext("lora_sample_fixed_seed", seed=SAMPLE_FIXED_SEED), foreground="#64748B").grid(
         row=0, column=2, columnspan=2, sticky=tk.W, padx=(0, 4), pady=3)
 
     ttk.Label(common, text="width / height", width=16, anchor=tk.W).grid(
@@ -1245,7 +1255,7 @@ def _build_sample_tab_common(
 
     if is_leco:
         ttk.Checkbutton(
-            common, text="VAEを学習中保持 (sample_keep_vae)",
+            common, text=gettext("lora_sample_keep_vae"),
             variable=s.sample_keep_vae,
         ).grid(row=3, column=0, columnspan=4, sticky=tk.W, padx=(4, 4), pady=3)
 
@@ -1255,8 +1265,8 @@ def _build_sample_tab_common(
 
     tab_a = ttk.Frame(ab_nb, padding=4)
     tab_b = ttk.Frame(ab_nb, padding=4)
-    ab_nb.add(tab_a, text="  サンプルA  ")
-    ab_nb.add(tab_b, text="  サンプルB  ")
+    ab_nb.add(tab_a, text=gettext("lora_sample_a"))
+    ab_nb.add(tab_b, text=gettext("lora_sample_b"))
 
     # LoRA: sd-scripts が {output_name}_{ts}_e{epoch:06d}_{idx:02d}.png を生成
     #   A = promptファイル1行目 → _00.png
@@ -1302,7 +1312,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         return d
 
     # ── リストボックス ──────────────────────────────────────────
-    list_frame = ttk.LabelFrame(parent, text="保存済みプリセット")
+    list_frame = ttk.LabelFrame(parent, text=gettext("lora_preset_saved"))
     list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
     lb = tk.Listbox(list_frame, height=10, selectmode=tk.SINGLE)
@@ -1314,7 +1324,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
     # ── 名前入力 + ボタン行 ──────────────────────────────────────
     name_row = ttk.Frame(parent)
     name_row.pack(fill=tk.X, pady=(0, 4))
-    ttk.Label(name_row, text="Name:").pack(side=tk.LEFT)
+    ttk.Label(name_row, text=gettext("lora_preset_name")).pack(side=tk.LEFT)
     name_var = tk.StringVar()
     ttk.Entry(name_row, textvariable=name_var, width=28).pack(side=tk.LEFT, padx=(4, 8))
 
@@ -1511,7 +1521,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
     def _save() -> None:
         pname = name_var.get().strip()
         if not pname:
-            messagebox.showerror("Preset", "プリセット名を入力してください。")
+            messagebox.showerror("Preset", gettext("lora_preset_no_name"))
             return
         safe = "".join(c if c.isalnum() or c in "-_ " else "_" for c in pname)
         dest = _preset_dir() / f"{safe}.json"
@@ -1521,22 +1531,22 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
                 encoding="utf-8",
             )
         except Exception as exc:
-            messagebox.showerror("Preset", f"保存失敗: {exc}")
+            messagebox.showerror("Preset", gettext("lora_preset_save_failed", error=exc))
             return
         _refresh_list()
-        s.log_fn(f"[Preset] 保存: {dest.name}")
+        s.log_fn(gettext("lora_preset_log_saved", name=dest.name))
 
     # ── Load ──────────────────────────────────────────────────────
     def _load() -> None:
         sel = lb.curselection()
         if not sel:
-            messagebox.showerror("Preset", "プリセットを選択してください。")
+            messagebox.showerror("Preset", gettext("lora_preset_no_select"))
             return
         src = _preset_dir() / f"{lb.get(sel[0])}.json"
         try:
             data = json.loads(src.read_text(encoding="utf-8"))
         except Exception as exc:
-            messagebox.showerror("Preset", f"読み込み失敗: {exc}")
+            messagebox.showerror("Preset", gettext("lora_preset_load_failed", error=exc))
             return
         # 階層学習 enabled/mode を _apply より先にセットしてスライダーを生成する。
         # layer_parameter_vars が空のままだとスケール値が反映されないため先行処理が必要。
@@ -1569,7 +1579,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         if s.layer_canvas is not None and s.layer_inner is not None:
             _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
         _apply(data)
-        s.log_fn(f"[Preset] 読み込み: {src.name}")
+        s.log_fn(gettext("lora_preset_log_loaded", name=src.name))
 
     # ── Delete ────────────────────────────────────────────────────
     def _delete() -> None:
@@ -1577,17 +1587,17 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         if not sel:
             return
         pname = lb.get(sel[0])
-        if not messagebox.askyesno("Preset", f"{pname} を削除しますか？"):
+        if not messagebox.askyesno("Preset", gettext("lora_preset_confirm_delete", name=pname)):
             return
         ((_preset_dir()) / f"{pname}.json").unlink(missing_ok=True)
         _refresh_list()
-        s.log_fn(f"[Preset] 削除: {pname}.json")
+        s.log_fn(gettext("lora_preset_log_deleted", name=f"{pname}.json"))
 
     # ── Export ────────────────────────────────────────────────────
     def _export() -> None:
         sel = lb.curselection()
         if not sel:
-            messagebox.showerror("Preset", "エクスポートするプリセットを選択してください。")
+            messagebox.showerror("Preset", gettext("lora_preset_no_select_export"))
             return
         pname = lb.get(sel[0])
         src = _preset_dir() / f"{pname}.json"
@@ -1599,7 +1609,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         if dest:
             import shutil
             shutil.copy2(src, dest)
-            s.log_fn(f"[Preset] エクスポート: {dest}")
+            s.log_fn(gettext("lora_preset_log_exported", dest=dest))
 
     # ── Import ────────────────────────────────────────────────────
     def _import() -> None:
@@ -1614,16 +1624,16 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         dest = _preset_dir() / f"{pname}.json"
         shutil.copy2(src, dest)
         _refresh_list()
-        s.log_fn(f"[Preset] インポート: {Path(src).name}")
+        s.log_fn(gettext("lora_preset_log_imported", name=Path(src).name))
 
     # ── ボタン配置 ────────────────────────────────────────────────
     for text, cmd in [
-        ("保存",             _save),
-        ("読み込み",         _load),
-        ("削除",             _delete),
-        ("エクスポート",     _export),
-        ("インポート",       _import),
-        ("一覧更新",         _refresh_list),
+        (gettext("lora_preset_save"),    _save),
+        (gettext("lora_preset_load"),    _load),
+        (gettext("lora_preset_delete"),  _delete),
+        (gettext("lora_preset_export"),  _export),
+        (gettext("lora_preset_import"),  _import),
+        (gettext("lora_preset_refresh"), _refresh_list),
     ]:
         ttk.Button(btn_row, text=text, command=cmd).pack(side=tk.LEFT, padx=4, pady=4)
 
@@ -1634,14 +1644,14 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
 # 実行パネル（主要な中タブ下部）
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_run_panel(parent: ttk.Frame, s: _TrainState) -> None:
-    frm = ttk.LabelFrame(parent, text="実行")
+    frm = ttk.LabelFrame(parent, text=gettext("lora_run_label"))
     frm.pack(fill=tk.X, pady=(6, 0))
 
     # コマンドプレビュー
     cmd_frame = ttk.Frame(frm)
     cmd_frame.pack(fill=tk.X, padx=4, pady=(4, 0))
-    ttk.Label(cmd_frame, text="コマンドプレビュー:").pack(side=tk.LEFT)
-    ttk.Button(cmd_frame, text="更新", command=lambda: _refresh_cmd(s, cmd_text)).pack(side=tk.LEFT, padx=4)
+    ttk.Label(cmd_frame, text=gettext("lora_cmd_preview")).pack(side=tk.LEFT)
+    ttk.Button(cmd_frame, text=gettext("lora_cmd_refresh"), command=lambda: _refresh_cmd(s, cmd_text)).pack(side=tk.LEFT, padx=4)
 
     cmd_text = tk.Text(frm, height=3, wrap=tk.WORD, font=("TkFixedFont", 8))
     cmd_text.pack(fill=tk.X, padx=4, pady=2)
@@ -1652,18 +1662,18 @@ def _build_run_panel(parent: ttk.Frame, s: _TrainState) -> None:
     ttk.Label(btn_row, textvariable=s.status_var, foreground="#334155").pack(side=tk.LEFT, padx=4)
 
     ttk.Button(
-        btn_row, text="■ Stop",
+        btn_row, text=gettext("lora_stop_btn"),
         command=lambda: _stop_training(s),
     ).pack(side=tk.RIGHT, padx=(4, 0))
 
     ttk.Button(
-        btn_row, text="▶ 学習開始",
+        btn_row, text=gettext("lora_start_btn"),
         style="Run.TButton",
         command=lambda: _start_training(s, cmd_text),
     ).pack(side=tk.RIGHT, padx=4)
 
     # ログ出力
-    log_frame = ttk.LabelFrame(parent, text="学習ログ")
+    log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
 
     log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
@@ -1918,7 +1928,7 @@ def _refresh_cmd(s: _TrainState, text_widget: tk.Text) -> None:
     except Exception as e:
         text_widget.config(state=tk.NORMAL)
         text_widget.delete("1.0", tk.END)
-        text_widget.insert(tk.END, f"[エラー] {e}")
+        text_widget.insert(tk.END, gettext("lora_cmd_error_prefix", error=e))
         text_widget.config(state=tk.DISABLED)
 
 
@@ -1928,47 +1938,47 @@ def _refresh_cmd(s: _TrainState, text_widget: tk.Text) -> None:
 def _validate(s: _TrainState) -> str | None:
     """必須フィールドの簡易バリデーション。エラーメッセージを返す（正常時None）。"""
     if not s.model_path.get():
-        return "DiTモデルパスが未設定です。"
+        return gettext("lora_validate_no_model")
     if not s.vae_path.get():
-        return "VAEパスが未設定です。"
+        return gettext("lora_validate_no_vae")
     if not s.qwen3_path.get():
-        return "Qwen3テキストエンコーダパスが未設定です。"
+        return gettext("lora_validate_no_qwen3")
     if not s.train_data_dir.get():
-        return "学習データフォルダが未設定です。"
+        return gettext("lora_validate_no_data")
     if s.sample_enabled.get() and not s.sample_prompt.get().strip():
-        return "サンプルAが有効ですが、promptが未設定です。"
+        return gettext("lora_validate_sample_a")
     if s.sample_b_enabled.get() and not s.sample_b_prompt.get().strip():
-        return "サンプルBが有効ですが、promptが未設定です。"
+        return gettext("lora_validate_sample_b")
     if s.sample_enabled.get() or s.sample_b_enabled.get():
         try:
             if int(s.sample_every_n_epochs.get().strip() or "1") <= 0:
-                return "サンプル出力のepoch間隔は1以上を指定してください。"
+                return gettext("lora_validate_sample_interval")
         except ValueError:
-            return "サンプル出力のepoch間隔は整数で指定してください。"
+            return gettext("lora_validate_sample_interval_int")
     return None
 
 
 def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
     if s._proc is not None and s._proc.poll() is None:
-        messagebox.showwarning("学習中", "すでに学習が実行中です。")
+        messagebox.showwarning(gettext("lora_running_warn_title"), gettext("lora_running_warn"))
         return
 
     err = _validate(s)
     if err:
-        messagebox.showerror("入力エラー", err)
+        messagebox.showerror(gettext("lora_input_error_title"), err)
         return
 
     try:
         cmd = _build_command(s)
     except Exception as exc:
-        messagebox.showerror("コマンド生成エラー", str(exc))
+        messagebox.showerror(gettext("lora_cmd_error_title"), str(exc))
         return
 
     _refresh_cmd(s, cmd_text)
 
     sd_scripts_root = s.paths.root / "sd-scripts"
-    s.status_var.set("学習中...")
-    s.log_fn("[LoRA Train] 学習開始")
+    s.status_var.set(gettext("lora_status_running"))
+    s.log_fn(gettext("lora_start_log"))
     s._log_queue.put(f"[CMD] {' '.join(cmd)}")
 
     def _worker():
@@ -1977,7 +1987,7 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
         log_dir.mkdir(parents=True, exist_ok=True)
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         log_path = log_dir / f"{ts}.txt"
-        s.log_fn(f"[LoRA Train] ログ: {log_path}")
+        s.log_fn(gettext("lora_log_path", path=log_path))
         try:
             env = os.environ.copy()
             env["PYTHONUTF8"] = "1"
@@ -2011,17 +2021,17 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
                     lf.flush()
             proc.wait()
             rc = proc.returncode
-            msg = f"[LoRA Train] 完了 (return code: {rc})"
+            msg = gettext("lora_done", rc=rc)
             s._log_queue.put(msg)
             s.log_fn(msg)
-            s.status_var.set("完了" if rc == 0 else f"エラー (code={rc})")
+            s.status_var.set(gettext("lora_status_done") if rc == 0 else gettext("lora_status_error", rc=rc))
             with open(log_path, "a", encoding="utf-8") as lf:
                 lf.write(msg + "\n")
         except Exception as exc:
-            msg = f"[LoRA Train] 起動エラー: {exc}"
+            msg = gettext("lora_start_error", error=exc)
             s._log_queue.put(msg)
             s.log_fn(msg)
-            s.status_var.set("起動失敗")
+            s.status_var.set(gettext("lora_status_start_failed"))
             with open(log_path, "a", encoding="utf-8") as lf:
                 lf.write(msg + "\n")
         finally:
@@ -2032,12 +2042,12 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
 
 def _stop_training(s: _TrainState) -> None:
     if s._proc is None or s._proc.poll() is not None:
-        s.log_fn("[LoRA Train] 停止対象のプロセスがありません。")
+        s.log_fn(gettext("lora_stop_no_proc"))
         return
     import os, signal
     try:
         os.kill(s._proc.pid, signal.CTRL_BREAK_EVENT)
     except Exception:
         s._proc.terminate()
-    s.status_var.set("停止要求済み")
-    s.log_fn("[LoRA Train] 停止要求を送信しました。（プロセスグループ全体に送信）")
+    s.status_var.set(gettext("status_stop_requested"))
+    s.log_fn(gettext("lora_stop_sent"))

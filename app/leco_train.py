@@ -23,6 +23,16 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Callable
 
+try:
+    from .i18n import gettext, load_language
+except ImportError:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from i18n import gettext, load_language  # type: ignore[no-redef]
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 定数（lora_train.py と共通）
 # ──────────────────────────────────────────────────────────────────────────────
@@ -97,16 +107,16 @@ def build_leco_train_tab(
     tab_monitor_layer  = ttk.Frame(nb, padding=8)
     tab_preset         = ttk.Frame(nb, padding=8)
 
-    nb.add(tab_model,          text="  モデル  ")
-    nb.add(tab_prompts,        text="  プロンプト設定  ")
-    nb.add(tab_network,        text="  ネットワーク  ")
-    nb.add(tab_train,          text="  学習設定  ")
-    nb.add(tab_adv,            text="  詳細  ")
-    nb.add(tab_layer,          text="  階層学習  ")
-    nb.add(tab_monitor,        text="  モニターグラフ  ")
-    nb.add(tab_monitor_layer,  text="  モニター階層  ")
-    nb.add(tab_sample,         text="  サンプル生成  ")
-    nb.add(tab_preset,         text="  プリセット  ")
+    nb.add(tab_model,          text=gettext("lora_tab_model"))
+    nb.add(tab_prompts,        text=gettext("leco_tab_prompts"))
+    nb.add(tab_network,        text=gettext("lora_tab_network"))
+    nb.add(tab_train,          text=gettext("lora_tab_train"))
+    nb.add(tab_adv,            text=gettext("lora_tab_adv"))
+    nb.add(tab_layer,          text=gettext("lora_tab_layer"))
+    nb.add(tab_monitor,        text=gettext("lora_tab_monitor"))
+    nb.add(tab_monitor_layer,  text=gettext("lora_tab_monitor_layer"))
+    nb.add(tab_sample,         text=gettext("lora_tab_sample"))
+    nb.add(tab_preset,         text=gettext("lora_tab_preset"))
 
     _build_model_tab(tab_model,       state)
     _build_prompts_tab(tab_prompts,   state)
@@ -192,7 +202,7 @@ class _LecoTrainState:
         self.layer_parameter_vars: dict[str, tk.DoubleVar] = {}
         self.layer_canvas: "tk.Canvas | None" = None
         self.layer_inner:  "ttk.Frame | None" = None
-        self._layer_status_var     = tk.StringVar(value="(無効)")
+        self._layer_status_var     = tk.StringVar(value=gettext("lora_layer_status_disabled"))
 
         # ── モニターキュー ───────────────────────────────────────
         self._monitor_queue:       queue.Queue[str] = queue.Queue()
@@ -220,7 +230,7 @@ class _LecoTrainState:
         self.es_patience  = tk.IntVar(value=5)   # 連続上昇で警告/停止する step 数
 
         # ステータス
-        self.status_var       = tk.StringVar(value="待機中")
+        self.status_var       = tk.StringVar(value=gettext("status_waiting"))
         self._log_widgets: list[tk.Text] = []
         self._log_drain_started = False
         self._log_primary_set = False  # 最初の log_text のみを drain 対象にする
@@ -229,14 +239,16 @@ class _LecoTrainState:
 # ──────────────────────────────────────────────────────────────────────────────
 # ヘルパー
 # ──────────────────────────────────────────────────────────────────────────────
-def _browse_file(var: tk.StringVar, title="ファイル選択", filetypes=None):
+def _browse_file(var: tk.StringVar, title: str | None = None, filetypes=None):
+    title = title or gettext("lora_browse_file_title")
     ft = filetypes or [("All", "*.*")]
     path = filedialog.askopenfilename(title=title, filetypes=ft)
     if path:
         var.set(path)
 
 
-def _browse_dir(var: tk.StringVar, title="フォルダ選択"):
+def _browse_dir(var: tk.StringVar, title: str | None = None):
+    title = title or gettext("lora_browse_dir_title")
     path = filedialog.askdirectory(title=title)
     if path:
         var.set(path)
@@ -260,29 +272,29 @@ def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
 def _build_model_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="モデルパス")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_model_paths"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
 
-    _entry_browse_row(lf, 0, "DiT (pretrained_model)", s.model_path,
+    _entry_browse_row(lf, 0, gettext("lora_dit_label"), s.model_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 1, "VAE", s.vae_path,
+    _entry_browse_row(lf, 1, gettext("lora_vae_label"), s.vae_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 2, "Qwen3テキストエンコーダ", s.qwen3_path,
+    _entry_browse_row(lf, 2, gettext("lora_qwen3_label"), s.qwen3_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 3, "LLM Adapter (任意)", s.llm_adapter_path,
+    _entry_browse_row(lf, 3, gettext("lora_llm_adapter_label"), s.llm_adapter_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
-    lf2 = ttk.LabelFrame(parent, text="出力設定")
+    lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
     lf2.pack(fill=tk.X)
     lf2.columnconfigure(1, weight=1)
 
-    _entry_browse_row(lf2, 0, "出力フォルダ", s.output_dir, is_dir=True)
-    ttk.Label(lf2, text="出力ファイル名", width=26, anchor=tk.W).grid(
+    _entry_browse_row(lf2, 0, gettext("lora_output_folder"), s.output_dir, is_dir=True)
+    ttk.Label(lf2, text=gettext("lora_output_filename"), width=26, anchor=tk.W).grid(
         row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Entry(lf2, textvariable=s.output_name).grid(
         row=1, column=1, sticky=tk.EW, padx=(0, 4), pady=3)
-    ttk.Label(lf2, text="保存精度", width=26, anchor=tk.W).grid(
+    ttk.Label(lf2, text=gettext("lora_save_precision"), width=26, anchor=tk.W).grid(
         row=2, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Combobox(lf2, textvariable=s.precision, values=PRECISIONS,
                  state="readonly", width=10).grid(
@@ -294,7 +306,7 @@ def _build_model_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_prompts_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     # --- TOMLファイル選択 ---
-    lf_file = ttk.LabelFrame(parent, text="プロンプトTOMLファイル")
+    lf_file = ttk.LabelFrame(parent, text=gettext("leco_prompts_toml"))
     lf_file.pack(fill=tk.X, pady=(0, 6))
     lf_file.columnconfigure(1, weight=1)
 
@@ -310,15 +322,15 @@ def _build_prompts_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 
     btn_row = ttk.Frame(lf_file)
     btn_row.grid(row=1, column=0, columnspan=3, sticky=tk.W, padx=4, pady=(0, 4))
-    ttk.Button(btn_row, text="TOMLをエディタに読み込む",
+    ttk.Button(btn_row, text=gettext("leco_toml_load_btn"),
                command=lambda: _load_toml(s, toml_text)).pack(side=tk.LEFT, padx=(0, 6))
-    ttk.Button(btn_row, text="エディタの内容をTOMLに保存",
+    ttk.Button(btn_row, text=gettext("leco_toml_save_btn"),
                command=lambda: _save_toml(s, toml_text)).pack(side=tk.LEFT, padx=(0, 6))
-    ttk.Button(btn_row, text="テンプレートを挿入",
+    ttk.Button(btn_row, text=gettext("leco_toml_template_btn"),
                command=lambda: _insert_template(toml_text)).pack(side=tk.LEFT)
 
     # --- LECO概要説明 ---
-    lf_info = ttk.LabelFrame(parent, text="LECO 設定の説明")
+    lf_info = ttk.LabelFrame(parent, text=gettext("leco_info_label"))
     lf_info.pack(fill=tk.X, pady=(0, 6))
     info_text = (
         "target: 消去または強調する概念／スタイル\n"
@@ -333,7 +345,7 @@ def _build_prompts_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
         anchor=tk.W, padx=8, pady=4)
 
     # --- TOMLエディタ ---
-    lf_editor = ttk.LabelFrame(parent, text="TOMLエディタ（直接編集可）")
+    lf_editor = ttk.LabelFrame(parent, text=gettext("leco_editor_label"))
     lf_editor.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
     lf_editor.rowconfigure(0, weight=1)
     lf_editor.columnconfigure(0, weight=1)
@@ -356,21 +368,21 @@ def _build_prompts_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 def _load_toml(s: _LecoTrainState, text_widget: tk.Text) -> None:
     path = s.prompts_file.get().strip()
     if not path:
-        messagebox.showwarning("未選択", "prompts_file が未設定です。")
+        messagebox.showwarning(gettext("leco_toml_not_selected_title"), gettext("leco_toml_not_selected"))
         return
     try:
         content = Path(path).read_text(encoding="utf-8")
         text_widget.delete("1.0", tk.END)
         text_widget.insert(tk.END, content)
     except Exception as e:
-        messagebox.showerror("読み込みエラー", str(e))
+        messagebox.showerror(gettext("leco_toml_load_error_title"), str(e))
 
 
 def _save_toml(s: _LecoTrainState, text_widget: tk.Text) -> None:
     path = s.prompts_file.get().strip()
     if not path:
         path = filedialog.asksaveasfilename(
-            title="TOMLファイルの保存先",
+            title=gettext("leco_toml_save_dialog_title"),
             defaultextension=".toml",
             filetypes=[("TOML", "*.toml"), ("All", "*.*")],
         )
@@ -380,9 +392,9 @@ def _save_toml(s: _LecoTrainState, text_widget: tk.Text) -> None:
     try:
         content = text_widget.get("1.0", tk.END)
         Path(path).write_text(content, encoding="utf-8")
-        messagebox.showinfo("保存完了", f"保存しました:\n{path}")
+        messagebox.showinfo(gettext("leco_toml_save_done_title"), gettext("leco_toml_save_done", path=path))
     except Exception as e:
-        messagebox.showerror("保存エラー", str(e))
+        messagebox.showerror(gettext("leco_toml_save_error_title"), str(e))
 
 
 def _insert_template(text_widget: tk.Text) -> None:
@@ -396,7 +408,7 @@ def _insert_template(text_widget: tk.Text) -> None:
 def _build_network_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="LoRAネットワーク設定")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_network_settings"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
 
@@ -417,10 +429,10 @@ def _build_network_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     ttk.Entry(lf, textvariable=s.network_alpha, width=10).grid(
         row=2, column=1, sticky=tk.W, padx=(0, 4), pady=3)
 
-    ttk.Label(lf, text="※ LECOは常にU-Net(DiT)のみ学習", foreground="#64748B").grid(
+    ttk.Label(lf, text=gettext("leco_dit_only_note"), foreground="#64748B").grid(
         row=3, column=0, columnspan=2, sticky=tk.W, padx=4, pady=3)
 
-    _entry_browse_row(lf, 4, "network_weights (再開用)", s.network_weights,
+    _entry_browse_row(lf, 4, gettext("lora_network_weights_label"), s.network_weights,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
 
@@ -430,7 +442,7 @@ def _build_network_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 def _build_train_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="学習パラメータ")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_train_params"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
     lf.columnconfigure(3, weight=1)
@@ -494,7 +506,7 @@ def _build_train_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     ttk.Entry(lf, textvariable=s.max_grad_norm, width=10).grid(
         row=5, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
-    lf2 = ttk.LabelFrame(parent, text="LECOパラメータ")
+    lf2 = ttk.LabelFrame(parent, text=gettext("leco_params_label"))
     lf2.pack(fill=tk.X, pady=(0, 8))
     lf2.columnconfigure(1, weight=1)
     lf2.columnconfigure(3, weight=1)
@@ -508,7 +520,7 @@ def _build_train_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     ttk.Entry(lf2, textvariable=s.leco_denoise_guidance_scale, width=10).grid(
         row=0, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
-    lf3 = ttk.LabelFrame(parent, text="メモリ最適化")
+    lf3 = ttk.LabelFrame(parent, text=gettext("lora_memory_opt"))
     lf3.pack(fill=tk.X)
     ttk.Checkbutton(lf3, text="gradient_checkpointing",
                     variable=s.gradient_checkpointing).grid(
@@ -521,7 +533,7 @@ def _build_train_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
-    lf = ttk.LabelFrame(parent, text="Anima固有設定")
+    lf = ttk.LabelFrame(parent, text=gettext("lora_adv_settings"))
     lf.pack(fill=tk.X, pady=(0, 8))
     lf.columnconfigure(1, weight=1)
     lf.columnconfigure(3, weight=1)
@@ -538,11 +550,11 @@ def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
         row=0, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
     # row 1: blocks_to_swap / vae_chunk_size
-    ttk.Label(lf, text="blocks_to_swap (0=無効)", width=22, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_blocks_to_swap"), width=22, anchor=tk.W).grid(
         row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Spinbox(lf, from_=0, to=100, textvariable=s.blocks_to_swap, width=8).grid(
         row=1, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    ttk.Label(lf, text="vae_chunk_size (空欄=無効)", width=22, anchor=tk.W).grid(
+    ttk.Label(lf, text=gettext("lora_vae_chunk_size"), width=22, anchor=tk.W).grid(
         row=1, column=2, sticky=tk.W, padx=(0, 2), pady=3)
     ttk.Entry(lf, textvariable=s.vae_chunk_size, width=10).grid(
         row=1, column=3, sticky=tk.W, padx=(0, 4), pady=3)
@@ -560,7 +572,7 @@ def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     # row 3: t5_tokenizer_path
     _entry_browse_row(lf, 3, "t5_tokenizer_path", s.t5_tokenizer_path, is_dir=True)
 
-    lf2 = ttk.LabelFrame(parent, text="オフロード")
+    lf2 = ttk.LabelFrame(parent, text=gettext("leco_offload_label"))
     lf2.pack(fill=tk.X)
     ttk.Checkbutton(lf2, text="split_attn",
                     variable=s.split_attn).grid(row=0, column=0, sticky=tk.W, padx=8, pady=3)
@@ -574,15 +586,15 @@ def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
                     variable=s.vae_disable_cache).grid(
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
 
-    lf3 = ttk.LabelFrame(parent, text="EarlyStopping（モニター）")
+    lf3 = ttk.LabelFrame(parent, text=gettext("leco_es_label"))
     lf3.pack(fill=tk.X, pady=(8, 0))
-    ttk.Checkbutton(lf3, text="Train Loss 連続上昇で警告/停止",
+    ttk.Checkbutton(lf3, text=gettext("leco_es_enable"),
                     variable=s.es_enabled).grid(row=0, column=0, sticky=tk.W, padx=8, pady=4)
-    ttk.Label(lf3, text="監視 step 数:", anchor=tk.W).grid(
+    ttk.Label(lf3, text=gettext("leco_es_watch_steps"), anchor=tk.W).grid(
         row=0, column=1, sticky=tk.W, padx=(12, 2), pady=4)
     ttk.Spinbox(lf3, from_=2, to=500, textvariable=s.es_patience, width=6).grid(
         row=0, column=2, sticky=tk.W, padx=(0, 8), pady=4)
-    ttk.Label(lf3, text="（50%→警告 / 100%→緊急停止）",
+    ttk.Label(lf3, text=gettext("leco_es_note"),
               foreground="#64748B").grid(row=0, column=3, sticky=tk.W, padx=(0, 8), pady=4)
 
 
@@ -592,13 +604,13 @@ def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 # 実行パネル
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_run_panel(parent: ttk.Frame, s: _LecoTrainState) -> None:
-    frm = ttk.LabelFrame(parent, text="実行")
+    frm = ttk.LabelFrame(parent, text=gettext("lora_run_label"))
     frm.pack(fill=tk.X, pady=(6, 0))
 
     cmd_frame = ttk.Frame(frm)
     cmd_frame.pack(fill=tk.X, padx=4, pady=(4, 0))
-    ttk.Label(cmd_frame, text="コマンドプレビュー:").pack(side=tk.LEFT)
-    ttk.Button(cmd_frame, text="更新",
+    ttk.Label(cmd_frame, text=gettext("lora_cmd_preview")).pack(side=tk.LEFT)
+    ttk.Button(cmd_frame, text=gettext("lora_cmd_refresh"),
                command=lambda: _refresh_cmd(s, cmd_text)).pack(side=tk.LEFT, padx=4)
 
     cmd_text = tk.Text(frm, height=3, wrap=tk.WORD, font=("TkFixedFont", 8))
@@ -608,12 +620,12 @@ def _build_run_panel(parent: ttk.Frame, s: _LecoTrainState) -> None:
     btn_row.pack(fill=tk.X, padx=4, pady=(2, 4))
     ttk.Label(btn_row, textvariable=s.status_var, foreground="#334155").pack(
         side=tk.LEFT, padx=4)
-    ttk.Button(btn_row, text="■ Stop",
+    ttk.Button(btn_row, text=gettext("lora_stop_btn"),
                command=lambda: _stop_training(s)).pack(side=tk.RIGHT, padx=(4, 0))
-    ttk.Button(btn_row, text="▶ 学習開始", style="Run.TButton",
+    ttk.Button(btn_row, text=gettext("lora_start_btn"), style="Run.TButton",
                command=lambda: _start_training(s, cmd_text)).pack(side=tk.RIGHT, padx=4)
 
-    log_frame = ttk.LabelFrame(parent, text="学習ログ")
+    log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
     log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
     log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
@@ -763,7 +775,7 @@ def _refresh_cmd(s: _LecoTrainState, text_widget: tk.Text) -> None:
     except Exception as e:
         text_widget.config(state=tk.NORMAL)
         text_widget.delete("1.0", tk.END)
-        text_widget.insert(tk.END, f"[エラー] {e}")
+        text_widget.insert(tk.END, gettext("lora_cmd_error_prefix", error=e))
         text_widget.config(state=tk.DISABLED)
 
 
@@ -772,53 +784,53 @@ def _refresh_cmd(s: _LecoTrainState, text_widget: tk.Text) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 def _validate(s: _LecoTrainState) -> str | None:
     if not s.model_path.get():
-        return "DiTモデルパスが未設定です。"
+        return gettext("lora_validate_no_model")
     if not s.vae_path.get():
-        return "VAEパスが未設定です。"
+        return gettext("lora_validate_no_vae")
     if not s.qwen3_path.get():
-        return "Qwen3テキストエンコーダパスが未設定です。"
+        return gettext("lora_validate_no_qwen3")
     if not s.prompts_file.get():
-        return "prompts_file (TOML) が未設定です。"
+        return gettext("leco_validate_no_prompts")
     if not Path(s.prompts_file.get()).exists():
-        return f"prompts_file が見つかりません:\n{s.prompts_file.get()}"
+        return gettext("leco_validate_prompts_missing", path=s.prompts_file.get())
     if s.max_train_steps.get() < 1:
-        return "max_train_steps は1以上を指定してください。"
+        return gettext("leco_validate_steps")
     if s.save_every_n_steps.get() < 1:
-        return "save_every_n_steps は1以上を指定してください。"
+        return gettext("leco_validate_save_steps")
     if s.sample_enabled.get() and not s.sample_prompt.get().strip():
-        return "サンプルAが有効ですが、promptが未設定です。"
+        return gettext("lora_validate_sample_a")
     if s.sample_b_enabled.get() and not s.sample_b_prompt.get().strip():
-        return "サンプルBが有効ですが、promptが未設定です。"
+        return gettext("lora_validate_sample_b")
     if s.sample_enabled.get() or s.sample_b_enabled.get():
         try:
             if int(s.sample_every_n_steps.get().strip() or "100") <= 0:
-                return "サンプル出力のstep間隔は1以上を指定してください。"
+                return gettext("leco_validate_sample_interval")
         except ValueError:
-            return "サンプル出力のstep間隔は整数で指定してください。"
+            return gettext("leco_validate_sample_interval_int")
     return None
 
 
 def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
     if s._proc is not None and s._proc.poll() is None:
-        messagebox.showwarning("学習中", "すでに学習が実行中です。")
+        messagebox.showwarning(gettext("lora_running_warn_title"), gettext("lora_running_warn"))
         return
 
     err = _validate(s)
     if err:
-        messagebox.showerror("入力エラー", err)
+        messagebox.showerror(gettext("lora_input_error_title"), err)
         return
 
     try:
         cmd = _build_command(s)
     except Exception as exc:
-        messagebox.showerror("コマンド生成エラー", str(exc))
+        messagebox.showerror(gettext("lora_cmd_error_title"), str(exc))
         return
 
     _refresh_cmd(s, cmd_text)
 
     sd_scripts_root = s.paths.root / "sd-scripts"
-    s.status_var.set("学習中...")
-    s.log_fn("[LECO Train] 学習開始")
+    s.status_var.set(gettext("lora_status_running"))
+    s.log_fn(gettext("leco_start_log"))
     s._log_queue.put(f"[CMD] {' '.join(cmd)}")
 
     def _worker():
@@ -827,7 +839,7 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
         log_dir.mkdir(parents=True, exist_ok=True)
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         log_path = log_dir / f"{ts}.txt"
-        s.log_fn(f"[LECO Train] ログ: {log_path}")
+        s.log_fn(gettext("leco_log_path", path=log_path))
         try:
             env = os.environ.copy()
             env["PYTHONUTF8"] = "1"
@@ -869,17 +881,17 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
                     lf.flush()
             proc.wait()
             rc = proc.returncode
-            msg = f"[LECO Train] 完了 (return code: {rc})"
+            msg = gettext("leco_done", rc=rc)
             s._log_queue.put(msg)
             s.log_fn(msg)
-            s.status_var.set("完了" if rc == 0 else f"エラー (code={rc})")
+            s.status_var.set(gettext("lora_status_done") if rc == 0 else gettext("lora_status_error", rc=rc))
             with open(log_path, "a", encoding="utf-8") as lf:
                 lf.write(msg + "\n")
         except Exception as exc:
-            msg = f"[LECO Train] 起動エラー: {exc}"
+            msg = gettext("leco_start_error", error=exc)
             s._log_queue.put(msg)
             s.log_fn(msg)
-            s.status_var.set("起動失敗")
+            s.status_var.set(gettext("lora_status_start_failed"))
         finally:
             s._proc = None
 
@@ -888,15 +900,15 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
 
 def _stop_training(s: _LecoTrainState) -> None:
     if s._proc is None or s._proc.poll() is not None:
-        s.log_fn("[LECO Train] 停止対象のプロセスがありません。")
+        s.log_fn(gettext("leco_stop_no_proc"))
         return
     import os, signal
     try:
         os.kill(s._proc.pid, signal.CTRL_BREAK_EVENT)
     except Exception:
         s._proc.terminate()
-    s.log_fn("[LECO Train] 停止シグナルを送信しました。")
-    s.status_var.set("停止中...")
+    s.log_fn(gettext("leco_stop_sent"))
+    s.status_var.set(gettext("status_stop_requested"))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -909,12 +921,12 @@ def _build_layer_train_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     hdr.pack(fill=tk.X, pady=(0, 4))
 
     ttk.Checkbutton(
-        hdr, text="階層学習を有効にする",
+        hdr, text=gettext("lora_layer_train_enable"),
         variable=s.layer_train_enabled,
         command=lambda: _refresh_layer_controls(s, ctrl_canvas, ctrl_inner),
     ).pack(side=tk.LEFT, padx=(0, 12))
 
-    ttk.Label(hdr, text="モード:").pack(side=tk.LEFT)
+    ttk.Label(hdr, text=gettext("lora_layer_mode_label")).pack(side=tk.LEFT)
     mode_cb = ttk.Combobox(
         hdr, textvariable=s.layer_display_mode,
         values=list(LAYER_TRAIN_MODES), state="readonly", width=14,
@@ -926,12 +938,12 @@ def _build_layer_train_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     )
 
     ttk.Button(
-        hdr, text="プリセット読み込み",
+        hdr, text=gettext("lora_layer_preset_load"),
         command=lambda: _load_layer_preset(s, ctrl_canvas, ctrl_inner),
     ).pack(side=tk.LEFT)
 
     canvas_frame = ttk.LabelFrame(
-        parent, text="ブロック別スケール (0.0 = freeze / 1.0 = base LR)"
+        parent, text=gettext("lora_layer_scale_label")
     )
     canvas_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -975,10 +987,10 @@ def _refresh_layer_controls(
         child.destroy()
 
     if not s.layer_train_enabled.get():
-        ttk.Label(inner, text="階層学習は無効です。チェックボックスをONにしてください。").grid(
+        ttk.Label(inner, text=gettext("lora_layer_disabled_msg")).grid(
             row=0, column=0, padx=8, pady=8, sticky=tk.W
         )
-        s._layer_status_var.set("(無効)")
+        s._layer_status_var.set(gettext("lora_layer_status_disabled"))
         canvas.configure(scrollregion=canvas.bbox("all"))
         return
 
@@ -1015,21 +1027,17 @@ def _refresh_layer_controls(
         warn_row = (len(groups) + cols - 1) // cols
         tk.Label(
             inner,
-            text=(
-                "⚠ Component モードはブロック情報をLoRAキーから分解できないため、"
-                "全ブロック共通の平均スケールとして適用されます。\n"
-                "ブロック別精度が必要な場合は Transformer または Matrix モードを使用してください。"
-            ),
+            text=gettext("lora_layer_component_warn"),
             foreground="red",
             justify=tk.LEFT,
             wraplength=600,
         ).grid(row=warn_row, column=0, columnspan=cols * 3, sticky=tk.W, padx=8, pady=(6, 2))
         canvas.configure(scrollregion=canvas.bbox("all"))
         s._layer_status_var.set(
-            f"mode={mode}  {len(groups)} グループ  [警告] ブロック別精度低下あり"
+            gettext("lora_layer_status_warn", mode=mode, count=len(groups))
         )
     else:
-        s._layer_status_var.set(f"mode={mode}  {len(groups)} グループ")
+        s._layer_status_var.set(gettext("lora_layer_status", mode=mode, count=len(groups)))
 
 
 def _snap_scale(var: tk.DoubleVar) -> None:
@@ -1122,7 +1130,7 @@ def _load_layer_preset(s: "_LecoTrainState", canvas: tk.Canvas, inner: ttk.Frame
     preset_dir = s.paths.root / "preset" / "leco_train"
     preset_dir.mkdir(parents=True, exist_ok=True)
     path = filedialog.askopenfilename(
-        title="プリセット選択",
+        title=gettext("lora_layer_preset_select_title"),
         initialdir=str(preset_dir),
         filetypes=[("JSON", "*.json"), ("All", "*.*")],
     )
@@ -1131,7 +1139,7 @@ def _load_layer_preset(s: "_LecoTrainState", canvas: tk.Canvas, inner: ttk.Frame
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except Exception as exc:
-        messagebox.showerror("プリセット読み込みエラー", str(exc))
+        messagebox.showerror(gettext("lora_layer_preset_error"), str(exc))
         return
 
     new_mode = data.get("layer_display_mode", "Matrix")
@@ -1152,8 +1160,10 @@ def _load_layer_preset(s: "_LecoTrainState", canvas: tk.Canvas, inner: ttk.Frame
                 pass
 
     s.log_fn(
-        f"[LayerLR] プリセット読み込み: {Path(path).name}  "
-        f"preset_mode={new_mode} -> gui_mode={s.layer_display_mode.get()}"
+        gettext("lora_layer_preset_log",
+                name=Path(path).name,
+                preset=new_mode,
+                gui=s.layer_display_mode.get())
     )
 
 
@@ -1209,12 +1219,12 @@ def _build_monitor_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         )
         ttk.Label(
             graph_frame,
-            text=f"モニターグラフの読み込みに失敗しました。\n{_e}",
+            text=gettext("lora_monitor_graph_init_error", error=_e),
             foreground="#EF4444",
             justify=tk.LEFT,
         ).pack(padx=16, pady=16, anchor=tk.NW)
 
-    log_frame = ttk.LabelFrame(parent, text="学習ログ")
+    log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.grid(row=1, column=0, sticky=tk.EW, pady=(4, 0))
     log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
     log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
@@ -1251,7 +1261,7 @@ def _build_monitor_layer_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         )
         ttk.Label(
             parent,
-            text=f"モニター階層の読み込みに失敗しました。\n{_e}",
+            text=gettext("lora_monitor_layer_init_error", error=_e),
             foreground="#EF4444",
             justify=tk.LEFT,
         ).pack(padx=16, pady=16, anchor=tk.NW)
@@ -1296,7 +1306,7 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         return d
 
     # ── リストボックス ──────────────────────────────────────────
-    list_frame = ttk.LabelFrame(parent, text="保存済みプリセット")
+    list_frame = ttk.LabelFrame(parent, text=gettext("lora_preset_saved"))
     list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
     lb = tk.Listbox(list_frame, height=10, selectmode=tk.SINGLE)
@@ -1308,14 +1318,14 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     # ── 名前入力 ────────────────────────────────────────────────
     name_row = ttk.Frame(parent)
     name_row.pack(fill=tk.X, pady=(0, 4))
-    ttk.Label(name_row, text="Name:").pack(side=tk.LEFT)
+    ttk.Label(name_row, text=gettext("lora_preset_name")).pack(side=tk.LEFT)
     name_var = tk.StringVar()
     ttk.Entry(name_row, textvariable=name_var, width=28).pack(side=tk.LEFT, padx=(4, 8))
 
     # TOML同梱オプション
     include_toml_var = tk.BooleanVar(value=True)
     ttk.Checkbutton(
-        name_row, text="TOMLを同梱", variable=include_toml_var
+        name_row, text=gettext("leco_preset_include_toml"), variable=include_toml_var
     ).pack(side=tk.LEFT, padx=(0, 8))
 
     btn_row = ttk.Frame(parent)
@@ -1501,7 +1511,7 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     def _save() -> None:
         pname = name_var.get().strip()
         if not pname:
-            messagebox.showerror("Preset", "プリセット名を入力してください。")
+            messagebox.showerror("Preset", gettext("lora_preset_no_name"))
             return
         safe = "".join(c if c.isalnum() or c in "-_ " else "_" for c in pname)
         dest = _preset_dir() / f"{safe}.json"
@@ -1511,22 +1521,22 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
                 encoding="utf-8",
             )
         except Exception as exc:
-            messagebox.showerror("Preset", f"保存失敗: {exc}")
+            messagebox.showerror("Preset", gettext("lora_preset_save_failed", error=exc))
             return
         _refresh_list()
-        s.log_fn(f"[Preset] 保存: {dest.name}")
+        s.log_fn(gettext("lora_preset_log_saved", name=dest.name))
 
     # ── Load ──────────────────────────────────────────────────────
     def _load() -> None:
         sel = lb.curselection()
         if not sel:
-            messagebox.showerror("Preset", "プリセットを選択してください。")
+            messagebox.showerror("Preset", gettext("lora_preset_no_select"))
             return
         src = _preset_dir() / f"{lb.get(sel[0])}.json"
         try:
             data = json.loads(src.read_text(encoding="utf-8"))
         except Exception as exc:
-            messagebox.showerror("Preset", f"読み込み失敗: {exc}")
+            messagebox.showerror("Preset", gettext("lora_preset_load_failed", error=exc))
             return
         # 階層学習: enabled/mode を先行セットしてスライダーを生成してから _apply
         _pre_enabled = bool(data.get("layer_train_enabled", False))
@@ -1538,7 +1548,7 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         if s.layer_canvas is not None and s.layer_inner is not None:
             _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
         _apply(data)
-        s.log_fn(f"[Preset] 読み込み: {src.name}")
+        s.log_fn(gettext("lora_preset_log_loaded", name=src.name))
 
     # ── Delete ────────────────────────────────────────────────────
     def _delete() -> None:
@@ -1546,17 +1556,17 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         if not sel:
             return
         pname = lb.get(sel[0])
-        if not messagebox.askyesno("Preset", f"{pname} を削除しますか？"):
+        if not messagebox.askyesno("Preset", gettext("lora_preset_confirm_delete", name=pname)):
             return
         (_preset_dir() / f"{pname}.json").unlink(missing_ok=True)
         _refresh_list()
-        s.log_fn(f"[Preset] 削除: {pname}.json")
+        s.log_fn(gettext("lora_preset_log_deleted", name=f"{pname}.json"))
 
     # ── Export ────────────────────────────────────────────────────
     def _export() -> None:
         sel = lb.curselection()
         if not sel:
-            messagebox.showerror("Preset", "エクスポートするプリセットを選択してください。")
+            messagebox.showerror("Preset", gettext("lora_preset_no_select_export"))
             return
         pname = lb.get(sel[0])
         src = _preset_dir() / f"{pname}.json"
@@ -1568,7 +1578,7 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         if dest:
             import shutil
             shutil.copy2(src, dest)
-            s.log_fn(f"[Preset] エクスポート: {dest}")
+            s.log_fn(gettext("lora_preset_log_exported", dest=dest))
 
     # ── Import ────────────────────────────────────────────────────
     def _import() -> None:
@@ -1583,16 +1593,16 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         dest = _preset_dir() / f"{pname}.json"
         shutil.copy2(src, dest)
         _refresh_list()
-        s.log_fn(f"[Preset] インポート: {Path(src).name}")
+        s.log_fn(gettext("lora_preset_log_imported", name=Path(src).name))
 
     # ── ボタン配置 ────────────────────────────────────────────────
     for text, cmd in [
-        ("保存",         _save),
-        ("読み込み",     _load),
-        ("削除",         _delete),
-        ("エクスポート", _export),
-        ("インポート",   _import),
-        ("一覧更新",     _refresh_list),
+        (gettext("lora_preset_save"),    _save),
+        (gettext("lora_preset_load"),    _load),
+        (gettext("lora_preset_delete"),  _delete),
+        (gettext("lora_preset_export"),  _export),
+        (gettext("lora_preset_import"),  _import),
+        (gettext("lora_preset_refresh"), _refresh_list),
     ]:
         ttk.Button(btn_row, text=text, command=cmd).pack(side=tk.LEFT, padx=4, pady=4)
 
@@ -1655,21 +1665,21 @@ def _leco_write_sample_prompt_file(s: "_LecoTrainState") -> Path:
 
 def _build_leco_sample_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     """LECO サンプル生成タブ。lora_train._build_sample_tab_common を流用。"""
-    import importlib as _il
-    import importlib.util as _ilu
     import logging as _lg
     _log = _lg.getLogger(__name__)
     try:
-        # 同ディレクトリの lora_train.py を __file__ 基準で絶対パス解決
-        _here = Path(__file__).resolve().parent
-        _spec = _ilu.spec_from_file_location("lora_train", _here / "lora_train.py")
-        if _spec is None or _spec.loader is None:
-            raise ImportError(f"spec_from_file_location failed: {_here / 'lora_train.py'}")
-        _lt = _ilu.module_from_spec(_spec)
-        _spec.loader.exec_module(_lt)
-        _lt._build_sample_tab_common(parent, s, is_leco=True)
+        # パッケージ相対インポートを優先し、直接実行時は絶対インポートへフォールバック
+        try:
+            from .lora_train import _build_sample_tab_common as _bstc
+        except ImportError:
+            import sys as _sys
+            _here2 = Path(__file__).resolve().parent
+            if str(_here2) not in _sys.path:
+                _sys.path.insert(0, str(_here2))
+            from lora_train import _build_sample_tab_common as _bstc  # type: ignore[no-redef]
+        _bstc(parent, s, is_leco=True)
     except Exception as _e:
-        _log.error("[_build_leco_sample_tab] lora_train ロード失敗、フォールバックへ: %s", _e)
+        _log.error(gettext("leco_sample_tab_load_error"), _e)
         _build_leco_sample_tab_inline(parent, s)
 
 
@@ -1680,16 +1690,16 @@ def _build_leco_sample_tab_inline(
     parent.columnconfigure(0, weight=1)
     parent.rowconfigure(1, weight=1)
 
-    common = ttk.LabelFrame(parent, text="共通生成条件")
+    common = ttk.LabelFrame(parent, text=gettext("lora_sample_common"))
     common.grid(row=0, column=0, sticky=tk.EW, pady=(0, 6))
     common.columnconfigure(1, weight=1)
     common.columnconfigure(3, weight=1)
 
-    ttk.Label(common, text="step間隔", width=16, anchor=tk.W).grid(
+    ttk.Label(common, text=gettext("lora_sample_step_interval"), width=16, anchor=tk.W).grid(
         row=0, column=0, sticky=tk.W, padx=(4, 2), pady=3)
     ttk.Spinbox(common, from_=1, to=99999, textvariable=s.sample_every_n_steps, width=8).grid(
         row=0, column=1, sticky=tk.W, padx=(0, 12), pady=3)
-    ttk.Label(common, text=f"seed固定: {SAMPLE_FIXED_SEED}", foreground="#64748B").grid(
+    ttk.Label(common, text=gettext("lora_sample_fixed_seed", seed=SAMPLE_FIXED_SEED), foreground="#64748B").grid(
         row=0, column=2, columnspan=2, sticky=tk.W, padx=(0, 4), pady=3)
 
     ttk.Label(common, text="width / height", width=16, anchor=tk.W).grid(
@@ -1715,7 +1725,7 @@ def _build_leco_sample_tab_inline(
         row=2, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
     ttk.Checkbutton(
-        common, text="VAEを学習中保持 (sample_keep_vae)",
+        common, text=gettext("lora_sample_keep_vae"),
         variable=s.sample_keep_vae,
     ).grid(row=3, column=0, columnspan=4, sticky=tk.W, padx=(4, 4), pady=3)
 
@@ -1723,8 +1733,8 @@ def _build_leco_sample_tab_inline(
     ab_nb.grid(row=1, column=0, sticky=tk.NSEW)
     tab_a = ttk.Frame(ab_nb, padding=4)
     tab_b = ttk.Frame(ab_nb, padding=4)
-    ab_nb.add(tab_a, text="  サンプルA  ")
-    ab_nb.add(tab_b, text="  サンプルB  ")
+    ab_nb.add(tab_a, text=gettext("lora_sample_a"))
+    ab_nb.add(tab_b, text=gettext("lora_sample_b"))
 
     def _ab_panel(tab, enabled_var, prompt_var, neg_var, label):
         tab.columnconfigure(0, weight=1)
@@ -1732,12 +1742,12 @@ def _build_leco_sample_tab_inline(
         top = ttk.Frame(tab)
         top.grid(row=0, column=0, sticky=tk.EW, pady=(0, 4))
         top.columnconfigure(1, weight=1)
-        ttk.Checkbutton(top, text=f"サンプル{label}を有効にする",
+        ttk.Checkbutton(top, text=gettext("lora_sample_enable", label=label),
                         variable=enabled_var).grid(
             row=0, column=0, columnspan=4, sticky=tk.W, padx=2, pady=2)
         _sdir = s.paths.root / "log" / "sample_gen"
         _glob_pat = "leco_output_*_00_*.png" if label == "A" else "leco_output_*_01_*.png"
-        ttk.Label(top, text="出力先:", foreground="#475569").grid(
+        ttk.Label(top, text=gettext("lora_sample_output_dir"), foreground="#475569").grid(
             row=1, column=0, sticky=tk.W, padx=(2, 0), pady=2)
         ttk.Label(top, text=str(_sdir), foreground="#1D4ED8").grid(
             row=1, column=1, columnspan=3, sticky=tk.W, pady=2)
@@ -1750,7 +1760,7 @@ def _build_leco_sample_tab_inline(
         ttk.Entry(top, textvariable=neg_var).grid(
             row=3, column=1, columnspan=3, sticky=tk.EW, padx=(0, 4), pady=2)
 
-        gallery = ttk.LabelFrame(tab, text=f"最新サンプル{label}")
+        gallery = ttk.LabelFrame(tab, text=gettext("lora_sample_gallery", label=label))
         gallery.grid(row=1, column=0, sticky=tk.NSEW)
         for c in range(5):
             gallery.columnconfigure(c, weight=1, uniform=f"lc_{label}")
@@ -1766,7 +1776,7 @@ def _build_leco_sample_tab_inline(
             cell.rowconfigure(0, weight=1)
             il = ttk.Label(cell, anchor=tk.CENTER)
             il.grid(row=0, column=0, sticky=tk.NSEW)
-            el = ttk.Label(cell, text="step -", anchor=tk.CENTER)
+            el = ttk.Label(cell, text=gettext("lora_sample_step_label"), anchor=tk.CENTER)
             el.grid(row=1, column=0, sticky=tk.EW, pady=(3, 0))
             cells.append((il, el))
 
@@ -1796,7 +1806,7 @@ def _build_leco_sample_tab_inline(
             for idx, (il, el) in enumerate(cells):
                 if idx >= len(files):
                     il.configure(image="", text="")
-                    el.configure(text="step -")
+                    el.configure(text=gettext("lora_sample_step_label"))
                     # ウィジェット属性の参照もクリア
                     il._photo_ref = None  # type: ignore[attr-defined]
                     continue
@@ -1835,7 +1845,7 @@ def _build_leco_sample_tab_inline(
 
         btn_row = ttk.Frame(top)
         btn_row.grid(row=4, column=0, columnspan=4, sticky=tk.W, pady=(4, 2))
-        ttk.Button(btn_row, text="表示更新", command=lambda: _refresh(False)).pack(
+        ttk.Button(btn_row, text=gettext("lora_sample_refresh"), command=lambda: _refresh(False)).pack(
             side=tk.LEFT, padx=(0, 6))
         _refresh(True)
 

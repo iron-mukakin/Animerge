@@ -109,7 +109,7 @@ def _safe_load(log_dir: Path, filename: str, log_fn: Callable) -> dict[str, Any]
         # スタンドアロンテスト用フォールバック: ダミーデータ
         return _dummy_data(filename)
     except Exception as exc:
-        log_fn(text=gettext("viewer_load_error", error=exc))
+        log_fn(gettext("viewer_load_error", error=exc))
         messagebox.showerror(
             title=gettext("viewer_load_error_title"),
             message=str(exc)
@@ -589,11 +589,11 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         meta = data["metadata"]
         method_tag = _method_tag(data)
         meta_var.set(
-            text=gettext("viewer_meta_format",
-              model=meta.get('model_name', ''),
-              method=meta.get('method', ''),
-              type=meta.get('model_type', ''),
-              timestamp=meta.get('timestamp', ''))
+            gettext("viewer_meta_format",
+                    model=meta.get("model_name", ""),
+                    method=meta.get("method", ""),
+                    type=meta.get("model_type", ""),
+                    timestamp=meta.get("timestamp", ""))
         )
 
         gs = data.get("group_summary", {})
@@ -681,7 +681,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         report_text.insert(tk.END, "\n".join(auto))
         report_text.config(state=tk.DISABLED)
 
-        log_fn(text=gettext("viewer_loaded", name=fname))
+        log_fn(gettext("viewer_loaded", name=fname))
 
     log_combo.bind("<<ComboboxSelected>>", _load_and_render)
     _refresh_combo()
@@ -783,7 +783,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         fa = log_a_var.get()
         fb = log_b_var.get()
         if not fa or not fb:
-            messagebox.showerror(text=gettext("viewer_compare_error_title"), message=gettext("viewer_compare_error_select"))
+            messagebox.showerror(title=gettext("viewer_compare_error_title"), message=gettext("viewer_compare_error_select"))
             return
 
         da = _safe_load(log_dir, fa, log_fn)
@@ -799,7 +799,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         # 異種手法の場合は警告
         if method_a != method_b:
             messagebox.showwarning(
-                text=gettext("viewer_compare_method_mismatch_title"),
+                title=gettext("viewer_compare_method_mismatch_title"),
                 message=gettext("viewer_compare_method_mismatch", method_a=method_a, method_b=method_b)
             )
 
@@ -874,7 +874,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         compat_text.config(state=tk.DISABLED)
 
         result_nb.select(compat_tab)
-        log_fn(text=gettext("viewer_compare_done", fa=fa, fb=fb, sim=overall_sim))
+        log_fn(gettext("viewer_compare_done", fa=fa, fb=fb, sim=overall_sim))
 
     _refresh_combos()
 
@@ -901,7 +901,7 @@ def _generate_compat_report(
     type_b = meta_b.get("model_type", "model")
     method = meta_a.get("method", method_tag.replace("_", " "))
 
-    sep = text=gettext("compat_sep")
+    sep = gettext("compat_sep")
     lines += [
         sep,
         gettext("compat_title"),
@@ -915,39 +915,39 @@ def _generate_compat_report(
 
     # ── 総合近似度スコア ────────────────────────────────────────────────
     sim_pct = overall_sim * 100
-    lines.append(text=gettext("compat_overall_sim", sim=sim_pct))
+    lines.append(gettext("compat_overall_sim", sim=sim_pct))
     if sim_pct >= 80:
-        lines.append(text=gettext("compat_sim_high"))
+        lines.append(gettext("compat_sim_high"))
     elif sim_pct >= 55:
-        lines.append(text=gettext("compat_sim_mid"))
+        lines.append(gettext("compat_sim_mid"))
     else:
-        lines.append(text=gettext("compat_sim_low"))
-        lines.append(text=gettext("compat_sim_low2"))
+        lines.append(gettext("compat_sim_low"))
+        lines.append(gettext("compat_sim_low2"))
     lines.append("")
 
     # ── 乖離層の詳細 ────────────────────────────────────────────────────
     if hi_idx:
-        lines.append(text=gettext("compat_high_div_title", count=len(hi_idx)))
+        lines.append(gettext("compat_high_div_title", count=len(hi_idx)))
         for i in hi_idx:
             if i < len(common):
                 grp = common[i]
                 lines.append(f"  {grp}  |  A={vals_a[i]:.4f}  B={vals_b[i]:.4f}  diff={diffs[i]:.4f}")
         lines.append("")
-        lines.append(text=gettext("compat_hi_div_advice1"))
-        lines.append(text=gettext("compat_hi_div_advice2"))
+        lines.append(gettext("compat_hi_div_advice1"))
+        lines.append(gettext("compat_hi_div_advice2"))
     else:
-        lines.append(text=gettext("compat_high_div_none"))
+        lines.append(gettext("compat_high_div_none"))
     lines.append("")
 
     # ── ブロック別評価 ──────────────────────────────────────────────────
-    lines.append(text=gettext("compat_block_eval"))
+    lines.append(gettext("compat_block_eval"))
     metric = _method_metric(method_tag)
     for block in ("Input", "Middle", "Output"):
         sub_a = {g: gs_a[g].get(metric, 0.0) for g in gs_a if block in g}
         sub_b = {g: gs_b[g].get(metric, 0.0) for g in gs_b if block in g}
         common_sub = set(sub_a) & set(sub_b)
         if not common_sub:
-            lines.append(text=gettext("compat_block_no_data", block=block))
+            lines.append(gettext("compat_block_no_data", block=block))
             continue
         va_mean = sum(sub_a[g] for g in common_sub) / len(common_sub)
         vb_mean = sum(sub_b[g] for g in common_sub) / len(common_sub)
@@ -960,28 +960,27 @@ def _generate_compat_report(
             compat = gettext("compat_block_risk")
 
         lines.append(
-           f"  {block:<10}: {compat}  "
-           f"(乖離率={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})"
-       )
-        lines.append(f"  {block:<10}: {compat}  (乖離率={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})")
+            f"  {block:<10}: {compat}  "
+            f"(乖離率={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})"
+        )
     lines.append("")
 
     # ── マージ組み合わせ別アドバイス ────────────────────────────────────
-    lines.append(text=gettext("compat_merge_advice"))
+    lines.append(gettext("compat_merge_advice"))
     if type_a == "model" and type_b == "model":
-        lines.append(text=gettext("compat_model_model"))
-        lines.append(text=gettext("compat_model_model_advice1"))
-        lines.append(text=gettext("compat_model_model_advice2"))
+        lines.append(gettext("compat_model_model"))
+        lines.append(gettext("compat_model_model_advice1"))
+        lines.append(gettext("compat_model_model_advice2"))
     elif (type_a == "lora" and type_b == "lora"):
-        lines.append(text=gettext("compat_lora_lora"))
-        lines.append(text=gettext("compat_lora_lora_advice1"))
-        lines.append(text=gettext("compat_lora_lora_advice2"))
-        lines.append(text=gettext("compat_lora_lora_advice3"))
+        lines.append(gettext("compat_lora_lora"))
+        lines.append(gettext("compat_lora_lora_advice1"))
+        lines.append(gettext("compat_lora_lora_advice2"))
+        lines.append(gettext("compat_lora_lora_advice3"))
     elif "lora" in (type_a, type_b):
-        lines.append(text=gettext("compat_model_lora"))
-        lines.append(text=gettext("compat_model_lora_advice1"))
-        lines.append(text=gettext("compat_model_lora_advice2"))
-        lines.append(text=gettext("compat_model_lora_advice3"))
+        lines.append(gettext("compat_model_lora"))
+        lines.append(gettext("compat_model_lora_advice1"))
+        lines.append(gettext("compat_model_lora_advice2"))
+        lines.append(gettext("compat_model_lora_advice3"))
     lines.append("")
 
     # ── 仕様書 判定パターン B チェック（Attention層のコサイン類似度） ──
@@ -994,8 +993,8 @@ def _generate_compat_report(
             denom = (abs(va) + abs(vb)) or 1.0
             attn_sims.append(1.0 - abs(va - vb) / denom)
         mean_attn_sim = sum(attn_sims) / len(attn_sims)
-        lines.append(text=gettext("compat_pattern_b_title"))
-        lines.append(text=gettext("compat_pattern_b_sim", sim=mean_attn_sim))
+        lines.append(gettext("compat_pattern_b_title"))
+        lines.append(gettext("compat_pattern_b_sim", sim=mean_attn_sim))
         if mean_attn_sim < 0.4:
             lines += [
                 gettext("compat_pattern_b_warn"),
@@ -1004,7 +1003,7 @@ def _generate_compat_report(
                 gettext("compat_pattern_b_warn4"),
             ]
         else:
-            lines.append(text=gettext("compat_pattern_b_ok"))
+            lines.append(gettext("compat_pattern_b_ok"))
         lines.append("")
 
     lines += [
