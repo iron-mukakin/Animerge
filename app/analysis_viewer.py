@@ -28,7 +28,7 @@ from tkinter import messagebox, ttk
 from typing import Any, Callable
 
 try:
-    from .i18n import gettext as _
+    from .i18n import gettext, load_language
 except ImportError:
     def _(key: str, **kwargs) -> str:  # type: ignore[misc]
         text = key
@@ -81,8 +81,8 @@ def build_viewer_tab(
 
     preview_frame = ttk.Frame(sub, padding=4)
     compare_frame = ttk.Frame(sub, padding=4)
-    sub.add(preview_frame, text=_("viewer_tab_preview"))
-    sub.add(compare_frame, text=_("viewer_tab_compare"))
+    sub.add(preview_frame, text=gettext("viewer_tab_preview"))
+    sub.add(compare_frame, text=gettext("viewer_tab_compare"))
 
     _build_preview_tab(preview_frame, log_dir, log_fn)
     _build_compare_tab(compare_frame, log_dir, log_fn)
@@ -109,8 +109,11 @@ def _safe_load(log_dir: Path, filename: str, log_fn: Callable) -> dict[str, Any]
         # スタンドアロンテスト用フォールバック: ダミーデータ
         return _dummy_data(filename)
     except Exception as exc:
-        log_fn(_("viewer_load_error", error=exc))
-        messagebox.showerror(_("viewer_load_error_title"), str(exc))
+        log_fn(text=gettext("viewer_load_error", error=exc))
+        messagebox.showerror(
+            title=gettext("viewer_load_error_title"),
+            message=str(exc)
+        )
         return None
 
 
@@ -160,8 +163,8 @@ def _dummy_data(filename: str) -> dict[str, Any]:
             "format_version": "1.0",
         },
         "auto_report": [
-            _("viewer_dummy_report"),
-            _("viewer_dummy_report2"),
+            gettext("viewer_dummy_report"),
+            gettext("viewer_dummy_report2"),
         ],
         "group_summary": group_summary,
         "layer_records": records,
@@ -191,7 +194,7 @@ class _BarChart:
         c = self.canvas
         c.delete("all")
         if not self.values:
-            c.create_text(w // 2, h // 2, text=_("viewer_no_data"), fill=_GRAPH_FG)
+            c.create_text(w // 2, h // 2, text=gettext("viewer_no_data"), fill=_GRAPH_FG)
             return
 
         pad_l, pad_r, pad_t, pad_b = 130, 20, 30, 20
@@ -246,7 +249,7 @@ class _LineChart:
         c = self.canvas
         c.delete("all")
         if not self.values_a:
-            c.create_text(w // 2, h // 2, text=_("viewer_no_data"), fill=_GRAPH_FG)
+            c.create_text(w // 2, h // 2, text=gettext("viewer_no_data"), fill=_GRAPH_FG)
             return
 
         pad_l, pad_r, pad_t, pad_b = 50, 20, 30, 40
@@ -336,7 +339,7 @@ class _HeatmapChart:
         rows = len(self.row_labels)
         cols = len(self.col_labels)
         if rows == 0 or cols == 0:
-            c.create_text(w // 2, h // 2, text=_("viewer_no_data"), fill=_GRAPH_FG)
+            c.create_text(w // 2, h // 2, text=gettext("viewer_no_data"), fill=_GRAPH_FG)
             return
 
         all_vals = [v for row in self.matrix for v in row]
@@ -403,7 +406,7 @@ class _RadarChart:
         c.delete("all")
         n = len(self.labels)
         if n < 3:
-            c.create_text(w // 2, h // 2, text=_("viewer_insufficient_data"), fill=_GRAPH_FG)
+            c.create_text(w // 2, h // 2, text=gettext("viewer_insufficient_data"), fill=_GRAPH_FG)
             return
 
         if self.title:
@@ -483,7 +486,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
     ctrl = ttk.Frame(parent)
     ctrl.pack(fill=tk.X, pady=(0, 6))
 
-    ttk.Label(ctrl, text=_("viewer_log_file")).pack(side=tk.LEFT, padx=(0, 4))
+    ttk.Label(ctrl, text=gettext("viewer_log_file")).pack(side=tk.LEFT, padx=(0, 4))
     log_var = tk.StringVar()
     log_combo = ttk.Combobox(ctrl, textvariable=log_var, state="readonly", width=55)
     log_combo.pack(side=tk.LEFT, padx=(0, 6))
@@ -494,7 +497,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         if logs and not log_var.get():
             log_var.set(logs[0])
 
-    ttk.Button(ctrl, text=_("viewer_rescan"), command=_refresh_combo).pack(side=tk.LEFT, padx=(0, 6))
+    ttk.Button(ctrl, text=gettext("viewer_rescan"), command=_refresh_combo).pack(side=tk.LEFT, padx=(0, 6))
 
     meta_var = tk.StringVar(value="")
     ttk.Label(ctrl, textvariable=meta_var, foreground="#64748B").pack(side=tk.LEFT, padx=8)
@@ -505,23 +508,23 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
 
     # サマリータブ
     summary_tab = ttk.Frame(view_nb, padding=4)
-    view_nb.add(summary_tab, text=_("viewer_tab_summary"))
+    view_nb.add(summary_tab, text=gettext("viewer_tab_summary"))
 
     # グラフタブ
     graph_tab = ttk.Frame(view_nb, padding=4)
-    view_nb.add(graph_tab, text=_("viewer_tab_graph"))
+    view_nb.add(graph_tab, text=gettext("viewer_tab_graph"))
 
     # ヒートマップタブ
     heat_tab = ttk.Frame(view_nb, padding=4)
-    view_nb.add(heat_tab, text=_("viewer_tab_heatmap"))
+    view_nb.add(heat_tab, text=gettext("viewer_tab_heatmap"))
 
     # レーダータブ
     radar_tab = ttk.Frame(view_nb, padding=4)
-    view_nb.add(radar_tab, text=_("viewer_tab_radar"))
+    view_nb.add(radar_tab, text=gettext("viewer_tab_radar"))
 
     # 自動レポートタブ
     report_tab = ttk.Frame(view_nb, padding=4)
-    view_nb.add(report_tab, text=_("viewer_tab_report"))
+    view_nb.add(report_tab, text=gettext("viewer_tab_report"))
 
     # ── サマリーツリービュー ───────────────────────────────────────────────
     sum_tree = ttk.Treeview(summary_tab, show="headings", selectmode="browse")
@@ -586,7 +589,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         meta = data["metadata"]
         method_tag = _method_tag(data)
         meta_var.set(
-            _("viewer_meta_format",
+            text=gettext("viewer_meta_format",
               model=meta.get('model_name', ''),
               method=meta.get('method', ''),
               type=meta.get('model_type', ''),
@@ -626,7 +629,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
 
         graph_colors = [_COLOR_WARN if i in hi_idx else _COLOR_MID for i in range(len(groups))]
         bar = _BarChart(graph_canvas, groups, g_vals, graph_colors,
-                        title=_("viewer_graph_title", metric=metric.replace('_', ' ')))
+                        title=gettext("viewer_graph_title", metric=metric.replace('_', ' ')))
         _current["graph"] = bar
         graph_canvas.update_idletasks()
         w = graph_canvas.winfo_width() or 600
@@ -653,7 +656,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
             heat_canvas, heat_row_labels,
             [k.replace("mean_", "").replace("_", " ") for k in comp_keys],
             heat_mat,
-            title=_("viewer_heatmap_title"),
+            title=gettext("viewer_heatmap_title"),
         )
         _current["heat"] = heat
         heat_canvas.update_idletasks()
@@ -664,7 +667,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         # ── レーダーチャート ───────────────────────────────────────────
         radar_labels, radar_vals = _radar_data(method_tag, gs)
         radar = _RadarChart(radar_canvas, radar_labels, radar_vals,
-                            title=_("viewer_radar_title"))
+                            title=gettext("viewer_radar_title"))
         _current["radar"] = radar
         radar_canvas.update_idletasks()
         wr = radar_canvas.winfo_width() or 400
@@ -678,7 +681,7 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         report_text.insert(tk.END, "\n".join(auto))
         report_text.config(state=tk.DISABLED)
 
-        log_fn(_("viewer_loaded", name=fname))
+        log_fn(text=gettext("viewer_loaded", name=fname))
 
     log_combo.bind("<<ComboboxSelected>>", _load_and_render)
     _refresh_combo()
@@ -689,15 +692,15 @@ def _build_preview_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
 def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> None:
 
     # ── コントロール ────────────────────────────────────────────────────────
-    ctrl = ttk.LabelFrame(parent, text=_("viewer_compare_select_label"))
+    ctrl = ttk.LabelFrame(parent, text=gettext("viewer_compare_select_label"))
     ctrl.pack(fill=tk.X, pady=(0, 6))
 
-    ttk.Label(ctrl, text=_("viewer_compare_log_a")).grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
+    ttk.Label(ctrl, text=gettext("viewer_compare_log_a")).grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
     log_a_var = tk.StringVar()
     log_a_combo = ttk.Combobox(ctrl, textvariable=log_a_var, state="readonly", width=52)
     log_a_combo.grid(row=0, column=1, sticky=tk.EW, padx=4)
 
-    ttk.Label(ctrl, text=_("viewer_compare_log_b")).grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
+    ttk.Label(ctrl, text=gettext("viewer_compare_log_b")).grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
     log_b_var = tk.StringVar()
     log_b_combo = ttk.Combobox(ctrl, textvariable=log_b_var, state="readonly", width=52)
     log_b_combo.grid(row=1, column=1, sticky=tk.EW, padx=4)
@@ -718,10 +721,10 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         if len(logs) >= 2 and not log_b_var.get():
             log_b_var.set(logs[1])
 
-    ttk.Button(ctrl, text=_("viewer_compare_rescan"), command=_refresh_combos).grid(
+    ttk.Button(ctrl, text=gettext("viewer_compare_rescan"), command=_refresh_combos).grid(
         row=0, column=3, rowspan=2, padx=8, pady=6
     )
-    ttk.Button(ctrl, text=_("viewer_compare_run"), style="Run.TButton",
+    ttk.Button(ctrl, text=gettext("viewer_compare_run"), style="Run.TButton",
                command=lambda: _run_compare()).grid(
         row=0, column=4, rowspan=2, padx=8, pady=6
     )
@@ -733,9 +736,9 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
     diff_tab = ttk.Frame(result_nb, padding=4)
     score_tab = ttk.Frame(result_nb, padding=4)
     compat_tab = ttk.Frame(result_nb, padding=4)
-    result_nb.add(diff_tab,   text=_("viewer_tab_diff"))
-    result_nb.add(score_tab,  text=_("viewer_tab_score"))
-    result_nb.add(compat_tab, text=_("viewer_tab_compat"))
+    result_nb.add(diff_tab,   text=gettext("viewer_tab_diff"))
+    result_nb.add(score_tab,  text=gettext("viewer_tab_score"))
+    result_nb.add(compat_tab, text=gettext("viewer_tab_compat"))
 
     # 差分折れ線グラフ
     diff_canvas = tk.Canvas(diff_tab, bg=_GRAPH_BG, highlightthickness=0)
@@ -746,11 +749,11 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
     score_frame.pack(fill=tk.BOTH, expand=True)
     score_tree = ttk.Treeview(score_frame, columns=("item", "score_a", "score_b", "sim", "diff"),
                                show="headings", selectmode="browse")
-    score_tree.heading("item",    text=_("viewer_col_group"))
-    score_tree.heading("score_a", text=_("viewer_col_score_a"))
-    score_tree.heading("score_b", text=_("viewer_col_score_b"))
-    score_tree.heading("sim",     text=_("viewer_col_sim"))
-    score_tree.heading("diff",    text=_("viewer_col_diff"))
+    score_tree.heading("item",    text=gettext("viewer_col_group"))
+    score_tree.heading("score_a", text=gettext("viewer_col_score_a"))
+    score_tree.heading("score_b", text=gettext("viewer_col_score_b"))
+    score_tree.heading("sim",     text=gettext("viewer_col_sim"))
+    score_tree.heading("diff",    text=gettext("viewer_col_diff"))
     for col in ("item", "score_a", "score_b", "sim", "diff"):
         score_tree.column(col, width=120, anchor=tk.CENTER)
     score_tree.column("item", width=180)
@@ -780,7 +783,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         fa = log_a_var.get()
         fb = log_b_var.get()
         if not fa or not fb:
-            messagebox.showerror(_("viewer_compare_error_title"), _("viewer_compare_error_select"))
+            messagebox.showerror(text=gettext("viewer_compare_error_title"), message=gettext("viewer_compare_error_select"))
             return
 
         da = _safe_load(log_dir, fa, log_fn)
@@ -796,8 +799,8 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         # 異種手法の場合は警告
         if method_a != method_b:
             messagebox.showwarning(
-                _("viewer_compare_method_mismatch_title"),
-                _("viewer_compare_method_mismatch", method_a=method_a, method_b=method_b)
+                text=gettext("viewer_compare_method_mismatch_title"),
+                message=gettext("viewer_compare_method_mismatch", method_a=method_a, method_b=method_b)
             )
 
         type_a = meta_a.get("model_type", "model")
@@ -829,7 +832,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         line = _LineChart(
             diff_canvas, vals_a, vals_b,
             labels=common, highlight_indices=hi_idx,
-            title=_("viewer_diff_title", metric=metric.replace('_', ' ')),
+            title=gettext("viewer_diff_title", metric=metric.replace('_', ' ')),
             label_a=name_a[:20], label_b=name_b[:20],
         )
         _cmp_state["line"] = line
@@ -871,7 +874,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
         compat_text.config(state=tk.DISABLED)
 
         result_nb.select(compat_tab)
-        log_fn(_("viewer_compare_done", fa=fa, fb=fb, sim=overall_sim))
+        log_fn(text=gettext("viewer_compare_done", fa=fa, fb=fb, sim=overall_sim))
 
     _refresh_combos()
 
@@ -898,77 +901,87 @@ def _generate_compat_report(
     type_b = meta_b.get("model_type", "model")
     method = meta_a.get("method", method_tag.replace("_", " "))
 
-    sep = _("compat_sep")
+    sep = text=gettext("compat_sep")
     lines += [
         sep,
-        _("compat_title"),
+        gettext("compat_title"),
         sep,
-        _("compat_log_a", name=name_a, type=type_a),
-        _("compat_log_b", name=name_b, type=type_b),
-        _("compat_method", method=method),
-        _("compat_common_groups", count=len(common)),
+        gettext("compat_log_a", name=name_a, type=type_a),
+        gettext("compat_log_b", name=name_b, type=type_b),
+        gettext("compat_method", method=method),
+        gettext("compat_common_groups", count=len(common)),
         "",
     ]
 
     # ── 総合近似度スコア ────────────────────────────────────────────────
     sim_pct = overall_sim * 100
-    lines.append(_("compat_overall_sim", sim=sim_pct))
+    lines.append(text=gettext("compat_overall_sim", sim=sim_pct))
     if sim_pct >= 80:
-        lines.append(_("compat_sim_high"))
+        lines.append(text=gettext("compat_sim_high"))
     elif sim_pct >= 55:
-        lines.append(_("compat_sim_mid"))
+        lines.append(text=gettext("compat_sim_mid"))
     else:
-        lines.append(_("compat_sim_low"))
-        lines.append(_("compat_sim_low2"))
+        lines.append(text=gettext("compat_sim_low"))
+        lines.append(text=gettext("compat_sim_low2"))
     lines.append("")
 
     # ── 乖離層の詳細 ────────────────────────────────────────────────────
     if hi_idx:
-        lines.append(_("compat_high_div_title", count=len(hi_idx)))
+        lines.append(text=gettext("compat_high_div_title", count=len(hi_idx)))
         for i in hi_idx:
             if i < len(common):
                 grp = common[i]
                 lines.append(f"  {grp}  |  A={vals_a[i]:.4f}  B={vals_b[i]:.4f}  diff={diffs[i]:.4f}")
         lines.append("")
-        lines.append(_("compat_hi_div_advice1"))
-        lines.append(_("compat_hi_div_advice2"))
+        lines.append(text=gettext("compat_hi_div_advice1"))
+        lines.append(text=gettext("compat_hi_div_advice2"))
     else:
-        lines.append(_("compat_high_div_none"))
+        lines.append(text=gettext("compat_high_div_none"))
     lines.append("")
 
     # ── ブロック別評価 ──────────────────────────────────────────────────
-    lines.append(_("compat_block_eval"))
+    lines.append(text=gettext("compat_block_eval"))
     metric = _method_metric(method_tag)
     for block in ("Input", "Middle", "Output"):
         sub_a = {g: gs_a[g].get(metric, 0.0) for g in gs_a if block in g}
         sub_b = {g: gs_b[g].get(metric, 0.0) for g in gs_b if block in g}
         common_sub = set(sub_a) & set(sub_b)
         if not common_sub:
-            lines.append(_("compat_block_no_data", block=block))
+            lines.append(text=gettext("compat_block_no_data", block=block))
             continue
         va_mean = sum(sub_a[g] for g in common_sub) / len(common_sub)
         vb_mean = sum(sub_b[g] for g in common_sub) / len(common_sub)
         ratio = abs(va_mean - vb_mean) / (max(va_mean, vb_mean) + 1e-8)
-        compat = _("compat_block_good") if ratio < 0.2 else (_("compat_block_caution") if ratio < 0.5 else _("compat_block_risk"))
+        if ratio < 0.2:
+            compat = gettext("compat_block_good")
+        elif ratio < 0.5:
+            compat = gettext("compat_block_caution")
+        else:
+            compat = gettext("compat_block_risk")
+
+        lines.append(
+           f"  {block:<10}: {compat}  "
+           f"(乖離率={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})"
+       )
         lines.append(f"  {block:<10}: {compat}  (乖離率={ratio:.1%}  A={va_mean:.3f}  B={vb_mean:.3f})")
     lines.append("")
 
     # ── マージ組み合わせ別アドバイス ────────────────────────────────────
-    lines.append(_("compat_merge_advice"))
+    lines.append(text=gettext("compat_merge_advice"))
     if type_a == "model" and type_b == "model":
-        lines.append(_("compat_model_model"))
-        lines.append(_("compat_model_model_advice1"))
-        lines.append(_("compat_model_model_advice2"))
+        lines.append(text=gettext("compat_model_model"))
+        lines.append(text=gettext("compat_model_model_advice1"))
+        lines.append(text=gettext("compat_model_model_advice2"))
     elif (type_a == "lora" and type_b == "lora"):
-        lines.append(_("compat_lora_lora"))
-        lines.append(_("compat_lora_lora_advice1"))
-        lines.append(_("compat_lora_lora_advice2"))
-        lines.append(_("compat_lora_lora_advice3"))
+        lines.append(text=gettext("compat_lora_lora"))
+        lines.append(text=gettext("compat_lora_lora_advice1"))
+        lines.append(text=gettext("compat_lora_lora_advice2"))
+        lines.append(text=gettext("compat_lora_lora_advice3"))
     elif "lora" in (type_a, type_b):
-        lines.append(_("compat_model_lora"))
-        lines.append(_("compat_model_lora_advice1"))
-        lines.append(_("compat_model_lora_advice2"))
-        lines.append(_("compat_model_lora_advice3"))
+        lines.append(text=gettext("compat_model_lora"))
+        lines.append(text=gettext("compat_model_lora_advice1"))
+        lines.append(text=gettext("compat_model_lora_advice2"))
+        lines.append(text=gettext("compat_model_lora_advice3"))
     lines.append("")
 
     # ── 仕様書 判定パターン B チェック（Attention層のコサイン類似度） ──
@@ -981,23 +994,23 @@ def _generate_compat_report(
             denom = (abs(va) + abs(vb)) or 1.0
             attn_sims.append(1.0 - abs(va - vb) / denom)
         mean_attn_sim = sum(attn_sims) / len(attn_sims)
-        lines.append(_("compat_pattern_b_title"))
-        lines.append(_("compat_pattern_b_sim", sim=mean_attn_sim))
+        lines.append(text=gettext("compat_pattern_b_title"))
+        lines.append(text=gettext("compat_pattern_b_sim", sim=mean_attn_sim))
         if mean_attn_sim < 0.4:
             lines += [
-                _("compat_pattern_b_warn"),
-                _("compat_pattern_b_warn2"),
-                _("compat_pattern_b_warn3"),
-                _("compat_pattern_b_warn4"),
+                gettext("compat_pattern_b_warn"),
+                gettext("compat_pattern_b_warn2"),
+                gettext("compat_pattern_b_warn3"),
+                gettext("compat_pattern_b_warn4"),
             ]
         else:
-            lines.append(_("compat_pattern_b_ok"))
+            lines.append(text=gettext("compat_pattern_b_ok"))
         lines.append("")
 
     lines += [
         sep,
-        _("compat_footer1"),
-        _("compat_footer2"),
+        gettext("compat_footer1"),
+        gettext("compat_footer2"),
         sep,
     ]
     return lines
@@ -1014,20 +1027,20 @@ def _method_metric(method_tag: str) -> str:
 
 def _summary_cols(method_tag: str) -> tuple[list[str], list[str]]:
     base_ids = ["group", "layers"]
-    base_hdr = [_("summary_col_group"), _("summary_col_layers")]
+    base_hdr = [gettext("summary_col_group"), gettext("summary_col_layers")]
     if "Feature_Map" in method_tag:
         return (base_ids + ["mean", "var", "complexity"],
-                base_hdr + [_("summary_feat_mean"), _("summary_feat_var"), _("summary_feat_complexity")])
+                base_hdr + [gettext("summary_feat_mean"), gettext("summary_feat_var"), gettext("summary_feat_complexity")])
     if "Statistical" in method_tag:
         return (base_ids + ["l2", "max_l2", "mean_val"],
-                base_hdr + [_("summary_l2"), _("summary_l2_max"), _("summary_mean_val")])
+                base_hdr + [gettext("summary_l2"), gettext("summary_l2_max"), gettext("summary_mean_val")])
     if "SVD_Rank" in method_tag:
         return (base_ids + ["eff_rank", "decay", "cumvar"],
-                base_hdr + [_("summary_eff_rank"), _("summary_decay"), _("summary_cumvar")])
+                base_hdr + [gettext("summary_eff_rank"), gettext("summary_decay"), gettext("summary_cumvar")])
     if "Attention_Map" in method_tag:
         return (base_ids + ["attn_w", "head_var"],
-                base_hdr + [_("summary_attn_w"), _("summary_head_var")])
-    return (base_ids + ["value"], base_hdr + [_("summary_value")])
+                base_hdr + [gettext("summary_attn_w"), gettext("summary_head_var")])
+    return (base_ids + ["value"], base_hdr + [gettext("summary_value")])
 
 
 def _make_summary_row(grp: str, agg: dict, method_tag: str) -> tuple:

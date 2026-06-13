@@ -170,3 +170,19 @@
   Checkpoints: 2
   LoRA files : 2
 
+2026-06-13 16:18:48 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 16:32:19 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 17:09:45 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-13 17:10:17 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
