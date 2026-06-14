@@ -19,6 +19,16 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
+try:
+    from .i18n import gettext, load_language
+except ImportError:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from i18n import gettext, load_language  # type: ignore[no-redef]
+
 if TYPE_CHECKING:
     from .leco_train import _LecoTrainState
 
@@ -107,22 +117,22 @@ class LecoMonitorGraph:
 
         btn_row = ttk.Frame(right)
         btn_row.pack(fill=tk.X, padx=4, pady=(4, 0))
-        ttk.Button(btn_row, text="グラフリセット", command=self._reset).pack(
+        ttk.Button(btn_row, text=gettext("lora_monitor_btn_reset"), command=self._reset).pack(
             side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 2)
         )
-        ttk.Button(btn_row, text="学習停止", command=self._stop_training).pack(
+        ttk.Button(btn_row, text=gettext("lora_monitor_btn_stop"), command=self._stop_training).pack(
             side=tk.LEFT, fill=tk.X, expand=True, padx=(2, 0)
         )
 
     def _build_param_panel(self, parent: ttk.Frame) -> None:
-        lf = ttk.LabelFrame(parent, text="学習パラメーター")
+        lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_param_title"))
         lf.pack(fill=tk.X, padx=4, pady=(4, 4))
 
         self._param_vars: dict[str, tk.StringVar] = {}
         rows = [
-            ("step",       "step"),
-            ("LR",         "lr"),
-            ("Train Loss", "train_loss"),
+            (gettext("lora_monitor_param_step"),       "step"),
+            (gettext("lora_monitor_param_lr"),         "lr"),
+            (gettext("lora_monitor_param_train_loss"), "train_loss"),
         ]
         for i, (label, key) in enumerate(rows):
             ttk.Label(lf, text=label + ":", width=12, anchor=tk.W).grid(
@@ -137,23 +147,23 @@ class LecoMonitorGraph:
         lf.columnconfigure(1, weight=1)
 
         # EarlyStopping パネル
-        es_lf = ttk.LabelFrame(parent, text="EarlyStopping")
+        es_lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_es_title"))
         es_lf.pack(fill=tk.X, padx=4, pady=(0, 4))
-        self._es_status_var = tk.StringVar(value="無効")
+        self._es_status_var = tk.StringVar(value=gettext("leco_monitor_es_disabled"))
         ttk.Label(es_lf, textvariable=self._es_status_var,
                   font=("TkFixedFont", 9)).pack(anchor=tk.W, padx=6, pady=(2, 0))
         self._es_progress = ttk.Progressbar(es_lf, maximum=100, value=0, length=180)
         self._es_progress.pack(fill=tk.X, padx=6, pady=(2, 4))
 
         # 時間情報
-        time_lf = ttk.LabelFrame(parent, text="時間")
+        time_lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_time_title"))
         time_lf.pack(fill=tk.X, padx=4, pady=(0, 4))
 
         time_rows = [
-            ("開始",     "start_time"),
-            ("完了予測", "eta_clock"),
-            ("残り時間", "eta_remain"),
-            ("経過",     "elapsed"),
+            (gettext("lora_monitor_time_start"),     "start_time"),
+            (gettext("lora_monitor_time_eta_clock"), "eta_clock"),
+            (gettext("lora_monitor_time_eta_remain"), "eta_remain"),
+            (gettext("lora_monitor_time_elapsed"),   "elapsed"),
         ]
         self._time_vars: dict[str, tk.StringVar] = {}
         for i, (label, key) in enumerate(time_rows):
@@ -169,7 +179,7 @@ class LecoMonitorGraph:
         time_lf.columnconfigure(1, weight=1)
 
     def _build_report_panel(self, parent: ttk.Frame) -> None:
-        lf = ttk.LabelFrame(parent, text="自動レポート")
+        lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_report_title"))
         lf.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 4))
         lf.rowconfigure(0, weight=1)
         lf.columnconfigure(0, weight=1)
@@ -248,10 +258,7 @@ class LecoMonitorGraph:
             self._mpl_ok = False
             ttk.Label(
                 self._graph_frame,
-                text=(
-                    f"matplotlib を読み込めませんでした。\n{exc}\n\n"
-                    "pip install matplotlib で解決します。"
-                ),
+                text=gettext("lora_monitor_mpl_error", error=exc),
                 foreground="#EF4444",
                 justify=tk.LEFT,
             ).pack(padx=16, pady=16, anchor=tk.NW)
@@ -341,12 +348,18 @@ class LecoMonitorGraph:
             step_info = ""
             ms = _RE_STEP_POSTFIX.search(line)
             if ms:
-                step_info = f" (step {ms.group(1)})"
-            self._append_report(f"[サンプル生成開始]{step_info}", "sample_info")
+                step_info = gettext("leco_monitor_sample_step_info", step=ms.group(1))
+            self._append_report(
+                gettext("leco_monitor_sample_start", info=step_info), "sample_info"
+            )
         elif "sample images saved" in line.lower() or "sample saved" in line.lower():
-            self._append_report(f"[サンプル生成完了] {line.strip()}", "sample_info")
+            self._append_report(
+                gettext("leco_monitor_sample_done", line=line.strip()), "sample_info"
+            )
         elif "  prompt:" in line and ", size:" in line:
-            self._append_report(f"[サンプル生成] {line.strip()}", "sample_info")
+            self._append_report(
+                gettext("leco_monitor_sample", line=line.strip()), "sample_info"
+            )
 
         # ── 診断 ─────────────────────────────────────────────────────
         self._auto_diagnose(line)
@@ -358,8 +371,7 @@ class LecoMonitorGraph:
                 v = float(m.group(1))
                 if math.isnan(v) or math.isinf(v):
                     self._append_report(
-                        "[診断] Train Loss が NaN/Inf になっています。"
-                        "学習を停止することを推奨します。",
+                        gettext("leco_monitor_loss_nan"),
                         "danger",
                     )
             except ValueError:
@@ -370,12 +382,12 @@ class LecoMonitorGraph:
             enabled  = bool(self._state.es_enabled.get())
             patience = int(self._state.es_patience.get())
         except Exception:
-            self._es_status_var.set("無効")
+            self._es_status_var.set(gettext("leco_monitor_es_disabled"))
             self._es_progress["value"] = 0
             return
 
         if not enabled or patience <= 0:
-            self._es_status_var.set("無効")
+            self._es_status_var.set(gettext("leco_monitor_es_disabled"))
             self._es_progress["value"] = 0
             return
 
@@ -385,8 +397,7 @@ class LecoMonitorGraph:
             else:
                 if self._es_rise_count > 0:
                     self._append_report(
-                        f"[ES] Loss 改善を確認。カウントリセット "
-                        f"({self._es_rise_count} → 0)",
+                        gettext("leco_monitor_es_reset", old=self._es_rise_count),
                         "normal",
                     )
                 self._es_rise_count = 0
@@ -396,23 +407,26 @@ class LecoMonitorGraph:
         pct = int(self._es_rise_count / patience * 100)
         self._es_progress["value"] = min(pct, 100)
         self._es_status_var.set(
-            f"連続上昇 {self._es_rise_count} / {patience} step"
+            gettext("leco_monitor_es_rise", count=self._es_rise_count, patience=patience)
         )
 
         warn_threshold = max(1, patience // 2)
         if self._es_rise_count >= warn_threshold and not self._es_warned:
             self._es_warned = True
             self._append_report(
-                f"[ES 警告] Train Loss が {warn_threshold} step 連続上昇しています "
-                f"({self._es_rise_count}/{patience})。過学習の可能性があります。",
+                gettext(
+                    "leco_monitor_es_warn",
+                    warn=warn_threshold,
+                    count=self._es_rise_count,
+                    patience=patience,
+                ),
                 "es_warn",
             )
 
         if self._es_rise_count >= patience and not self._es_stopped:
             self._es_stopped = True
             self._append_report(
-                f"[ES 緊急停止] Train Loss が {patience} step 連続上昇しました。"
-                "学習を停止します。",
+                gettext("leco_monitor_es_stop", patience=patience),
                 "es_stop",
             )
             self._stop_training()
@@ -477,7 +491,7 @@ class LecoMonitorGraph:
             self._time_vars["eta_remain"].set(_fmt_duration(eta_sec))
             self._time_vars["eta_clock"].set(eta_dt.strftime("%H:%M:%S"))
         else:
-            self._time_vars["eta_remain"].set("計算中...")
+            self._time_vars["eta_remain"].set(gettext("lora_monitor_time_calculating"))
             self._time_vars["eta_clock"].set("—")
 
     # ─────────────────────────────────────────────────────────────────
@@ -557,13 +571,13 @@ class LecoMonitorGraph:
                 ax.cla()
                 ax.grid(True)
             self._canvas.draw_idle()
-        self._es_status_var.set("無効")
+        self._es_status_var.set(gettext("leco_monitor_es_disabled"))
         self._es_progress["value"] = 0
 
     def _stop_training(self) -> None:
         proc = getattr(self._state, "_proc", None)
         if proc is None or proc.poll() is not None:
-            self._state.log_fn("[LECO Train] 停止対象のプロセスがありません。")
+            self._state.log_fn(gettext("leco_monitor_no_proc"))
             return
 
         import os
@@ -573,8 +587,8 @@ class LecoMonitorGraph:
             os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
         except Exception:
             proc.terminate()
-        self._state.status_var.set("停止要求済み")
-        self._state.log_fn("[LECO Train] 停止要求を送信しました。（モニターグラフ）")
+        self._state.status_var.set(gettext("status_stop_requested"))
+        self._state.log_fn(gettext("leco_monitor_stop_sent"))
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -595,5 +609,5 @@ def _fmt_duration(sec: float) -> str:
     m = (sec % 3600) // 60
     s = sec % 60
     if h > 0:
-        return f"{h}時間 {m:02d}分 {s:02d}秒"
-    return f"{m}分 {s:02d}秒"
+        return gettext("lora_monitor_duration_hms", h=h, m=f"{m:02d}", s=f"{s:02d}")
+    return gettext("lora_monitor_duration_ms", m=m, s=f"{s:02d}")

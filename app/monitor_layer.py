@@ -8,6 +8,16 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING, Callable
 
+try:
+    from .i18n import gettext, load_language
+except ImportError:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from i18n import gettext, load_language  # type: ignore[no-redef]
+
 if TYPE_CHECKING:
     from .lora_train import _TrainState
 
@@ -43,11 +53,11 @@ class MonitorLayerGraph:
 
         ttk.Label(
             header,
-            text="per-layer LR ratio / effective LR",
+            text=gettext("monitor_layer_title"),
             font=("TkDefaultFont", 10, "bold"),
         ).grid(row=0, column=0, sticky=tk.W)
 
-        self._status_var = tk.StringVar(value="階層学習は無効です。")
+        self._status_var = tk.StringVar(value=gettext("monitor_layer_disabled"))
         ttk.Label(header, textvariable=self._status_var, foreground="#475569").grid(
             row=0, column=1, sticky=tk.E, padx=(12, 0)
         )
@@ -122,13 +132,13 @@ class MonitorLayerGraph:
         groups = self._group_names_for_mode(mode)
 
         if not enabled:
-            self._status_var.set("階層学習は無効です。")
-            self._draw_message("階層学習タブで「階層学習を有効にする」をONにしてください。")
+            self._status_var.set(gettext("monitor_layer_disabled"))
+            self._draw_message(gettext("monitor_layer_enable_hint"))
             return
 
         if not groups:
-            self._status_var.set("表示対象がありません。")
-            self._draw_message("表示できる階層がありません。")
+            self._status_var.set(gettext("monitor_layer_no_target"))
+            self._draw_message(gettext("monitor_layer_no_layer"))
             return
 
         base_lr = self._last_lr if self._last_lr > 0.0 else self._read_base_lr()
@@ -146,9 +156,9 @@ class MonitorLayerGraph:
         row_h = 28
         top = 30
 
-        self._canvas.create_text(label_x, 12, text="階層", anchor=tk.W, fill="#CBD5E1", font=("TkDefaultFont", 9, "bold"))
-        self._canvas.create_text(ratio_x, 12, text="比率", anchor=tk.W, fill="#CBD5E1", font=("TkDefaultFont", 9, "bold"))
-        self._canvas.create_text(bar_x, 12, text="実効LR", anchor=tk.W, fill="#CBD5E1", font=("TkDefaultFont", 9, "bold"))
+        self._canvas.create_text(label_x, 12, text=gettext("monitor_layer_col_layer"), anchor=tk.W, fill="#CBD5E1", font=("TkDefaultFont", 9, "bold"))
+        self._canvas.create_text(ratio_x, 12, text=gettext("monitor_layer_col_ratio"), anchor=tk.W, fill="#CBD5E1", font=("TkDefaultFont", 9, "bold"))
+        self._canvas.create_text(bar_x, 12, text=gettext("monitor_layer_col_effective_lr"), anchor=tk.W, fill="#CBD5E1", font=("TkDefaultFont", 9, "bold"))
 
         for idx, (name, ratio, effective_lr) in enumerate(rows):
             y = top + idx * row_h
@@ -171,7 +181,7 @@ class MonitorLayerGraph:
         total_h = top + len(rows) * row_h + 16
         self._canvas.configure(scrollregion=(0, 0, width, total_h))
         self._status_var.set(
-            f"mode={mode}  groups={len(rows)}  current lr={_fmt_lr(base_lr)}"
+            gettext("monitor_layer_status", mode=mode, groups=len(rows), lr=_fmt_lr(base_lr))
         )
 
     def _draw_message(self, message: str) -> None:

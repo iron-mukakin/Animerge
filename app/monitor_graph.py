@@ -30,6 +30,8 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
+from .i18n import gettext, load_language
+
 if TYPE_CHECKING:
     from .lora_train import _TrainState
 
@@ -89,6 +91,7 @@ class MonitorGraph:
     MAX_REPORT_LINES = 200   # 自動レポート最大保持行数
 
     def __init__(self, parent: ttk.Frame, state: "_TrainState") -> None:
+        load_language()  # 設定変更直後でも最新の言語テキストを反映する
         self._state = state
         self._parent = parent
 
@@ -156,27 +159,27 @@ class MonitorGraph:
         # 操作ボタン
         btn_row = ttk.Frame(right)
         btn_row.pack(fill=tk.X, padx=4, pady=(4, 0))
-        ttk.Button(btn_row, text="グラフリセット", command=self._reset).pack(
+        ttk.Button(btn_row, text=gettext("lora_monitor_btn_reset"), command=self._reset).pack(
             side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 2)
         )
-        ttk.Button(btn_row, text="学習停止", command=self._stop_training).pack(
+        ttk.Button(btn_row, text=gettext("lora_monitor_btn_stop"), command=self._stop_training).pack(
             side=tk.LEFT, fill=tk.X, expand=True, padx=(2, 0)
         )
 
     def _build_param_panel(self, parent: ttk.Frame) -> None:
-        lf = ttk.LabelFrame(parent, text="学習パラメーター")
+        lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_param_title"))
         lf.pack(fill=tk.X, padx=4, pady=(4, 4))
 
         self._param_vars: dict[str, tk.StringVar] = {}
 
         rows = [
-            ("epoch",      "epoch"),
-            ("step",       "step"),
-            ("LR",         "lr"),
-            ("Train Loss", "train_loss"),
-            ("Val Loss",   "val_loss"),
-            ("ΔLoss",      "delta_loss"),
-            ("grad norm",  "grad_norm"),
+            (gettext("lora_monitor_param_epoch"),      "epoch"),
+            (gettext("lora_monitor_param_step"),       "step"),
+            (gettext("lora_monitor_param_lr"),         "lr"),
+            (gettext("lora_monitor_param_train_loss"), "train_loss"),
+            (gettext("lora_monitor_param_val_loss"),   "val_loss"),
+            (gettext("lora_monitor_param_delta_loss"), "delta_loss"),
+            (gettext("lora_monitor_param_grad_norm"),  "grad_norm"),
         ]
         for i, (label, key) in enumerate(rows):
             ttk.Label(lf, text=label + ":", width=12, anchor=tk.W).grid(
@@ -190,10 +193,10 @@ class MonitorGraph:
         lf.columnconfigure(1, weight=1)
 
         # EarlyStopping 進捗バー
-        es_lf = ttk.LabelFrame(parent, text="EarlyStopping")
+        es_lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_es_title"))
         es_lf.pack(fill=tk.X, padx=4, pady=(0, 4))
 
-        self._es_var = tk.StringVar(value="無効 / 非設定")
+        self._es_var = tk.StringVar(value=gettext("lora_monitor_es_disabled"))
         ttk.Label(es_lf, textvariable=self._es_var, font=("TkFixedFont", 9)).pack(
             anchor=tk.W, padx=6, pady=(2, 0)
         )
@@ -201,14 +204,14 @@ class MonitorGraph:
         self._es_progress.pack(fill=tk.X, padx=6, pady=(2, 4))
 
         # 時間情報
-        time_lf = ttk.LabelFrame(parent, text="時間")
+        time_lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_time_title"))
         time_lf.pack(fill=tk.X, padx=4, pady=(0, 4))
 
         time_rows = [
-            ("開始",       "start_time"),
-            ("完了予測",   "eta_clock"),
-            ("残り時間",   "eta_remain"),
-            ("経過",       "elapsed"),
+            (gettext("lora_monitor_time_start"),     "start_time"),
+            (gettext("lora_monitor_time_eta_clock"), "eta_clock"),
+            (gettext("lora_monitor_time_eta_remain"), "eta_remain"),
+            (gettext("lora_monitor_time_elapsed"),   "elapsed"),
         ]
         self._time_vars: dict[str, tk.StringVar] = {}
         for i, (label, key) in enumerate(time_rows):
@@ -224,7 +227,7 @@ class MonitorGraph:
         time_lf.columnconfigure(1, weight=1)
 
     def _build_report_panel(self, parent: ttk.Frame) -> None:
-        lf = ttk.LabelFrame(parent, text="自動レポート")
+        lf = ttk.LabelFrame(parent, text=gettext("lora_monitor_report_title"))
         lf.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 4))
         lf.rowconfigure(0, weight=1)
         lf.columnconfigure(0, weight=1)
@@ -309,7 +312,7 @@ class MonitorGraph:
             self._mpl_ok = False
             ttk.Label(
                 self._graph_frame,
-                text=f"matplotlib を読み込めませんでした。\n{exc}\n\npip install matplotlib で解決します。",
+                text=gettext("lora_monitor_mpl_error", error=exc),
                 foreground="#EF4444",
                 justify=tk.LEFT,
             ).pack(padx=16, pady=16, anchor=tk.NW)
@@ -416,9 +419,13 @@ class MonitorGraph:
 
         # サンプル生成ログ検出
         if "Generating sample images at step" in line:
-            self._append_report(f"[サンプル生成] {line.strip()}", "sample_info")
+            self._append_report(
+                f"{gettext('lora_monitor_sample_gen_prefix')} {line.strip()}", "sample_info"
+            )
         elif "  prompt:" in line and ", size:" in line:
-            self._append_report(f"[サンプル生成] {line.strip()}", "sample_info")
+            self._append_report(
+                f"{gettext('lora_monitor_sample_gen_prefix')} {line.strip()}", "sample_info"
+            )
 
         # 診断ログ
         self._auto_diagnose(line)
@@ -439,10 +446,10 @@ class MonitorGraph:
             recent_avg = sum(self._grad_norms[-5:-1]) / 4
             latest = self._grad_norms[-1]
             if recent_avg > 0 and latest > recent_avg * 3.0:
-                msg = (
-                    f"[診断] grad_norm が急増しています "
-                    f"({latest:.3f} / 直近平均 {recent_avg:.3f})。"
-                    "LR低下またはmax_grad_norm調整を検討してください。"
+                msg = gettext(
+                    "lora_monitor_diag_grad_spike",
+                    latest=latest,
+                    recent_avg=recent_avg,
                 )
                 self._append_report(msg, "diag")
 
@@ -454,7 +461,7 @@ class MonitorGraph:
                 import math
                 if math.isnan(v) or math.isinf(v):
                     self._append_report(
-                        "[診断] Train Loss が NaN/Inf になっています。学習を停止することを推奨します。",
+                        gettext("lora_monitor_diag_loss_nan"),
                         "danger",
                     )
             except ValueError:
@@ -526,11 +533,17 @@ class MonitorGraph:
         # EarlyStopping プログレス
         if self._es_patience > 0:
             pct = int(self._es_count / self._es_patience * 100)
-            self._es_var.set(f"{self._es_count} / {self._es_patience} 回悪化")
+            self._es_var.set(
+                gettext(
+                    "lora_monitor_es_progress",
+                    count=self._es_count,
+                    patience=self._es_patience,
+                )
+            )
             self._es_progress["value"] = pct
             # バー色 (ttk は直接変更不可なのでスタイルで近似)
         else:
-            self._es_var.set("無効 / 非設定")
+            self._es_var.set(gettext("lora_monitor_es_disabled"))
             self._es_progress["value"] = 0
 
     def _update_time(self) -> None:
@@ -557,7 +570,7 @@ class MonitorGraph:
             self._time_vars["eta_remain"].set(_fmt_duration(eta_sec))
             self._time_vars["eta_clock"].set(eta_dt.strftime("%H:%M:%S"))
         else:
-            self._time_vars["eta_remain"].set("計算中...")
+            self._time_vars["eta_remain"].set(gettext("lora_monitor_time_calculating"))
             self._time_vars["eta_clock"].set("—")
 
     # ─────────────────────────────────────────────────────────────────
@@ -688,7 +701,7 @@ class MonitorGraph:
     def _stop_training(self) -> None:
         proc = getattr(self._state, "_proc", None)
         if proc is None or proc.poll() is not None:
-            self._state.log_fn("[LoRA Train] 停止対象のプロセスがありません。")
+            self._state.log_fn(gettext("lora_monitor_stop_no_proc"))
             return
 
         import os
@@ -698,8 +711,8 @@ class MonitorGraph:
             os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
         except Exception:
             proc.terminate()
-        self._state.status_var.set("停止要求済み")
-        self._state.log_fn("[LoRA Train] 停止要求を送信しました。（モニターグラフ）")
+        self._state.status_var.set(gettext("status_stop_requested"))
+        self._state.log_fn(gettext("lora_monitor_stop_sent"))
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -729,5 +742,5 @@ def _fmt_duration(sec: float) -> str:
     m = (sec % 3600) // 60
     s = sec % 60
     if h > 0:
-        return f"{h}時間 {m:02d}分 {s:02d}秒"
-    return f"{m}分 {s:02d}秒"
+        return gettext("lora_monitor_duration_hms", h=h, m=f"{m:02d}", s=f"{s:02d}")
+    return gettext("lora_monitor_duration_ms", m=m, s=f"{s:02d}")
