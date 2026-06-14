@@ -74,3 +74,7 @@
   Checkpoints: 2
   LoRA files : 2
 
+2026-06-14 20:27:48 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+

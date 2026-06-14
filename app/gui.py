@@ -30,6 +30,7 @@ from .analysis import (
 from .analysis_viewer import build_viewer_tab
 from .lora_train import build_lora_train_tab
 from .leco_train import build_leco_train_tab
+from .addift_train import build_addift_train_tab
 
 
 MATRIX_BLOCKS = ("Input", "Middle", "Output")
@@ -161,6 +162,7 @@ class AnimaModelEditor(tk.Tk):
         viewer_main   = ttk.Frame(self.main_notebook, padding=4)
         train_main    = ttk.Frame(self.main_notebook, padding=4)
         leco_main     = ttk.Frame(self.main_notebook, padding=4)
+        addift_main   = ttk.Frame(self.main_notebook, padding=4)
         settings_main = ttk.Frame(self.main_notebook, padding=4)
         self.main_notebook.add(model_main,    text=gettext("main_tab_model_merge"))
         self.main_notebook.add(lora_main,     text=gettext("main_tab_lora_merge"))
@@ -168,6 +170,7 @@ class AnimaModelEditor(tk.Tk):
         self.main_notebook.add(viewer_main,   text=gettext("main_tab_viewer"))
         self.main_notebook.add(train_main,    text=gettext("main_tab_lora_train"))
         self.main_notebook.add(leco_main,     text=gettext("main_tab_leco_train"))
+        self.main_notebook.add(addift_main,   text=gettext("main_tab_addift_train"))
         self.main_notebook.add(settings_main, text=gettext("settings_tab"))
 
         # 各主タブ内の共通エリアを構築
@@ -184,6 +187,12 @@ class AnimaModelEditor(tk.Tk):
         )
         self._leco_train_state = build_leco_train_tab(
             leco_main,
+            self.paths,
+            self.log,
+            lambda: self.model_choices,
+        )
+        self._addift_train_state = build_addift_train_tab(
+            addift_main,
             self.paths,
             self.log,
             lambda: self.model_choices,
@@ -217,6 +226,9 @@ class AnimaModelEditor(tk.Tk):
             self._active_tab_type = "leco_train"
             return  # LECO学習タブは merge 系のコントロール再構築不要
         elif idx == 6:
+            self._active_tab_type = "addift_train"
+            return  # ADDifT学習タブは merge 系のコントロール再構築不要
+        elif idx == 7:
             self._active_tab_type = "settings"
             return  # 設定タブは merge 系のコントロール再構築不要
         self.rebuild_parameter_controls()
@@ -999,6 +1011,17 @@ class AnimaModelEditor(tk.Tk):
                     proc.terminate()
                 proc.wait(timeout=10)
                 self.log(gettext("unload_leco_proc"))
+        # ADDifT学習プロセスが動いている場合は先に終了させる
+        if hasattr(self, "_addift_train_state") and self._addift_train_state is not None:
+            proc = getattr(self._addift_train_state, "_proc", None)
+            if proc is not None and proc.poll() is None:
+                import os, signal
+                try:
+                    os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
+                except Exception:
+                    proc.terminate()
+                proc.wait(timeout=10)
+                self.log(gettext("unload_addift_proc"))
         try:
             import gc
             import torch
