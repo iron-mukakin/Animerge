@@ -616,5 +616,6 @@
   "addift_start_error": "[ADDifT Train] 起動エラー: {error}",
   "addift_stop_no_proc": "[ADDifT Train] 実行中のプロセスはありません。",
   "addift_stop_sent": "[ADDifT Train] 停止信号を送信しました。",
-  "unload_addift_proc": "[Unload] ADDifT学習プロセスを終了しました。"
+  "unload_addift_proc": "[Unload] ADDifT学習プロセスを終了しました。",
+  "lora_sample_load_error": "サンプルギャラリーの初期化に失敗しました。\n{error}"
 }

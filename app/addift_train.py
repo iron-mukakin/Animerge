@@ -56,6 +56,9 @@ MATRIX_COMPONENTS  = ("Attention", "MLP", "Norm", "ResNet", "Timestep")
 COMPONENT_GROUPS   = ("Attention", "MLP", "Norm", "ResNet", "Timestep", "Other")
 LAYER_COLUMNS      = 3
 
+# blocks.0-8=Input, blocks.9-18=Middle, blocks.19-27=Output (leco_train.py と共通)
+_BLOCK_CAT: list[str] = ["Input"] * 9 + ["Middle"] * 10 + ["Output"] * 9
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # メイン構築関数
@@ -100,10 +103,10 @@ def build_addift_train_tab(
     _build_network_tab(tab_network,   state)
     _build_train_tab(tab_train,       state)
     _build_adv_tab(tab_adv,           state)
-    _build_layer_train_tab_stub(tab_layer, state)
-    _build_monitor_tab_stub(tab_monitor, state)
-    _build_monitor_layer_tab_stub(tab_monitor_layer, state)
-    _build_sample_tab_stub(tab_sample, state)
+    _build_layer_train_tab(tab_layer, state)
+    _build_monitor_tab(tab_monitor, state)
+    _build_monitor_layer_tab(tab_monitor_layer, state)
+    _build_sample_tab(tab_sample, state)
     _build_addift_preset_tab(tab_preset, state)
 
     for tab in (tab_model, tab_dataset, tab_network, tab_train):
@@ -181,12 +184,13 @@ class _AddifTTrainState:
         self.t5_max_token_length    = tk.IntVar(value=512)
         self.t5_tokenizer_path      = tk.StringVar(value="")
 
-        # ── 階層学習（フェーズ2で実装予定 / 仮placeholder） ────────
+        # ── 階層学習 ─────────────────────────────────────────────
         self.layer_train_enabled   = tk.BooleanVar(value=False)
         self.layer_display_mode    = tk.StringVar(value="Matrix")
         self.layer_parameter_vars: dict[str, tk.DoubleVar] = {}
         self.layer_canvas: "tk.Canvas | None" = None
         self.layer_inner:  "ttk.Frame | None" = None
+        self._layer_status_var: "tk.StringVar | None" = None
 
         # ── モニターキュー（フェーズ2で使用予定） ───────────────────
         self._monitor_queue:       queue.Queue[str] = queue.Queue()
@@ -206,6 +210,10 @@ class _AddifTTrainState:
         self.sample_b_enabled          = tk.BooleanVar(value=False)
         self.sample_b_prompt           = tk.StringVar(value="")
         self.sample_b_negative_prompt  = tk.StringVar(value="")
+
+        # ── EarlyStopping（モニターグラフ: Train Loss連続上昇監視） ──
+        self.es_enabled   = tk.BooleanVar(value=False)
+        self.es_patience  = tk.IntVar(value=5)   # 連続上昇で警告/停止する step 数
 
         # ステータス
         self.status_var       = tk.StringVar(value=gettext("status_waiting"))
@@ -565,9 +573,20 @@ def _build_adv_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
                     variable=s.vae_disable_cache).grid(
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
 
+    lf3 = ttk.LabelFrame(parent, text=gettext("leco_es_label"))
+    lf3.pack(fill=tk.X, pady=(8, 0))
+    ttk.Checkbutton(lf3, text=gettext("leco_es_enable"),
+                    variable=s.es_enabled).grid(row=0, column=0, sticky=tk.W, padx=8, pady=4)
+    ttk.Label(lf3, text=gettext("leco_es_watch_steps"), anchor=tk.W).grid(
+        row=0, column=1, sticky=tk.W, padx=(12, 2), pady=4)
+    ttk.Spinbox(lf3, from_=2, to=500, textvariable=s.es_patience, width=6).grid(
+        row=0, column=2, sticky=tk.W, padx=(0, 8), pady=4)
+    ttk.Label(lf3, text=gettext("leco_es_note"),
+              foreground="#64748B").grid(row=0, column=3, sticky=tk.W, padx=(0, 8), pady=4)
+
 
 # ──────────────────────────────────────────────────────────────────────────────
-# フェーズ2 仮設置タブ: 階層学習 / モニターグラフ / モニター階層 / サンプル生成
+# 階層学習 / モニターグラフ / モニター階層 / サンプル生成
 # ──────────────────────────────────────────────────────────────────────────────
 def _build_placeholder_tab(parent: ttk.Frame, message_key: str) -> None:
     ttk.Label(
@@ -579,27 +598,323 @@ def _build_placeholder_tab(parent: ttk.Frame, message_key: str) -> None:
     ).pack(padx=16, pady=16, anchor=tk.NW)
 
 
-def _build_layer_train_tab_stub(parent: ttk.Frame, s: _AddifTTrainState) -> None:
-    """階層学習タブ（仮設置）。フェーズ2でlora_train/leco_train相当の実装を追加予定。"""
-    _build_placeholder_tab(parent, "addift_phase2_layer_placeholder")
+def _build_layer_train_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
+    """階層別学習率スケールを設定するタブ (leco_train.py 移植)。"""
+    hdr = ttk.Frame(parent)
+    hdr.pack(fill=tk.X, pady=(0, 4))
+
+    ttk.Checkbutton(
+        hdr, text=gettext("lora_layer_train_enable"),
+        variable=s.layer_train_enabled,
+        command=lambda: _refresh_layer_controls_addift(s, ctrl_canvas, ctrl_inner),
+    ).pack(side=tk.LEFT, padx=(0, 12))
+
+    ttk.Label(hdr, text=gettext("lora_layer_mode_label")).pack(side=tk.LEFT)
+    mode_cb = ttk.Combobox(
+        hdr, textvariable=s.layer_display_mode,
+        values=list(LAYER_TRAIN_MODES), state="readonly", width=14,
+    )
+    mode_cb.pack(side=tk.LEFT, padx=(2, 12))
+    mode_cb.bind(
+        "<<ComboboxSelected>>",
+        lambda _e: _refresh_layer_controls_addift(s, ctrl_canvas, ctrl_inner),
+    )
+
+    ttk.Button(
+        hdr, text=gettext("lora_layer_preset_load"),
+        command=lambda: _load_layer_preset_addift(s, ctrl_canvas, ctrl_inner),
+    ).pack(side=tk.LEFT)
+
+    canvas_frame = ttk.LabelFrame(
+        parent, text=gettext("lora_layer_scale_label")
+    )
+    canvas_frame.pack(fill=tk.BOTH, expand=True)
+
+    ctrl_canvas = tk.Canvas(canvas_frame, highlightthickness=0)
+    vscroll = ttk.Scrollbar(canvas_frame, orient=tk.VERTICAL, command=ctrl_canvas.yview)
+    ctrl_canvas.configure(yscrollcommand=vscroll.set)
+    vscroll.pack(side=tk.RIGHT, fill=tk.Y)
+    ctrl_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    ctrl_inner = ttk.Frame(ctrl_canvas)
+    ctrl_canvas.create_window((0, 0), window=ctrl_inner, anchor="nw")
+    s.layer_canvas = ctrl_canvas
+    s.layer_inner  = ctrl_inner
+    ctrl_inner.bind(
+        "<Configure>",
+        lambda e: ctrl_canvas.configure(scrollregion=ctrl_canvas.bbox("all")),
+    )
+
+    s._layer_status_var = tk.StringVar(value="(無効)")
+    ttk.Label(parent, textvariable=s._layer_status_var, foreground="#334155").pack(
+        anchor=tk.W, padx=4, pady=(2, 0)
+    )
+
+    _refresh_layer_controls_addift(s, ctrl_canvas, ctrl_inner)
 
 
-def _build_monitor_tab_stub(parent: ttk.Frame, s: _AddifTTrainState) -> None:
-    """モニターグラフタブ（仮設置）。フェーズ2でグラフ描画を追加予定。"""
-    parent.rowconfigure(0, weight=0)
-    parent.rowconfigure(1, weight=1)
+def _layer_group_names_addift(mode: str) -> list[str]:
+    """表示モードに対応するグループ名リストを返す (leco_train.py と同仕様)。"""
+    if mode == "Matrix":
+        return [f"{b}_{c}" for b in MATRIX_BLOCKS for c in MATRIX_COMPONENTS]
+    if mode == "Component":
+        return list(COMPONENT_GROUPS)
+    return [f"blocks.{i}" for i in range(28)]
+
+
+def _refresh_layer_controls_addift(
+    s: _AddifTTrainState,
+    canvas: tk.Canvas,
+    inner: ttk.Frame,
+) -> None:
+    """階層学習スライダー群を再描画する (leco_train.py と同仕様)。"""
+    for child in inner.winfo_children():
+        child.destroy()
+
+    if not s.layer_train_enabled.get():
+        ttk.Label(inner, text=gettext("lora_layer_disabled_msg")).grid(
+            row=0, column=0, padx=8, pady=8, sticky=tk.W
+        )
+        if s._layer_status_var is not None:
+            s._layer_status_var.set(gettext("lora_layer_status_disabled"))
+        canvas.configure(scrollregion=canvas.bbox("all"))
+        return
+
+    mode = s.layer_display_mode.get()
+    groups = _layer_group_names_addift(mode)
+    old = {k: v.get() for k, v in s.layer_parameter_vars.items()}
+    s.layer_parameter_vars = {}
+
+    cols = LAYER_COLUMNS
+    for idx, name in enumerate(groups):
+        var = tk.DoubleVar(value=old.get(name, 1.0))
+        s.layer_parameter_vars[name] = var
+
+        grid_row = idx // cols
+        base_col = (idx % cols) * 3
+
+        ttk.Label(inner, text=name, width=20).grid(
+            row=grid_row, column=base_col, sticky=tk.W, padx=(8, 2), pady=3
+        )
+        scale = ttk.Scale(inner, from_=0.0, to=1.0, variable=var, orient=tk.HORIZONTAL)
+        scale.grid(row=grid_row, column=base_col + 1, sticky=tk.EW, padx=2, pady=3)
+        scale.bind("<ButtonRelease-1>", lambda e, v=var: _snap_scale_addift(v))
+
+        entry = ttk.Entry(inner, textvariable=var, width=6)
+        entry.grid(row=grid_row, column=base_col + 2, sticky=tk.W, padx=(2, 12), pady=3)
+        entry.bind("<FocusOut>", lambda e, v=var: _clamp_var_addift(v))
+
+    for c in range(cols):
+        inner.columnconfigure(c * 3 + 1, weight=1)
+
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+    if s._layer_status_var is None:
+        return
+
+    if mode == "Component":
+        warn_row = (len(groups) + cols - 1) // cols
+        tk.Label(
+            inner,
+            text=gettext("lora_layer_component_warn"),
+            foreground="red",
+            justify=tk.LEFT,
+            wraplength=600,
+        ).grid(row=warn_row, column=0, columnspan=cols * 3, sticky=tk.W, padx=8, pady=(6, 2))
+        canvas.configure(scrollregion=canvas.bbox("all"))
+        s._layer_status_var.set(
+            gettext("lora_layer_status_warn", mode=mode, count=len(groups))
+        )
+    else:
+        s._layer_status_var.set(gettext("lora_layer_status", mode=mode, count=len(groups)))
+
+
+def _snap_scale_addift(var: tk.DoubleVar) -> None:
+    """スライダー値を0.05単位にスナップする。"""
+    v = var.get()
+    var.set(round(round(v / 0.05) * 0.05, 4))
+
+
+def _clamp_var_addift(var: tk.DoubleVar) -> None:
+    """スケール値を[0.0, 1.0]に収める。"""
+    try:
+        var.set(max(0.0, min(1.0, float(var.get()))))
+    except tk.TclError:
+        var.set(1.0)
+
+
+def _convert_preset_scales_addift(
+    scales: dict[str, float],
+    preset_mode: str,
+    target_mode: str,
+) -> dict[str, float]:
+    """プリセットのスケール辞書をpreset_modeからtarget_modeへ変換する (leco_train.py 移植)。"""
+    if preset_mode == target_mode:
+        return dict(scales)
+
+    def _attn_by_block_cat(scales: dict) -> dict[str, float]:
+        cat_vals: dict[str, list[float]] = {b: [] for b in MATRIX_BLOCKS}
+        for k, v in scales.items():
+            m = re.match(r"blocks\.(\d+)_Attention$", k)
+            if m:
+                n = int(m.group(1))
+                if 0 <= n < 28:
+                    cat_vals[_BLOCK_CAT[n]].append(float(v))
+        return {cat: (sum(vals) / len(vals) if vals else 1.0) for cat, vals in cat_vals.items()}
+
+    if preset_mode == "Component" and target_mode == "Matrix":
+        attn_by_cat = _attn_by_block_cat(scales)
+        result = {}
+        for b in MATRIX_BLOCKS:
+            result[f"{b}_Attention"] = attn_by_cat[b]
+            for c in ("MLP", "Norm", "ResNet", "Timestep", "Other"):
+                result[f"{b}_{c}"] = float(scales.get(c, 1.0))
+        return result
+
+    if preset_mode == "Component" and target_mode == "Transformer":
+        attn_by_cat = _attn_by_block_cat(scales)
+        result = {}
+        for i in range(28):
+            cat = _BLOCK_CAT[i]
+            comp_vals = [attn_by_cat[cat]]
+            comp_vals += [float(scales.get(c, 1.0)) for c in ("MLP", "Norm", "ResNet", "Timestep", "Other")]
+            result[f"blocks.{i}"] = sum(comp_vals) / len(comp_vals)
+        return result
+
+    if preset_mode == "Matrix" and target_mode == "Component":
+        result = {}
+        attn_vals = [float(scales.get(f"{b}_Attention", 1.0)) for b in MATRIX_BLOCKS]
+        result["Attention"] = sum(attn_vals) / len(attn_vals)
+        for c in ("MLP", "Norm", "ResNet", "Timestep", "Other"):
+            vals = [float(scales.get(f"{b}_{c}", 1.0)) for b in MATRIX_BLOCKS]
+            result[c] = sum(vals) / len(vals)
+        return result
+
+    if preset_mode == "Matrix" and target_mode == "Transformer":
+        result = {}
+        for i in range(28):
+            cat = _BLOCK_CAT[i]
+            comp_vals = [float(scales.get(f"{cat}_{c}", 1.0)) for c in MATRIX_COMPONENTS]
+            result[f"blocks.{i}"] = sum(comp_vals) / len(comp_vals)
+        return result
+
+    if preset_mode == "Transformer" and target_mode == "Matrix":
+        cat_avg: dict[str, float] = {}
+        for cat in MATRIX_BLOCKS:
+            idxs = [i for i, c in enumerate(_BLOCK_CAT) if c == cat]
+            vals = [float(scales.get(f"blocks.{i}", 1.0)) for i in idxs]
+            cat_avg[cat] = sum(vals) / len(vals)
+        result = {}
+        for b in MATRIX_BLOCKS:
+            for c in MATRIX_COMPONENTS:
+                result[f"{b}_{c}"] = cat_avg[b]
+        return result
+
+    if preset_mode == "Transformer" and target_mode == "Component":
+        avg = sum(float(scales.get(f"blocks.{i}", 1.0)) for i in range(28)) / 28
+        return {c: avg for c in COMPONENT_GROUPS}
+
+    return dict(scales)
+
+
+def _load_layer_preset_addift(s: _AddifTTrainState, canvas: tk.Canvas, inner: ttk.Frame) -> None:
+    """preset/addift_train/*.json から layer_parameter_vars を読み込む。"""
+    preset_dir = s.paths.root / "preset" / "addift_train"
+    preset_dir.mkdir(parents=True, exist_ok=True)
+    path = filedialog.askopenfilename(
+        title=gettext("lora_layer_preset_select_title"),
+        initialdir=str(preset_dir),
+        filetypes=[("JSON", "*.json"), ("All", "*.*")],
+    )
+    if not path:
+        return
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception as exc:
+        messagebox.showerror(gettext("lora_layer_preset_error"), str(exc))
+        return
+
+    new_mode = data.get("layer_display_mode", "Matrix")
+    if new_mode in LAYER_TRAIN_MODES:
+        s.layer_display_mode.set(new_mode)
+
+    _refresh_layer_controls_addift(s, canvas, inner)
+
+    scales = data.get("layer_parameter_vars", {})
+    converted = _convert_preset_scales_addift(
+        scales, preset_mode=new_mode, target_mode=s.layer_display_mode.get()
+    )
+    for k, v in converted.items():
+        if k in s.layer_parameter_vars:
+            try:
+                s.layer_parameter_vars[k].set(float(v))
+            except (ValueError, tk.TclError):
+                pass
+
+    s.log_fn(
+        gettext("lora_layer_preset_log",
+                name=Path(path).name,
+                preset=new_mode,
+                gui=s.layer_display_mode.get())
+    )
+
+
+def _layer_scales_to_block_weights_addift(mode: str, scales: dict[str, float]) -> list[float]:
+    """layer_parameter_vars を anima_block_lr_weight 用の28要素リストへ変換する。"""
+    weights: list[float] = []
+    if mode == "Transformer":
+        for i in range(28):
+            weights.append(float(scales.get(f"blocks.{i}", 1.0)))
+    elif mode == "Matrix":
+        for i in range(28):
+            cat = _BLOCK_CAT[i]
+            comp_vals = [scales.get(f"{cat}_{c}", 1.0) for c in MATRIX_COMPONENTS]
+            weights.append(sum(comp_vals) / len(comp_vals))
+    else:
+        all_vals = [scales.get(c, 1.0) for c in COMPONENT_GROUPS]
+        avg = sum(all_vals) / len(all_vals)
+        weights = [avg] * 28
+    return weights
+
+
+def _build_monitor_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
+    """モニターグラフタブ: AddifTMonitorGraph + 学習ログウィジェットを組み込む。"""
+    import importlib.util as _ilu
+    import logging as _log
+
+    # row=0 グラフ領域 / row=1 ログ欄
+    parent.rowconfigure(0, weight=1)
+    parent.rowconfigure(1, weight=0)
     parent.columnconfigure(0, weight=1)
 
-    ttk.Label(
-        parent,
-        text=gettext("addift_phase2_monitor_placeholder"),
-        foreground="#64748B",
-        justify=tk.LEFT,
-        wraplength=560,
-    ).grid(row=0, column=0, sticky=tk.NW, padx=16, pady=16)
+    graph_frame = ttk.Frame(parent)
+    graph_frame.grid(row=0, column=0, sticky=tk.NSEW)
+
+    try:
+        _here = Path(__file__).resolve().parent
+        _spec = _ilu.spec_from_file_location(
+            "monitor_graph_addift", _here / "monitor_graph_addift.py"
+        )
+        if _spec is None or _spec.loader is None:
+            raise ImportError(
+                f"spec_from_file_location failed: {_here / 'monitor_graph_addift.py'}"
+            )
+        _mod = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _mod.AddifTMonitorGraph(graph_frame, s)
+    except Exception as _e:
+        _log.getLogger(__name__).error(
+            "[_build_monitor_tab] monitor_graph_addift ロード失敗: %s", _e
+        )
+        ttk.Label(
+            graph_frame,
+            text=gettext("lora_monitor_graph_init_error", error=_e),
+            foreground="#EF4444",
+            justify=tk.LEFT,
+        ).pack(padx=16, pady=16, anchor=tk.NW)
 
     log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
-    log_frame.grid(row=1, column=0, sticky=tk.NSEW, padx=4, pady=(4, 0))
+    log_frame.grid(row=1, column=0, sticky=tk.EW, pady=(4, 0))
     log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
     log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
     log_text.configure(yscrollcommand=log_scroll.set)
@@ -608,14 +923,219 @@ def _build_monitor_tab_stub(parent: ttk.Frame, s: _AddifTTrainState) -> None:
     s._log_widgets.append(log_text)
 
 
-def _build_monitor_layer_tab_stub(parent: ttk.Frame, s: _AddifTTrainState) -> None:
-    """モニター階層タブ（仮設置）。フェーズ2で階層別グラフを追加予定。"""
-    _build_placeholder_tab(parent, "addift_phase2_monitor_layer_placeholder")
+def _build_monitor_layer_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
+    """モニター階層タブ: MonitorLayerGraph を組み込む（leco_train.py と同仕様）。"""
+    import importlib.util as _ilu
+    import logging as _log
+
+    try:
+        _here = Path(__file__).resolve().parent
+        _spec = _ilu.spec_from_file_location(
+            "monitor_layer", _here / "monitor_layer.py"
+        )
+        if _spec is None or _spec.loader is None:
+            raise ImportError(
+                f"spec_from_file_location failed: {_here / 'monitor_layer.py'}"
+            )
+        _mod = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _mod.MonitorLayerGraph(parent, s, _group_names_for_mode_addift)
+    except Exception as _e:
+        _log.getLogger(__name__).error(
+            "[_build_monitor_layer_tab] monitor_layer ロード失敗: %s", _e
+        )
+        ttk.Label(
+            parent,
+            text=gettext("lora_monitor_layer_init_error", error=_e),
+            foreground="#EF4444",
+            justify=tk.LEFT,
+        ).pack(padx=16, pady=16, anchor=tk.NW)
 
 
-def _build_sample_tab_stub(parent: ttk.Frame, s: _AddifTTrainState) -> None:
-    """サンプル生成タブ（仮設置）。フェーズ2でA/Bギャラリー表示を追加予定。"""
-    _build_placeholder_tab(parent, "addift_phase2_sample_placeholder")
+def _group_names_for_mode_addift(mode: str) -> list[str]:
+    """表示モードに対応するグループ名リストを返す (leco_train.py と同仕様)。
+
+    実体は _layer_group_names_addift と同一だが、MonitorLayerGraph の
+    コールバック引数名(leco_train.py の _group_names_for_mode_leco)に
+    合わせた別名として提供する。
+    """
+    return _layer_group_names_addift(mode)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# サンプル生成ヘルパー（ADDifT用）
+# 保存先・プロンプトファイルは leco_train.py と共有
+#   <project_root>/log/sample_gen/_sample_prompt.txt
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _addift_sample_dir(s: _AddifTTrainState) -> Path:
+    return s.paths.root / "log" / "sample_gen"
+
+
+def _addift_sample_prompt_path(s: _AddifTTrainState) -> Path:
+    return _addift_sample_dir(s) / "_sample_prompt.txt"
+
+
+ADDIFT_SAMPLE_FIXED_SEED = 42
+
+
+def _addift_build_prompt_line(
+    prompt: str, neg: str, s: _AddifTTrainState, seed: int = ADDIFT_SAMPLE_FIXED_SEED
+) -> str:
+    width      = max(64, int(s.sample_width.get()))
+    height     = max(64, int(s.sample_height.get()))
+    steps      = max(1,  int(s.sample_steps.get()))
+    scale      = float(s.sample_scale.get())
+    flow_shift = float(s.sample_flow_shift.get())
+    line = (
+        f"{prompt} --w {width} --h {height} --s {steps} "
+        f"--l {scale:g} --fs {flow_shift:g} --d {seed}"
+    )
+    if neg:
+        line += f" --n {neg}"
+    return line
+
+
+def _addift_write_sample_prompt_file(s: _AddifTTrainState) -> Path:
+    lines = []
+    if s.sample_enabled.get() and s.sample_prompt.get().strip():
+        lines.append(_addift_build_prompt_line(
+            s.sample_prompt.get().strip(),
+            s.sample_negative_prompt.get().strip(),
+            s,
+            seed=ADDIFT_SAMPLE_FIXED_SEED,
+        ))
+    if s.sample_b_enabled.get() and s.sample_b_prompt.get().strip():
+        lines.append(_addift_build_prompt_line(
+            s.sample_b_prompt.get().strip(),
+            s.sample_b_negative_prompt.get().strip(),
+            s,
+            seed=ADDIFT_SAMPLE_FIXED_SEED + 1,
+        ))
+    path = _addift_sample_prompt_path(s)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    return path
+
+
+def _build_sample_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
+    """ADDifT サンプル生成タブ: A/B ギャラリー表示を組み込む。
+
+    出力ファイル名: <output_name>_<step:06d>_<00|01>_<ts><seed_suffix>.png
+    （anima_sample_gen.sample_images_from_prompts が生成する形式）。
+    プレビューはこの命名規則（先頭 <output_name>_ + 末尾 _00_/_01_）で判定し、
+    ADDifT学習の出力のみを本タブ内に表示する（lora/leco学習のサンプルとは
+    output_name が異なるため混在しない）。
+    """
+    import importlib.util as _ilu
+    import logging as _log
+
+    parent.columnconfigure(0, weight=1)
+    parent.rowconfigure(1, weight=1)
+
+    # ── 共通設定 ─────────────────────────────────────────────────
+    common = ttk.LabelFrame(parent, text=gettext("lora_sample_common"))
+    common.grid(row=0, column=0, sticky=tk.EW, pady=(0, 6))
+    common.columnconfigure(1, weight=1)
+    common.columnconfigure(3, weight=1)
+
+    ttk.Label(common, text=gettext("lora_sample_step_interval"), width=16, anchor=tk.W).grid(
+        row=0, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    ttk.Spinbox(common, from_=1, to=99999, textvariable=s.sample_every_n_steps, width=8).grid(
+        row=0, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Label(common, text=gettext("lora_sample_fixed_seed", seed=ADDIFT_SAMPLE_FIXED_SEED),
+              foreground="#64748B").grid(
+        row=0, column=2, columnspan=2, sticky=tk.W, padx=(0, 4), pady=3)
+
+    ttk.Label(common, text="width / height", width=16, anchor=tk.W).grid(
+        row=1, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    sf = ttk.Frame(common)
+    sf.grid(row=1, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Spinbox(sf, from_=64, to=4096, increment=16, textvariable=s.sample_width,  width=7).pack(side=tk.LEFT)
+    ttk.Label(sf, text=" x ").pack(side=tk.LEFT)
+    ttk.Spinbox(sf, from_=64, to=4096, increment=16, textvariable=s.sample_height, width=7).pack(side=tk.LEFT)
+
+    ttk.Label(common, text="steps", width=10, anchor=tk.W).grid(
+        row=1, column=2, sticky=tk.W, padx=(0, 2), pady=3)
+    ttk.Spinbox(common, from_=1, to=1000, textvariable=s.sample_steps, width=8).grid(
+        row=1, column=3, sticky=tk.W, padx=(0, 4), pady=3)
+
+    ttk.Label(common, text="scale", width=16, anchor=tk.W).grid(
+        row=2, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    ttk.Entry(common, textvariable=s.sample_scale, width=10).grid(
+        row=2, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Label(common, text="flow_shift", width=10, anchor=tk.W).grid(
+        row=2, column=2, sticky=tk.W, padx=(0, 2), pady=3)
+    ttk.Entry(common, textvariable=s.sample_flow_shift, width=10).grid(
+        row=2, column=3, sticky=tk.W, padx=(0, 4), pady=3)
+
+    ttk.Checkbutton(
+        common, text=gettext("lora_sample_keep_vae"),
+        variable=s.sample_keep_vae,
+    ).grid(row=3, column=0, columnspan=4, sticky=tk.W, padx=(4, 4), pady=3)
+
+    # ── lora_train.py から _build_sample_ab_panel / _extract_sample_epoch を動的import
+    _bsap = _esep = None
+    try:
+        try:
+            from .lora_train import _build_sample_ab_panel as _bsap, _extract_sample_epoch as _esep
+        except ImportError:
+            import sys as _sys
+            _here = Path(__file__).resolve().parent
+            if str(_here) not in _sys.path:
+                _sys.path.insert(0, str(_here))
+            from lora_train import _build_sample_ab_panel as _bsap, _extract_sample_epoch as _esep  # type: ignore[no-redef]
+    except Exception as _e:
+        _log.getLogger(__name__).error(
+            "[_build_sample_tab] lora_train ロード失敗: %s", _e
+        )
+
+    ab_nb = ttk.Notebook(parent)
+    ab_nb.grid(row=1, column=0, sticky=tk.NSEW)
+    tab_a = ttk.Frame(ab_nb, padding=4)
+    tab_b = ttk.Frame(ab_nb, padding=4)
+    ab_nb.add(tab_a, text=gettext("lora_sample_a"))
+    ab_nb.add(tab_b, text=gettext("lora_sample_b"))
+
+    sample_dir = _addift_sample_dir(s)
+
+    if _bsap is not None:
+        # output_name は実行時に変更され得るため、ビルド時点での値で
+        # glob パターンを構築する（更新するには「表示更新」ボタンでタブ再構築は
+        # 不要 — ビルド時点の output_name を使う前提。変更後は設定保存→再起動、
+        # もしくはタブ切替で _build_sample_tab が再実行されるため反映される）。
+        _out = s.output_name.get().strip() or "addift_output"
+        pat_a = f"{_out}_*_00_*.png"
+        pat_b = f"{_out}_*_01_*.png"
+
+        _bsap(
+            tab_a, s,
+            enabled_var=s.sample_enabled,
+            prompt_var=s.sample_prompt,
+            neg_var=s.sample_negative_prompt,
+            sample_dir=sample_dir,
+            glob_pattern=pat_a,
+            label="A",
+            is_leco=True,  # ADDifTもstep基準のため「step」ラベルを使用
+        )
+        _bsap(
+            tab_b, s,
+            enabled_var=s.sample_b_enabled,
+            prompt_var=s.sample_b_prompt,
+            neg_var=s.sample_b_negative_prompt,
+            sample_dir=sample_dir,
+            glob_pattern=pat_b,
+            label="B",
+            is_leco=True,
+        )
+    else:
+        for _tab in (tab_a, tab_b):
+            ttk.Label(
+                _tab,
+                text=gettext("lora_sample_load_error", error=""),
+                foreground="#EF4444",
+                justify=tk.LEFT,
+            ).pack(padx=16, pady=16, anchor=tk.NW)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -767,7 +1287,16 @@ def _build_command(s: _AddifTTrainState) -> list[str]:
         if s.diff_mask_path.get():
             cmd += ["--diff_mask_path", s.diff_mask_path.get()]
 
-    # 階層学習（フェーズ2: layer_parameter_vars が populate されている場合のみ付与）
+    # サンプル生成
+    if s.sample_enabled.get() or s.sample_b_enabled.get():
+        _spf = _addift_write_sample_prompt_file(s)
+        cmd += ["--sample_every_n_steps", s.sample_every_n_steps.get().strip() or "50"]
+        cmd += ["--sample_prompts",  str(_spf)]
+        cmd += ["--sample_save_dir", str(_addift_sample_dir(s))]
+        if s.sample_keep_vae.get():
+            cmd.append("--sample_keep_vae")
+
+    # 階層学習（layer_parameter_vars が populate されている場合のみ付与）
     if s.layer_train_enabled.get() and s.layer_parameter_vars:
         _mode   = s.layer_display_mode.get()
         _scales = {k: v.get() for k, v in s.layer_parameter_vars.items()}
@@ -777,6 +1306,10 @@ def _build_command(s: _AddifTTrainState) -> list[str]:
                 separators=(",", ":"),
             )
             cmd += ["--network_args", f"anima_matrix_scales={_scales_json}"]
+        else:
+            _weights = _layer_scales_to_block_weights_addift(_mode, _scales)
+            _weight_str = ",".join(f"{w:.4f}" for w in _weights)
+            cmd += ["--network_args", f"anima_block_lr_weight={_weight_str}"]
 
     return cmd
 
@@ -1019,13 +1552,30 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
             "qwen3_max_token_length": int(s.qwen3_max_token_length.get()),
             "t5_max_token_length":    int(s.t5_max_token_length.get()),
             "t5_tokenizer_path":      s.t5_tokenizer_path.get(),
-            # 階層学習（フェーズ2用、現状は空辞書）
+            # 階層学習
             "layer_train_enabled": bool(s.layer_train_enabled.get()),
             "layer_display_mode":  s.layer_display_mode.get(),
             "layer_parameter_vars": {
                 k: round(float(v.get()), 4)
                 for k, v in s.layer_parameter_vars.items()
             },
+            # EarlyStopping（モニターグラフ）
+            "es_enabled":  bool(s.es_enabled.get()),
+            "es_patience": int(s.es_patience.get()),
+            # サンプル生成
+            "sample_every_n_steps":   s.sample_every_n_steps.get(),
+            "sample_width":           int(s.sample_width.get()),
+            "sample_height":          int(s.sample_height.get()),
+            "sample_steps":           int(s.sample_steps.get()),
+            "sample_scale":           float(s.sample_scale.get()),
+            "sample_flow_shift":      float(s.sample_flow_shift.get()),
+            "sample_keep_vae":        bool(s.sample_keep_vae.get()),
+            "sample_enabled":         bool(s.sample_enabled.get()),
+            "sample_prompt":          s.sample_prompt.get(),
+            "sample_negative_prompt": s.sample_negative_prompt.get(),
+            "sample_b_enabled":          bool(s.sample_b_enabled.get()),
+            "sample_b_prompt":           s.sample_b_prompt.get(),
+            "sample_b_negative_prompt":  s.sample_b_negative_prompt.get(),
         }
 
     def _apply(data: dict) -> None:
@@ -1084,6 +1634,21 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
         _s(s.t5_tokenizer_path, "t5_tokenizer_path",  "")
         _s(s.layer_train_enabled, "layer_train_enabled", False)
         _s(s.layer_display_mode,  "layer_display_mode",  "Matrix")
+        _s(s.es_enabled,          "es_enabled",          False)
+        _s(s.es_patience,         "es_patience",         5)
+        _s(s.sample_every_n_steps,   "sample_every_n_steps",   "50")
+        _s(s.sample_width,           "sample_width",           512)
+        _s(s.sample_height,          "sample_height",          512)
+        _s(s.sample_steps,           "sample_steps",           20)
+        _s(s.sample_scale,           "sample_scale",           7.5)
+        _s(s.sample_flow_shift,      "sample_flow_shift",      3.0)
+        _s(s.sample_keep_vae,        "sample_keep_vae",        False)
+        _s(s.sample_enabled,         "sample_enabled",         False)
+        _s(s.sample_prompt,          "sample_prompt",          "")
+        _s(s.sample_negative_prompt, "sample_negative_prompt", "")
+        _s(s.sample_b_enabled,          "sample_b_enabled",          False)
+        _s(s.sample_b_prompt,           "sample_b_prompt",           "")
+        _s(s.sample_b_negative_prompt,  "sample_b_negative_prompt",  "")
 
         layer_scales = data.get("layer_parameter_vars", {})
         for k, v in layer_scales.items():
@@ -1124,6 +1689,15 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
         except Exception as exc:
             messagebox.showerror("Preset", gettext("lora_preset_load_failed", error=exc))
             return
+        # 階層学習: enabled/mode を先行セットしてスライダーを生成してから _apply
+        _pre_enabled = bool(data.get("layer_train_enabled", False))
+        _pre_mode    = data.get("layer_display_mode", "Matrix")
+        if _pre_mode not in LAYER_TRAIN_MODES:
+            _pre_mode = "Matrix"
+        s.layer_train_enabled.set(_pre_enabled)
+        s.layer_display_mode.set(_pre_mode)
+        if s.layer_canvas is not None and s.layer_inner is not None:
+            _refresh_layer_controls_addift(s, s.layer_canvas, s.layer_inner)
         _apply(data)
         s.log_fn(gettext("lora_preset_log_loaded", name=src.name))
 
