@@ -1,0 +1,1150 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_train_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --train_data_dir E:/lora_training/Data/input/dq3_yusha --output_dir E:\Animerge\lora --output_name lora_output --resolution 512,512 --train_batch_size 1 --caption_extension .txt --keep_tokens 1 --network_module networks.lora --network_dim 16 --network_alpha 8.0 --learning_rate 1e-4 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --optimizer_type AdamW --max_train_epochs 10 --save_every_n_epochs 1 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --timestep_sampling sigmoid --discrete_flow_shift 1.0 --sigmoid_scale 1.0 --weighting_scheme none --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --max_data_loader_n_workers 0 --seed 42 --cache_latents --enable_bucket --bucket_no_upscale --network_train_unet_only --gradient_checkpointing --qwen_image_vae_2d --min_bucket_reso 256 --max_bucket_reso 1024 --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":1.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":0.0,"Output_MLP":0.0,"Output_Norm":1.0,"Output_ResNet":0.0,"Output_Timestep":1.0} --validation_split 0.1 --early_stopping --early_stopping_mode epoch --early_stopping_patience 3 --early_stopping_threshold 0.01 --sample_every_n_epochs 1 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen
+
+2026-06-17 17:07:50 INFO     Using DreamBooth method.      train_network.py:646
+                    INFO     prepare images.                 train_util.py:2185
+                    INFO     get image size from name of     train_util.py:2060
+                             cache files
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+100%|██████████| 6/6 [00:00<?, ?it/s]
+                    INFO     set image size from cache       train_util.py:2090
+                             files: 0/6
+                    INFO     found directory                 train_util.py:2132
+                             E:\lora_training\Data\input\dq3
+                             _yusha\1_dq_roto_mesu contains
+                             6 image files
+
+read caption:   0%|          | 0/6 [00:00<?, ?it/s]
+read caption: 100%|██████████| 6/6 [00:00<00:00, 5345.33it/s]
+                    INFO     6 train images with repeats.    train_util.py:2231
+                    INFO     0 reg images with repeats.      train_util.py:2235
+                    WARNING  no regularization images /      train_util.py:2240
+                             正則化画像が見つかりませんでし
+                             た
+                    INFO     prepare images.                 train_util.py:2185
+                    INFO     get image size from name of     train_util.py:2060
+                             cache files
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+100%|██████████| 6/6 [00:00<?, ?it/s]
+                    INFO     set image size from cache       train_util.py:2090
+                             files: 0/6
+                    INFO     found directory                 train_util.py:2132
+                             E:\lora_training\Data\input\dq3
+                             _yusha\1_dq_roto_mesu contains
+                             1 image files
+
+read caption:   0%|          | 0/1 [00:00<?, ?it/s]
+read caption: 100%|██████████| 1/1 [00:00<?, ?it/s]
+                    INFO     1 validation images with        train_util.py:2231
+                             repeats.
+                    INFO     0 reg images with repeats.      train_util.py:2235
+                    WARNING  no regularization images /      train_util.py:2240
+                             正則化画像が見つかりませんでし
+                             た
+                    INFO     [Dataset 0]                     config_util.py:586
+                               batch_size: 1
+                               resolution: (512, 512)
+                               skip_image_resolution: None
+                               resize_interpolation: None
+                               enable_bucket: True
+                               min_bucket_reso: 256
+                               max_bucket_reso: 1024
+                               bucket_reso_steps: 64
+                               bucket_no_upscale: True
+
+                               [Subset 0 of Dataset 0]
+                                 image_dir:
+                             "E:\lora_training\Data\input\dq
+                             3_yusha\1_dq_roto_mesu"
+                                 image_count: 6
+                                 num_repeats: 1
+                                 shuffle_caption: False
+                                 keep_tokens: 1
+                                 caption_dropout_rate: 0.0
+                                 caption_dropout_every_n_epo
+                             chs: 0
+                                 caption_tag_dropout_rate:
+                             0.0
+                                 caption_prefix: None
+                                 caption_suffix: None
+                                 color_aug: False
+                                 flip_aug: False
+                                 face_crop_aug_range: None
+                                 random_crop: False
+                                 token_warmup_min: 1,
+                                 token_warmup_step: 0,
+                                 alpha_mask: False
+                                 resize_interpolation: None
+                                 custom_attributes: {}
+                                 is_reg: False
+                                 class_tokens: dq_roto_mesu
+                                 caption_extension: .txt
+
+
+                    INFO     [Validation Dataset 0]          config_util.py:586
+                               batch_size: 1
+                               resolution: (512, 512)
+                               skip_image_resolution: None
+                               resize_interpolation: None
+                               enable_bucket: True
+                               min_bucket_reso: 256
+                               max_bucket_reso: 1024
+                               bucket_reso_steps: 64
+                               bucket_no_upscale: True
+
+                               [Subset 0 of Validation
+                             Dataset 0]
+                                 image_dir:
+                             "E:\lora_training\Data\input\dq
+                             3_yusha\1_dq_roto_mesu"
+                                 image_count: 1
+                                 num_repeats: 1
+                                 shuffle_caption: False
+                                 keep_tokens: 1
+                                 caption_dropout_rate: 0.0
+                                 caption_dropout_every_n_epo
+                             chs: 0
+                                 caption_tag_dropout_rate:
+                             0.0
+                                 caption_prefix: None
+                                 caption_suffix: None
+                                 color_aug: False
+                                 flip_aug: False
+                                 face_crop_aug_range: None
+                                 random_crop: False
+                                 token_warmup_min: 1,
+                                 token_warmup_step: 0,
+                                 alpha_mask: False
+                                 resize_interpolation: None
+                                 custom_attributes: {}
+                                 is_reg: False
+                                 class_tokens: dq_roto_mesu
+                                 caption_extension: .txt
+
+
+                    INFO     [Prepare dataset 0]             config_util.py:598
+                    INFO     loading image sizes.             train_util.py:999
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+100%|██████████| 6/6 [00:00<00:00, 57.77it/s]
+100%|██████████| 6/6 [00:00<00:00, 57.77it/s]
+                    INFO     make buckets                    train_util.py:1022
+                    WARNING  min_bucket_reso and             train_util.py:1039
+                             max_bucket_reso are ignored if
+                             bucket_no_upscale is set,
+                             because bucket reso is defined
+                             by image size automatically /
+                             bucket_no_upscaleが指定された場
+                             合は、bucketの解像度は画像サイ
+                             ズから自動計算されるため、min_b
+                             ucket_resoとmax_bucket_resoは無
+                             視されます
+                    INFO     number of images (including     train_util.py:1068
+                             repeats) /
+                             各bucketの画像枚数（繰り返し回
+                             数を含む）
+                    INFO     bucket 0: resolution (384,      train_util.py:1073
+                             512), count: 1
+                    INFO     bucket 1: resolution (448,      train_util.py:1073
+                             448), count: 2
+                    INFO     bucket 2: resolution (512,      train_util.py:1073
+                             512), count: 3
+                    INFO     mean ar error (without          train_util.py:1081
+                             repeats): 0.03214285714285714
+                    INFO     [Prepare validation dataset 0]  config_util.py:603
+                    INFO     loading image sizes.             train_util.py:999
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|██████████| 1/1 [00:00<00:00, 1002.70it/s]
+                    INFO     make buckets                    train_util.py:1022
+                    WARNING  min_bucket_reso and             train_util.py:1039
+                             max_bucket_reso are ignored if
+                             bucket_no_upscale is set,
+                             because bucket reso is defined
+                             by image size automatically /
+                             bucket_no_upscaleが指定された場
+                             合は、bucketの解像度は画像サイ
+                             ズから自動計算されるため、min_b
+                             ucket_resoとmax_bucket_resoは無
+                             視されます
+                    INFO     number of images (including     train_util.py:1068
+                             repeats) /
+                             各bucketの画像枚数（繰り返し回
+                             数を含む）
+                    INFO     bucket 0: resolution (512,      train_util.py:1073
+                             512), count: 1
+                    INFO     mean ar error (without          train_util.py:1081
+                             repeats): 0.0
+                    INFO     preparing accelerator         train_network.py:709
+2026-06-17 17:07:51 INFO     Loading Qwen3 text       anima_train_network.py:87
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:265
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-06-17 17:08:05 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+                             keys matched successfully>
+                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
+                             Parameters: 596,049,920
+2026-06-17 17:08:06 INFO     Loading Anima VAE...     anima_train_network.py:92
+                    INFO     Initializing VAE qwen_image_autoencoder_kl.py:1609
+                    INFO     Loading VAE from qwen_image_autoencoder_kl.py:1631
+                             F:/Game_Files/Co
+                             mfyUI_windows_po
+                             rtable/ComfyUI/m
+                             odels/vae/qwen_i
+                             mage_vae.safeten
+                             sors
+2026-06-17 17:08:10 INFO     Converted        qwen_image_autoencoder_kl.py:1538
+                             ComfyUI
+                             AutoencoderKL
+                             state dict keys
+                             to official
+                             format
+                    INFO     Loaded VAE: <All qwen_image_autoencoder_kl.py:1638
+                             keys matched
+                             successfully>
+2026-06-17 17:08:11 INFO     [Dataset 0]                     train_util.py:2740
+                    INFO     caching latents with caching    train_util.py:1128
+                             strategy.
+                    INFO     caching latents...              train_util.py:1178
+accelerator device: cuda
+
+  0%|          | 0/6 [00:00<?, ?it/s]
+ 17%|█▋        | 1/6 [00:00<00:04,  1.18it/s]
+ 33%|███▎      | 2/6 [00:01<00:01,  2.13it/s]
+ 50%|█████     | 3/6 [00:01<00:01,  2.86it/s]
+ 67%|██████▋   | 4/6 [00:01<00:00,  3.33it/s]
+ 83%|████████▎ | 5/6 [00:01<00:00,  3.69it/s]
+100%|██████████| 6/6 [00:01<00:00,  3.98it/s]
+100%|██████████| 6/6 [00:01<00:00,  3.13it/s]
+2026-06-17 17:08:12 INFO     [Dataset 0]                     train_util.py:2740
+                    INFO     caching latents with caching    train_util.py:1128
+                             strategy.
+                    INFO     caching latents...              train_util.py:1178
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|██████████| 1/1 [00:00<00:00,  4.51it/s]
+100%|██████████| 1/1 [00:00<00:00,  4.51it/s]
+2026-06-17 17:08:13 INFO     Loading Anima DiT model anima_train_network.py:113
+                             with attn_mode=torch,
+                             split_attn: False...
+2026-06-17 17:08:14 INFO     Loading DiT model from          anima_utils.py:166
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, device=cuda
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusion_
+                             models/anima-base-v1.0.safetensor
+                             s']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+
+Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
+Loading anima-base-v1.0.safetensors:   2%|▏         | 13/685 [00:00<00:09, 70.90it/s]
+Loading anima-base-v1.0.safetensors:   3%|▎         | 21/685 [00:00<00:11, 57.13it/s]
+Loading anima-base-v1.0.safetensors:   5%|▍         | 31/685 [00:00<00:09, 69.31it/s]
+Loading anima-base-v1.0.safetensors:   6%|▌         | 39/685 [00:00<00:17, 37.75it/s]
+Loading anima-base-v1.0.safetensors:   7%|▋         | 51/685 [00:00<00:12, 52.63it/s]
+Loading anima-base-v1.0.safetensors:   9%|▊         | 59/685 [00:01<00:13, 44.73it/s]
+Loading anima-base-v1.0.safetensors:  10%|█         | 71/685 [00:01<00:10, 58.71it/s]
+Loading anima-base-v1.0.safetensors:  12%|█▏        | 79/685 [00:01<00:12, 47.19it/s]
+Loading anima-base-v1.0.safetensors:  13%|█▎        | 91/685 [00:01<00:09, 60.29it/s]
+Loading anima-base-v1.0.safetensors:  15%|█▍        | 100/685 [00:01<00:11, 49.57it/s]
+Loading anima-base-v1.0.safetensors:  16%|█▋        | 113/685 [00:02<00:10, 56.69it/s]
+Loading anima-base-v1.0.safetensors:  18%|█▊        | 120/685 [00:02<00:10, 52.34it/s]
+Loading anima-base-v1.0.safetensors:  19%|█▉        | 133/685 [00:02<00:09, 58.76it/s]
+Loading anima-base-v1.0.safetensors:  20%|██        | 140/685 [00:02<00:10, 54.00it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 153/685 [00:02<00:08, 59.42it/s]
+Loading anima-base-v1.0.safetensors:  23%|██▎       | 160/685 [00:02<00:09, 54.14it/s]
+Loading anima-base-v1.0.safetensors:  25%|██▌       | 173/685 [00:03<00:08, 59.95it/s]
+Loading anima-base-v1.0.safetensors:  26%|██▋       | 180/685 [00:03<00:09, 53.81it/s]
+Loading anima-base-v1.0.safetensors:  28%|██▊       | 193/685 [00:03<00:08, 59.00it/s]
+Loading anima-base-v1.0.safetensors:  29%|██▉       | 199/685 [00:03<00:09, 51.48it/s]
+Loading anima-base-v1.0.safetensors:  31%|███       | 211/685 [00:03<00:07, 62.93it/s]
+Loading anima-base-v1.0.safetensors:  32%|███▏      | 218/685 [00:04<00:09, 50.87it/s]
+Loading anima-base-v1.0.safetensors:  34%|███▎      | 231/685 [00:04<00:07, 63.77it/s]
+Loading anima-base-v1.0.safetensors:  35%|███▍      | 239/685 [00:04<00:08, 51.41it/s]
+Loading anima-base-v1.0.safetensors:  37%|███▋      | 251/685 [00:04<00:06, 63.93it/s]
+Loading anima-base-v1.0.safetensors:  38%|███▊      | 259/685 [00:04<00:08, 51.57it/s]
+Loading anima-base-v1.0.safetensors:  40%|███▉      | 271/685 [00:04<00:06, 62.96it/s]
+Loading anima-base-v1.0.safetensors:  41%|████      | 279/685 [00:05<00:07, 50.93it/s]
+Loading anima-base-v1.0.safetensors:  42%|████▏     | 291/685 [00:05<00:06, 63.33it/s]
+Loading anima-base-v1.0.safetensors:  44%|████▎     | 299/685 [00:05<00:09, 40.60it/s]
+Loading anima-base-v1.0.safetensors:  45%|████▍     | 306/685 [00:05<00:08, 43.86it/s]
+Loading anima-base-v1.0.safetensors:  46%|████▌     | 313/685 [00:06<00:10, 36.86it/s]
+Loading anima-base-v1.0.safetensors:  47%|████▋     | 319/685 [00:06<00:10, 34.13it/s]
+Loading anima-base-v1.0.safetensors:  47%|████▋     | 324/685 [00:06<00:09, 36.68it/s]
+Loading anima-base-v1.0.safetensors:  48%|████▊     | 331/685 [00:06<00:08, 41.57it/s]
+Loading anima-base-v1.0.safetensors:  49%|████▉     | 336/685 [00:06<00:12, 27.63it/s]
+Loading anima-base-v1.0.safetensors:  50%|████▉     | 340/685 [00:06<00:12, 28.57it/s]
+Loading anima-base-v1.0.safetensors:  51%|█████     | 350/685 [00:07<00:08, 40.16it/s]
+Loading anima-base-v1.0.safetensors:  52%|█████▏    | 356/685 [00:07<00:11, 27.56it/s]
+Loading anima-base-v1.0.safetensors:  53%|█████▎    | 361/685 [00:07<00:11, 29.39it/s]
+Loading anima-base-v1.0.safetensors:  54%|█████▍    | 370/685 [00:07<00:08, 38.90it/s]
+Loading anima-base-v1.0.safetensors:  55%|█████▍    | 376/685 [00:08<00:11, 27.16it/s]
+Loading anima-base-v1.0.safetensors:  56%|█████▌    | 381/685 [00:08<00:10, 29.05it/s]
+Loading anima-base-v1.0.safetensors:  57%|█████▋    | 390/685 [00:08<00:07, 38.51it/s]
+Loading anima-base-v1.0.safetensors:  58%|█████▊    | 396/685 [00:08<00:10, 27.50it/s]
+Loading anima-base-v1.0.safetensors:  59%|█████▊    | 402/685 [00:08<00:08, 32.22it/s]
+Loading anima-base-v1.0.safetensors:  60%|██████    | 411/685 [00:08<00:06, 40.64it/s]
+Loading anima-base-v1.0.safetensors:  61%|██████    | 417/685 [00:09<00:09, 28.36it/s]
+Loading anima-base-v1.0.safetensors:  62%|██████▏   | 422/685 [00:09<00:08, 30.75it/s]
+Loading anima-base-v1.0.safetensors:  63%|██████▎   | 430/685 [00:09<00:06, 39.11it/s]
+Loading anima-base-v1.0.safetensors:  64%|██████▎   | 436/685 [00:09<00:09, 27.27it/s]
+Loading anima-base-v1.0.safetensors:  64%|██████▍   | 441/685 [00:10<00:08, 29.48it/s]
+Loading anima-base-v1.0.safetensors:  66%|██████▌   | 450/685 [00:10<00:06, 38.89it/s]
+Loading anima-base-v1.0.safetensors:  67%|██████▋   | 456/685 [00:10<00:08, 26.91it/s]
+Loading anima-base-v1.0.safetensors:  67%|██████▋   | 461/685 [00:10<00:07, 28.85it/s]
+Loading anima-base-v1.0.safetensors:  69%|██████▊   | 470/685 [00:10<00:05, 38.23it/s]
+Loading anima-base-v1.0.safetensors:  69%|██████▉   | 476/685 [00:11<00:07, 27.13it/s]
+Loading anima-base-v1.0.safetensors:  70%|███████   | 481/685 [00:11<00:07, 28.92it/s]
+Loading anima-base-v1.0.safetensors:  72%|███████▏  | 490/685 [00:11<00:05, 38.17it/s]
+Loading anima-base-v1.0.safetensors:  72%|███████▏  | 496/685 [00:11<00:06, 27.94it/s]
+Loading anima-base-v1.0.safetensors:  73%|███████▎  | 502/685 [00:12<00:06, 30.00it/s]
+Loading anima-base-v1.0.safetensors:  75%|███████▍  | 513/685 [00:12<00:04, 35.32it/s]
+Loading anima-base-v1.0.safetensors:  76%|███████▌  | 518/685 [00:12<00:05, 30.40it/s]
+Loading anima-base-v1.0.safetensors:  76%|███████▌  | 522/685 [00:12<00:05, 30.37it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 533/685 [00:12<00:04, 36.08it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 537/685 [00:13<00:05, 29.60it/s]
+Loading anima-base-v1.0.safetensors:  79%|███████▉  | 542/685 [00:13<00:04, 31.37it/s]
+Loading anima-base-v1.0.safetensors:  81%|████████  | 553/685 [00:13<00:03, 37.21it/s]
+Loading anima-base-v1.0.safetensors:  81%|████████▏ | 557/685 [00:13<00:04, 29.58it/s]
+Loading anima-base-v1.0.safetensors:  82%|████████▏ | 562/685 [00:13<00:03, 31.81it/s]
+Loading anima-base-v1.0.safetensors:  84%|████████▎ | 573/685 [00:13<00:02, 45.78it/s]
+Loading anima-base-v1.0.safetensors:  85%|████████▌ | 584/685 [00:14<00:01, 58.22it/s]
+Loading anima-base-v1.0.safetensors:  86%|████████▋ | 591/685 [00:14<00:01, 57.37it/s]
+Loading anima-base-v1.0.safetensors:  88%|████████▊ | 602/685 [00:14<00:01, 69.57it/s]
+Loading anima-base-v1.0.safetensors:  89%|████████▉ | 611/685 [00:14<00:01, 72.74it/s]
+Loading anima-base-v1.0.safetensors:  91%|█████████ | 623/685 [00:14<00:00, 84.79it/s]
+Loading anima-base-v1.0.safetensors:  93%|█████████▎| 639/685 [00:14<00:00, 104.12it/s]
+Loading anima-base-v1.0.safetensors:  95%|█████████▌| 651/685 [00:14<00:00, 93.00it/s]
+Loading anima-base-v1.0.safetensors:  97%|█████████▋| 664/685 [00:14<00:00, 101.58it/s]
+Loading anima-base-v1.0.safetensors:  99%|█████████▉| 678/685 [00:15<00:00, 61.40it/s]
+
+2026-06-17 17:08:29 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+                             renamed. Examples:
+                             [('net.blocks.0.adaln_modulation
+                             _cross_attn.1.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.1.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             cross_attn.2.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.2.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             mlp.1.weight',
+                             'blocks.0.adaln_modulation_mlp.1
+                             .weight')]
+2026-06-17 17:08:30 INFO     Loaded DiT model from           anima_utils.py:210
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, unexpected missing keys:
+                             0, unexpected keys: 0
+                    INFO     anima_matrix_scales detected: using    lora.py:468
+                             per-module LR via
+                             get_lr_weight_for_lora
+                    INFO     create LoRA network. base dim (rank): lora.py:1039
+                             16, alpha: 8.0
+                    INFO     neuron dropout: p=None, rank dropout: lora.py:1040
+                             p=None, module dropout: p=None
+                    INFO     create LoRA for Text Encoder:         lora.py:1134
+                    INFO     create LoRA for Text Encoder: 0       lora.py:1139
+                             modules.
+                    INFO     create LoRA for U-Net: 508 modules.   lora.py:1147
+                    INFO     anima_matrix_scales: 15 groups loaded lora.py:1251
+                    INFO     enable LoRA for U-Net: 508 modules    lora.py:1194
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     NO LR skipping!                       lora.py:1321
+                    INFO     use AdamW optimizer | {}        train_util.py:5230
+2026-06-17 17:08:40 INFO     unet dtype: torch.bfloat16,  train_network.py:1476
+                             device: cuda:0
+                    INFO     text_encoder [0] dtype:      train_network.py:1482
+                             torch.bfloat16, device:
+                             cuda:0
+import network module: networks.lora
+prepare optimizer, data loader etc.
+override steps. steps for 10 epochs is / 指定エポックまでのステップ数: 60
+running training / 学習開始
+  num train images * repeats / 学習画像の数×繰り返し回数: 6
+  num validation images * repeats / 学習画像の数×繰り返し回数: 1
+  num reg images / 正則化画像の数: 0
+  num batches per epoch / 1epochのバッチ数: 6
+  num epochs / epoch数: 10
+  batch size per device / バッチサイズ: 1
+  gradient accumulation steps / 勾配を合計するステップ数 = 1
+  total optimization steps / 学習ステップ数: 60
+
+steps:   0%|          | 0/60 [00:00<?, ?it/s]2026-06-17 17:08:41 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 0, epoch: 1
+
+steps:   2%|▏         | 1/60 [00:02<02:14,  2.27s/it]
+steps:   2%|▏         | 1/60 [00:02<02:14,  2.27s/it, avr_loss=0.0507]
+steps:   3%|▎         | 2/60 [00:03<01:41,  1.75s/it, avr_loss=0.0507]
+steps:   3%|▎         | 2/60 [00:03<01:41,  1.75s/it, avr_loss=0.0609]
+steps:   5%|▌         | 3/60 [00:04<01:28,  1.56s/it, avr_loss=0.0609]
+steps:   5%|▌         | 3/60 [00:04<01:28,  1.56s/it, avr_loss=0.0565]
+steps:   7%|▋         | 4/60 [00:05<01:23,  1.49s/it, avr_loss=0.0565]
+steps:   7%|▋         | 4/60 [00:05<01:23,  1.49s/it, avr_loss=0.053]
+steps:   8%|▊         | 5/60 [00:07<01:19,  1.44s/it, avr_loss=0.053]
+steps:   8%|▊         | 5/60 [00:07<01:19,  1.44s/it, avr_loss=0.0525]
+steps:  10%|█         | 6/60 [00:08<01:15,  1.40s/it, avr_loss=0.0525]
+steps:  10%|█         | 6/60 [00:08<01:15,  1.40s/it, avr_loss=0.047]
+epoch 1/10
+
+grad_norm=0.053129 lr=0.00009993
+grad_norm=0.078691 lr=0.00009973
+grad_norm=0.154900 lr=0.00009938
+grad_norm=0.115823 lr=0.00009891
+grad_norm=0.156787 lr=0.00009830
+grad_norm=0.127452 lr=0.00009755
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.27it/s]
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.27it/s, val_epoch_avg_loss=0.037, timestep=200]
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.22it/s, val_epoch_avg_loss=0.037, timestep=200]
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.22it/s, val_epoch_avg_loss=0.0402, timestep=400]
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.23it/s, val_epoch_avg_loss=0.0402, timestep=400]
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.23it/s, val_epoch_avg_loss=0.0448, timestep=600]
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.25it/s, val_epoch_avg_loss=0.0448, timestep=600]
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.24it/s, val_epoch_avg_loss=0.0436, timestep=800]2026-06-17 17:08:50 INFO     [EarlyStopping] 初回計測     train_network.py:1874
+                             val_loss=0.043603
+                             train_loss=0.046957
+                             監視を開始します。
+2026-06-17 17:08:51 INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
+                             solo, full body',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='1girl, solo, full
+                             body' qwen3_nonzero=7/512
+                             qwen3_norm=267.5838
+                             qwen3_mean=0.025024
+                             t5_nonzero=8 t5_ids=[209,
+                             18722, 6, 6729, 6, 423,
+                             643, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=16.8058
+                             valid_rows_norm=16.8058
+                             mean_abs=0.002213
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4615
+                             valid_rows_norm=25.4615
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+
+[EarlyStopping] 初回計測  val_loss=0.043603  train_loss=0.046957  監視を開始します。
+
+saving checkpoint: E:\Animerge\lora\lora_output-000001.safetensors
+
+
+
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-17 17:08:52 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=296.4343
+                             uncond_norm=281.2899
+                             cond-uncond_norm=42.5020
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=383.3364
+                             latents norm=257.5315
+
+
+
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.33it/s]
+
+
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.47it/s]
+
+
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.43it/s]
+
+
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.39it/s]
+
+
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.39it/s]
+
+
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.41it/s]
+
+
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.39it/s]
+
+
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.36it/s]
+
+
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.37it/s]
+
+
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.36it/s]
+
+
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.40it/s]
+
+
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.40it/s]
+
+
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.36it/s]
+
+
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.35it/s]
+
+
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.34it/s]
+
+
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.37it/s]
+
+
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.37it/s]
+
+
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.39it/s]
+
+
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.36it/s]2026-06-17 17:09:00 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=327.5732
+                             uncond_norm=327.4501
+                             cond-uncond_norm=4.4404
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=328.4768
+                             latents norm=194.3170
+
+
+
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.32it/s]
+
+
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=220.8311
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \lora_output_e000001_00_20
+                             260617170900_42.png
+                    INFO     [SampleGen] prompt='1boy,  anima_sample_gen.py:275
+                             solo, full body',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=43
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='1boy, solo, full
+                             body' qwen3_nonzero=7/512
+                             qwen3_norm=250.1436
+                             qwen3_mean=0.023926
+                             t5_nonzero=8 t5_ids=[209,
+                             7531, 6, 6729, 6, 423, 643,
+                             1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=16.9995
+                             valid_rows_norm=16.9995
+                             mean_abs=0.002243
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4615
+                             valid_rows_norm=25.4615
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+2026-06-17 17:09:01 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=255.1707
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+
+
+
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=289.5813
+                             uncond_norm=280.6976
+                             cond-uncond_norm=32.6262
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=344.0267
+                             latents norm=255.1707
+
+
+
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.34it/s]
+
+
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.49it/s]
+
+
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.44it/s]
+
+
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.41it/s]
+
+
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.38it/s]
+
+
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.39it/s]
+
+
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.36it/s]
+
+
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.39it/s]
+
+
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.37it/s]
+
+
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.39it/s]
+
+
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.39it/s]
+
+
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.35it/s]
+
+
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.38it/s]
+
+
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.38it/s]
+
+
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.34it/s]
+
+
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.38it/s]
+
+
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.37it/s]
+
+
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.37it/s]
+
+
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.29it/s]2026-06-17 17:09:09 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=321.0325
+                             uncond_norm=320.9351
+                             cond-uncond_norm=4.3008
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=321.8260
+                             latents norm=187.7688
+
+
+
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.29it/s]
+
+
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=213.1811
+2026-06-17 17:09:10 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \lora_output_e000001_01_20
+                             260617170910_43.png
+                    INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 1, epoch: 2
+
+steps:  12%|█▏        | 7/60 [00:09<01:13,  1.39s/it, avr_loss=0.047]
+steps:  12%|█▏        | 7/60 [00:09<01:13,  1.39s/it, avr_loss=0.0461]
+steps:  13%|█▎        | 8/60 [00:11<01:11,  1.38s/it, avr_loss=0.0461]
+steps:  13%|█▎        | 8/60 [00:11<01:11,  1.38s/it, avr_loss=0.0376]
+steps:  15%|█▌        | 9/60 [00:12<01:09,  1.36s/it, avr_loss=0.0376]
+steps:  15%|█▌        | 9/60 [00:12<01:09,  1.36s/it, avr_loss=0.0357]
+steps:  17%|█▋        | 10/60 [00:13<01:07,  1.35s/it, avr_loss=0.0357]
+steps:  17%|█▋        | 10/60 [00:13<01:07,  1.35s/it, avr_loss=0.0365]
+steps:  18%|█▊        | 11/60 [00:14<01:05,  1.34s/it, avr_loss=0.0365]
+steps:  18%|█▊        | 11/60 [00:14<01:05,  1.34s/it, avr_loss=0.0368]
+steps:  20%|██        | 12/60 [00:15<01:03,  1.33s/it, avr_loss=0.0368]
+steps:  20%|██        | 12/60 [00:15<01:03,  1.33s/it, avr_loss=0.0468]
+epoch 2/10
+
+grad_norm=0.154922 lr=0.00009668
+grad_norm=0.147865 lr=0.00009568
+grad_norm=0.162394 lr=0.00009455
+grad_norm=0.436908 lr=0.00009330
+grad_norm=0.226686 lr=0.00009193
+grad_norm=0.206047 lr=0.00009045
+
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
+epoch validation steps: 100%|██████████| 4/4 [00:28<00:00,  7.08s/it, val_epoch_avg_loss=0.0436, timestep=800]
+
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.27it/s]
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:00,  3.27it/s, val_epoch_avg_loss=0.036, timestep=200]
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.036, timestep=200]
+
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0397, timestep=400]
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.0397, timestep=400]
+
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.26it/s, val_epoch_avg_loss=0.044, timestep=600] 
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.12it/s, val_epoch_avg_loss=0.044, timestep=600]
+
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.12it/s, val_epoch_avg_loss=0.0422, timestep=800]2026-06-17 17:09:19 INFO     [正常] Val Loss は良好です   train_network.py:1874
+                             val_loss: 0.043603 →
+                             0.042193  train_loss:
+                             0.046800
+                    INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
+                             solo, full body',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='1girl, solo, full
+                             body' qwen3_nonzero=7/512
+                             qwen3_norm=267.5838
+                             qwen3_mean=0.025024
+                             t5_nonzero=8 t5_ids=[209,
+                             18722, 6, 6729, 6, 423,
+                             643, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=16.8014
+                             valid_rows_norm=16.8014
+                             mean_abs=0.002213
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.5258
+                             valid_rows_norm=25.5258
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+
+[正常] Val Loss は良好です  val_loss: 0.043603 → 0.042193  train_loss: 0.046800
+
+saving checkpoint: E:\Animerge\lora\lora_output-000002.safetensors
+
+
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-17 17:09:20 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=296.3328
+                             uncond_norm=280.9126
+                             cond-uncond_norm=43.2505
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=385.2657
+                             latents norm=257.5315
+
+
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.21it/s]
+
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.27it/s]
+
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.32it/s]
+
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.38it/s]
+
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.24it/s]
+
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.33it/s]
+
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.32it/s]
+
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.35it/s]
+
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.34it/s]
+
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.36it/s]
+
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.34it/s]
+
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.34it/s]
+
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.32it/s]
+
+Sampling:  70%|███████   | 14/20 [00:06<00:02,  2.31it/s]
+
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.33it/s]
+
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.31it/s]
+
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.32it/s]
+
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.31it/s]
+
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.35it/s]2026-06-17 17:09:28 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=328.5617
+                             uncond_norm=328.4279
+                             cond-uncond_norm=4.7166
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=329.5615
+                             latents norm=194.6058
+
+
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.26it/s]
+
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=221.1236
+2026-06-17 17:09:29 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \lora_output_e000002_00_20
+                             260617170929_42.png
+                    INFO     [SampleGen] prompt='1boy,  anima_sample_gen.py:275
+                             solo, full body',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=43
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='1boy, solo, full
+                             body' qwen3_nonzero=7/512
+                             qwen3_norm=250.1436
+                             qwen3_mean=0.023926
+                             t5_nonzero=8 t5_ids=[209,
+                             7531, 6, 6729, 6, 423, 643,
+                             1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=17.0021
+                             valid_rows_norm=17.0021
+                             mean_abs=0.002243
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.5258
+                             valid_rows_norm=25.5258
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=255.1707
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+
+
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-17 17:09:30 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=289.6647
+                             uncond_norm=280.3229
+                             cond-uncond_norm=33.5648
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=346.8227
+                             latents norm=255.1707
+
+
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.20it/s]
+
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.34it/s]
+
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.27it/s]
+
+Sampling:  20%|██        | 4/20 [00:01<00:07,  2.21it/s]
+
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.24it/s]
+
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.24it/s]
+
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.24it/s]
+
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.25it/s]
+
+Sampling:  45%|████▌     | 9/20 [00:04<00:04,  2.23it/s]
+
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.25it/s]
+
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.27it/s]
+
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.28it/s]
+
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.29it/s]
+
+Sampling:  70%|███████   | 14/20 [00:06<00:02,  2.28it/s]
+
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.31it/s]
+
+Sampling:  80%|████████  | 16/20 [00:07<00:01,  2.33it/s]
+
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.30it/s]
+
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.34it/s]
+
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.35it/s]2026-06-17 17:09:38 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=322.4588
+                             uncond_norm=322.4225
+                             cond-uncond_norm=4.2141
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=323.0192
+                             latents norm=188.6508
+
+
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.28it/s]
+
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=214.1681
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \lora_output_e000002_01_20
+                             260617170938_43.png
+2026-06-17 17:09:39 INFO     epoch is incremented.            train_util.py:791
+                             current_epoch: 2, epoch: 3
+
+steps:  22%|██▏       | 13/60 [00:17<01:02,  1.33s/it, avr_loss=0.0468]
+steps:  22%|██▏       | 13/60 [00:17<01:02,  1.33s/it, avr_loss=0.0459]
+steps:  23%|██▎       | 14/60 [00:18<01:01,  1.33s/it, avr_loss=0.0459]
+steps:  23%|██▎       | 14/60 [00:18<01:01,  1.33s/it, avr_loss=0.0498]
+steps:  25%|██▌       | 15/60 [00:19<00:59,  1.32s/it, avr_loss=0.0498]
+steps:  25%|██▌       | 15/60 [00:19<00:59,  1.32s/it, avr_loss=0.051]
+steps:  27%|██▋       | 16/60 [00:21<00:58,  1.32s/it, avr_loss=0.051]
+steps:  27%|██▋       | 16/60 [00:21<00:58,  1.32s/it, avr_loss=0.0495]
+steps:  28%|██▊       | 17/60 [00:22<00:56,  1.32s/it, avr_loss=0.0495]
+steps:  28%|██▊       | 17/60 [00:22<00:56,  1.32s/it, avr_loss=0.0441]
+steps:  30%|███       | 18/60 [00:23<00:55,  1.32s/it, avr_loss=0.0441]
+steps:  30%|███       | 18/60 [00:23<00:55,  1.32s/it, avr_loss=0.0412]
+epoch 3/10
+
+grad_norm=0.241231 lr=0.00008886
+grad_norm=0.235771 lr=0.00008716
+grad_norm=0.254010 lr=0.00008536
+grad_norm=0.266538 lr=0.00008346
+grad_norm=0.264880 lr=0.00008147
+grad_norm=0.279334 lr=0.00007939
+
+
+epoch validation steps:   0%|          | 0/4 [00:00<?, ?it/s]
+epoch validation steps: 100%|██████████| 4/4 [00:29<00:00,  7.27s/it, val_epoch_avg_loss=0.0422, timestep=800]
+
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:01,  2.94it/s]
+
+epoch validation steps:  25%|██▌       | 1/4 [00:00<00:01,  2.94it/s, val_epoch_avg_loss=0.0348, timestep=200]
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.06it/s, val_epoch_avg_loss=0.0348, timestep=200]
+
+epoch validation steps:  50%|█████     | 2/4 [00:00<00:00,  3.06it/s, val_epoch_avg_loss=0.0391, timestep=400]
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.04it/s, val_epoch_avg_loss=0.0391, timestep=400]
+
+epoch validation steps:  75%|███████▌  | 3/4 [00:00<00:00,  3.04it/s, val_epoch_avg_loss=0.0426, timestep=600]
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.08it/s, val_epoch_avg_loss=0.0426, timestep=600]
+
+epoch validation steps: 100%|██████████| 4/4 [00:01<00:00,  3.08it/s, val_epoch_avg_loss=0.0406, timestep=800]2026-06-17 17:09:48 INFO     [正常] Val Loss は良好です   train_network.py:1874
+                             val_loss: 0.042193 →
+                             0.040593  train_loss:
+                             0.041207
+                    INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:275
+                             solo, full body',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='1girl, solo, full
+                             body' qwen3_nonzero=7/512
+                             qwen3_norm=267.5838
+                             qwen3_mean=0.025024
+                             t5_nonzero=8 t5_ids=[209,
+                             18722, 6, 6729, 6, 423,
+                             643, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=8/512,
+                             crossattn_emb norm=16.8017
+                             valid_rows_norm=16.8017
+                             mean_abs=0.002213
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.5566
+                             valid_rows_norm=25.5566
+                             mean_abs=0.004608
+                             shape=(1, 512, 1024)
+2026-06-17 17:09:49 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+
+[正常] Val Loss は良好です  val_loss: 0.042193 → 0.040593  train_loss: 0.041207
+
+saving checkpoint: E:\Animerge\lora\lora_output-000003.safetensors
+
+
+
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=296.2902
+                             uncond_norm=280.5481
+                             cond-uncond_norm=43.9504
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=387.2899
+                             latents norm=257.5315
+
+
+
+Sampling:   5%|▌         | 1/20 [00:00<00:09,  2.07it/s]
+
+
+Sampling:  10%|█         | 2/20 [00:00<00:08,  2.16it/s]
+
+
+Sampling:  15%|█▌        | 3/20 [00:01<00:08,  2.11it/s]
+
+
+Sampling:  20%|██        | 4/20 [00:01<00:07,  2.07it/s]
+
+
+Sampling:  25%|██▌       | 5/20 [00:02<00:07,  2.08it/s]
+
+
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.08it/s]
+
+
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.17it/s]
+
+
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.22it/s]
+
+
+Sampling:  45%|████▌     | 9/20 [00:04<00:04,  2.23it/s]
+
+
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.27it/s]
+
+
+Sampling:  55%|█████▌    | 11/20 [00:05<00:03,  2.28it/s]
+
+
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.31it/s]forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFF08E53ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFF0953E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFF0B827C1C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFF08E53ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFF0953E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFF0B827C1C  Unknown               Unknown  Unknown
+[LoRA Train] 完了 (return code: 1)

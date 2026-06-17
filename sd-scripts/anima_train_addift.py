@@ -421,11 +421,7 @@ def main():
     qwen3_text_encoder.requires_grad_(False)
 
     logger.info("Loading Anima VAE...")
-    vae = qwen_image_autoencoder_kl.load_vae(
-        args.vae, device="cpu", disable_mmap=True,
-        spatial_chunk_size=getattr(args, "vae_chunk_size", None),
-        disable_cache=getattr(args, "vae_disable_cache", False),
-    )
+    vae = anima_train_utils.load_qwen_image_vae(args, device="cpu", disable_mmap=True)
     vae.to(device, dtype=weight_dtype)
     vae.eval()
 

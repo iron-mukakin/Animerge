@@ -191,6 +191,7 @@ class _LecoTrainState:
         self.cpu_offload_checkpointing     = tk.BooleanVar(value=False)
         self.vae_chunk_size   = tk.StringVar(value="")
         self.vae_disable_cache = tk.BooleanVar(value=False)
+        self.qwen_image_vae_2d = tk.BooleanVar(value=False)
         self.qwen3_max_token_length = tk.IntVar(value=512)
         self.t5_max_token_length    = tk.IntVar(value=512)
         self.t5_tokenizer_path      = tk.StringVar(value="")
@@ -585,6 +586,9 @@ def _build_adv_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     ttk.Checkbutton(lf2, text="vae_disable_cache",
                     variable=s.vae_disable_cache).grid(
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
+    ttk.Checkbutton(lf2, text="qwen_image_vae_2d",
+                    variable=s.qwen_image_vae_2d).grid(
+        row=1, column=1, sticky=tk.W, padx=8, pady=3)
 
     lf3 = ttk.LabelFrame(parent, text=gettext("leco_es_label"))
     lf3.pack(fill=tk.X, pady=(8, 0))
@@ -733,6 +737,7 @@ def _build_command(s: _LecoTrainState) -> list[str]:
         (s.unsloth_offload_checkpointing,      "--unsloth_offload_checkpointing"),
         (s.cpu_offload_checkpointing,          "--cpu_offload_checkpointing"),
         (s.vae_disable_cache,                  "--vae_disable_cache"),
+        (s.qwen_image_vae_2d,                  "--qwen_image_vae_2d"),
     ]
     for var, flag in bool_flags:
         if var.get():
@@ -1379,6 +1384,7 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
             "cpu_offload_checkpointing":     bool(s.cpu_offload_checkpointing.get()),
             "vae_chunk_size":    s.vae_chunk_size.get(),
             "vae_disable_cache": bool(s.vae_disable_cache.get()),
+            "qwen_image_vae_2d": bool(s.qwen_image_vae_2d.get()),
             "qwen3_max_token_length": int(s.qwen3_max_token_length.get()),
             "t5_max_token_length":    int(s.t5_max_token_length.get()),
             "t5_tokenizer_path":      s.t5_tokenizer_path.get(),
@@ -1458,6 +1464,7 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         _s(s.cpu_offload_checkpointing, "cpu_offload_checkpointing", False)
         _s(s.vae_chunk_size,    "vae_chunk_size",     "")
         _s(s.vae_disable_cache, "vae_disable_cache",  False)
+        _s(s.qwen_image_vae_2d, "qwen_image_vae_2d",  False)
         _s(s.qwen3_max_token_length, "qwen3_max_token_length", 512)
         _s(s.t5_max_token_length, "t5_max_token_length", 512)
         _s(s.t5_tokenizer_path, "t5_tokenizer_path",  "")

@@ -1,0 +1,111 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_addift_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --image_a E:/Animerge/開発用ファイル/000.png --image_b E:/Animerge/開発用ファイル/001.png --caption  --output_dir E:\Animerge\lora --output_name addift_output --network_module networks.lora --network_dim 8 --network_alpha 4.0 --learning_rate 5e-5 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --train_iterations 50 --save_every_n_steps 50 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --train_min_timesteps 100 --train_max_timesteps 200 --diff_alt_ratio 1.0 --network_strength 5.0 --train_loss_function MSE --train_snr_gamma 0.0 --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --gradient_checkpointing --qwen_image_vae_2d --network_args anima_matrix_scales={"Input_Attention":0.0,"Input_MLP":1.0,"Input_Norm":0.0,"Input_ResNet":0.0,"Input_Timestep":0.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":0.0,"Output_MLP":1.0,"Output_Norm":0.0,"Output_ResNet":0.0,"Output_Timestep":0.0}
+
+accelerator device: cuda
+2026-06-17 17:28:24 INFO     Loading Qwen3 text       anima_train_addift.py:418
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:265
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-06-17 17:28:33 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+                             keys matched successfully>
+                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
+                             Parameters: 596,049,920
+2026-06-17 17:28:34 INFO     Loading Anima VAE...     anima_train_addift.py:423
+                    INFO     Using image-only          anima_train_utils.py:167
+                             Qwen-Image 2D VAE
+                    INFO     Initializing   qwen_image_autoencoder_kl_2d.py:535
+                             image-only
+                             QwenImage 2D
+                             VAE
+                    INFO     Loading VAE    qwen_image_autoencoder_kl_2d.py:550
+                             from
+                             F:/Game_Files/
+                             ComfyUI_window
+                             s_portable/Com
+                             fyUI/models/va
+                             e/qwen_image_v
+                             ae.safetensors
+                    INFO     Converted        qwen_image_autoencoder_kl.py:1538
+                             ComfyUI
+                             AutoencoderKL
+                             state dict keys
+                             to official
+                             format
+                    INFO     Skipped 8      qwen_image_autoencoder_kl_2d.py:454
+                             temporal-only
+                             VAE weights
+                             for QwenImage
+                             2D VAE
+                    INFO     Loaded         qwen_image_autoencoder_kl_2d.py:555
+                             image-only
+                             QwenImage 2D
+                             VAE: <All keys
+                             matched
+                             successfully>
+                    INFO     Encoding image_a:        anima_train_addift.py:429
+                             E:/Animerge/開発用ファイ
+                             ル/000.png
+2026-06-17 17:28:35 INFO     Encoding image_b:        anima_train_addift.py:431
+                             E:/Animerge/開発用ファイ
+                             ル/001.png
+                    INFO     Loading Anima DiT model  anima_train_addift.py:457
+                             (attn_mode=torch)...
+2026-06-17 17:28:36 INFO     Loading DiT model from          anima_utils.py:166
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, device=cpu
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusion_
+                             models/anima-base-v1.0.safetensor
+                             s']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
+Loading anima-base-v1.0.safetensors:   7%|▋         | 49/685 [00:00<00:01, 466.11it/s]
+Loading anima-base-v1.0.safetensors:  14%|█▍        | 96/685 [00:00<00:01, 423.65it/s]
+Loading anima-base-v1.0.safetensors:  20%|██        | 140/685 [00:00<00:01, 413.07it/s]
+Loading anima-base-v1.0.safetensors:  28%|██▊       | 193/685 [00:00<00:01, 438.11it/s]
+Loading anima-base-v1.0.safetensors:  35%|███▍      | 237/685 [00:00<00:01, 422.55it/s]
+Loading anima-base-v1.0.safetensors:  41%|████      | 281/685 [00:00<00:00, 413.14it/s]
+Loading anima-base-v1.0.safetensors:  48%|████▊     | 328/685 [00:00<00:00, 429.65it/s]
+Loading anima-base-v1.0.safetensors:  54%|█████▍    | 373/685 [00:00<00:00, 428.53it/s]
+Loading anima-base-v1.0.safetensors:  61%|██████    | 416/685 [00:00<00:00, 414.58it/s]
+Loading anima-base-v1.0.safetensors:  67%|██████▋   | 458/685 [00:01<00:00, 406.11it/s]
+Loading anima-base-v1.0.safetensors:  73%|███████▎  | 501/685 [00:01<00:00, 410.91it/s]
+Loading anima-base-v1.0.safetensors:  80%|███████▉  | 547/685 [00:01<00:00, 424.02it/s]
+Loading anima-base-v1.0.safetensors:  94%|█████████▍| 647/685 [00:01<00:00, 592.59it/s]
+2026-06-17 17:28:38 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+                             renamed. Examples:
+                             [('net.blocks.0.adaln_modulation
+                             _cross_attn.1.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.1.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             cross_attn.2.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.2.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             mlp.1.weight',
+                             'blocks.0.adaln_modulation_mlp.1
+                             .weight')]
+                    INFO     Loaded DiT model from           anima_utils.py:210
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, unexpected missing keys:
+                             0, unexpected keys: 0
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFF08E53ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFF0953E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFF0B827C1C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFF08E53ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFF0953E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFF0B827C1C  Unknown               Unknown  Unknown

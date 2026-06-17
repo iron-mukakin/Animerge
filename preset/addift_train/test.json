@@ -42,6 +42,7 @@
   "cpu_offload_checkpointing": false,
   "vae_chunk_size": "",
   "vae_disable_cache": false,
+  "qwen_image_vae_2d": true,
   "qwen3_max_token_length": 512,
   "t5_max_token_length": 512,
   "t5_tokenizer_path": "",
@@ -65,5 +66,18 @@
     "Output_Timestep": 0.0
   },
   "es_enabled": true,
-  "es_patience": 6
+  "es_patience": 6,
+  "sample_every_n_steps": "5",
+  "sample_width": 512,
+  "sample_height": 512,
+  "sample_steps": 20,
+  "sample_scale": 4.5,
+  "sample_flow_shift": 3.0,
+  "sample_keep_vae": true,
+  "sample_enabled": true,
+  "sample_prompt": "1girl, solo, full body",
+  "sample_negative_prompt": "worst quality, low quality, score_1, score_2, score_3",
+  "sample_b_enabled": true,
+  "sample_b_prompt": "1boy, solo, full body",
+  "sample_b_negative_prompt": "worst quality, low quality, score_1, score_2, score_3"
 }
