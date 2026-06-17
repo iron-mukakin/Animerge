@@ -382,6 +382,15 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cache_latents_to_disk", action="store_true", default=False, help=argparse.SUPPRESS)
     parser.add_argument("--deepspeed", action="store_true", default=False, help=argparse.SUPPRESS)
 
+    # サンプル生成
+    # --sample_every_n_steps / --sample_prompts / --sample_save_dir は
+    # train_util.add_training_arguments() で登録済みのため追加不要。
+    parser.add_argument(
+        "--sample_keep_vae", action="store_true",
+        help="Keep VAE loaded in VRAM throughout training for sample generation. Default: reload VAE each time samples are generated, then unload."
+        + " / サンプル生成のためVAEを学習中VRAMに保持し続けます。デフォルトではサンプル生成ごとにVAEをロード/解放します。",
+    )
+
     return parser
 
 
