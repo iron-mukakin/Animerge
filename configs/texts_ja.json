@@ -50,6 +50,7 @@
   "run_lora_fuse": "▶  Run LoRA fuse",
   "run_lora_merge": "▶  Run LoRA merge",
   "run_diff_extract": "▶  Run difference extract",
+  "run_log_label": "実行ログ",
   "preset_saved_presets": "Saved Presets",
   "preset_name_label": "Name:",
   "preset_save": "Save",

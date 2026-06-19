@@ -84,6 +84,11 @@ class AnimaModelEditor(tk.Tk):
         self._sub_notebooks: dict[str, object] = {}
         self._active_tab_type: str = "model"
 
+        # RUNボタン下に設置する横長実行ログ（サブタブ別）
+        # キー: "model_merge" / "lora_fuse" / "lora_merge" / "lora_extract"
+        self._mini_log_widgets: dict[str, tk.Text] = {}
+        self._mini_log_queues: dict[str, queue.Queue] = {}
+
         # メモリ上にロードされたモデル名を保持 (アンロード用)
         self._loaded_model_names: list[str] = []
 
@@ -336,60 +341,63 @@ class AnimaModelEditor(tk.Tk):
     def _build_model_merge_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
         notebook.add(tab, text=gettext("tab_model_merge"))
-        ttk.Label(tab, text=gettext("base_model")).grid(row=0, column=0, sticky=tk.W, pady=6)
-        self.base_combo = ttk.Combobox(tab, textvariable=self.base_model_var, state="readonly")
-        self.base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text=gettext("secondary_model")).grid(row=1, column=0, sticky=tk.W, pady=6)
-        self.secondary_combo = ttk.Combobox(tab, textvariable=self.secondary_model_var, state="readonly")
-        self.secondary_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
+        self.base_combo = self._model_file_row(
+            tab, 0, "base_model", self.base_model_var, self.paths.checkpoints
+        )
+        self.secondary_combo = self._model_file_row(
+            tab, 1, "secondary_model", self.secondary_model_var, self.paths.checkpoints
+        )
         self._output_controls(tab, 2)
         _bf_mm = ttk.Frame(tab)
         _bf_mm.grid(row=3, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_mm, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_mm, text=gettext("run_model_merge"), style="Run.TButton", command=self.start_model_merge).pack(side=tk.LEFT)
+        self._run_log_row(tab, 4, "model_merge")
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_fuse_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
         notebook.add(tab, text=gettext("tab_lora_fuse"))
-        ttk.Label(tab, text=gettext("base_model")).grid(row=0, column=0, sticky=tk.W, pady=6)
-        self.lora_base_combo = ttk.Combobox(tab, textvariable=self.base_model_var, state="readonly")
-        self.lora_base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text=gettext("lora_label")).grid(row=1, column=0, sticky=tk.W, pady=6)
-        self.lora_combo = ttk.Combobox(tab, textvariable=self.lora_var, state="readonly")
-        self.lora_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
+        self.lora_base_combo = self._model_file_row(
+            tab, 0, "base_model", self.base_model_var, self.paths.checkpoints
+        )
+        self.lora_combo = self._model_file_row(
+            tab, 1, "lora_label", self.lora_var, self.paths.lora
+        )
         self._output_controls(tab, 2)
         _bf_lf = ttk.Frame(tab)
         _bf_lf.grid(row=3, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_lf, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_lf, text=gettext("run_lora_fuse"), style="Run.TButton", command=self.start_lora_fuse).pack(side=tk.LEFT)
+        self._run_log_row(tab, 4, "lora_fuse")
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_merge_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
         notebook.add(tab, text=gettext("tab_lora_merge"))
-        ttk.Label(tab, text=gettext("base_lora")).grid(row=0, column=0, sticky=tk.W, pady=6)
-        self.lora_merge_base_combo = ttk.Combobox(tab, textvariable=self.lora_var, state="readonly")
-        self.lora_merge_base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text=gettext("secondary_lora")).grid(row=1, column=0, sticky=tk.W, pady=6)
-        self.secondary_lora_combo = ttk.Combobox(tab, textvariable=self.secondary_lora_var, state="readonly")
-        self.secondary_lora_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
+        self.lora_merge_base_combo = self._model_file_row(
+            tab, 0, "base_lora", self.lora_var, self.paths.lora
+        )
+        self.secondary_lora_combo = self._model_file_row(
+            tab, 1, "secondary_lora", self.secondary_lora_var, self.paths.lora
+        )
         self._output_controls(tab, 2)
         _bf_lm = ttk.Frame(tab)
         _bf_lm.grid(row=3, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_lm, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_lm, text=gettext("run_lora_merge"), style="Run.TButton", command=self.start_lora_merge).pack(side=tk.LEFT)
+        self._run_log_row(tab, 4, "lora_merge")
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_extract_tab(self, notebook: ttk.Notebook) -> None:
         tab = ttk.Frame(notebook, padding=12)
         notebook.add(tab, text=gettext("tab_diff_extract"))
-        ttk.Label(tab, text=gettext("base_model")).grid(row=0, column=0, sticky=tk.W, pady=6)
-        self.extract_base_combo = ttk.Combobox(tab, textvariable=self.base_model_var, state="readonly")
-        self.extract_base_combo.grid(row=0, column=1, sticky=tk.EW, padx=8)
-        ttk.Label(tab, text=gettext("target_model")).grid(row=1, column=0, sticky=tk.W, pady=6)
-        self.extract_target_combo = ttk.Combobox(tab, textvariable=self.secondary_model_var, state="readonly")
-        self.extract_target_combo.grid(row=1, column=1, sticky=tk.EW, padx=8)
+        self.extract_base_combo = self._model_file_row(
+            tab, 0, "base_model", self.base_model_var, self.paths.checkpoints
+        )
+        self.extract_target_combo = self._model_file_row(
+            tab, 1, "target_model", self.secondary_model_var, self.paths.checkpoints
+        )
         self._output_controls(tab, 2)
         ttk.Label(tab, text=gettext("lora_rank")).grid(row=3, column=0, sticky=tk.W, pady=6)
         ttk.Spinbox(tab, from_=1, to=256, textvariable=self.extract_rank_var, width=8).grid(row=3, column=1, sticky=tk.W, padx=8)
@@ -397,6 +405,7 @@ class AnimaModelEditor(tk.Tk):
         _bf_le.grid(row=4, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_le, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_le, text=gettext("run_diff_extract"), style="Run.TButton", command=self.start_lora_extract).pack(side=tk.LEFT)
+        self._run_log_row(tab, 5, "lora_extract")
         tab.columnconfigure(1, weight=1)
 
     # --- Preset Tab ---------------------------------------------------
@@ -923,6 +932,107 @@ class AnimaModelEditor(tk.Tk):
             )
         self.analysis_run_btn.config(state=tk.NORMAL)
 
+    def _model_file_row(
+        self,
+        parent: ttk.Frame,
+        row: int,
+        label_key: str,
+        path_var: tk.StringVar,
+        initial_dir: Path,
+    ) -> ttk.Entry:
+        """モデル/LoRAファイルを指定する Entry + Browse ボタン行をグリッド配置する。
+
+        Args:
+            parent: 配置先の親フレーム。
+            row: グリッド行番号。
+            label_key: ラベル表示用の i18n キー。
+            path_var: 選択中ファイルパスを保持する StringVar。
+            initial_dir: ダイアログの既定参照フォルダ（self.paths 配下の相対構成フォルダ）。
+
+        Returns:
+            ttk.Entry: 生成したパス入力欄ウィジェット。
+        """
+        ttk.Label(parent, text=gettext(label_key)).grid(row=row, column=0, sticky=tk.W, pady=6)
+        entry = ttk.Entry(parent, textvariable=path_var)
+        entry.grid(row=row, column=1, sticky=tk.EW, padx=8)
+        ttk.Button(
+            parent,
+            text=gettext("browse"),
+            command=lambda: self._select_model_file(path_var, initial_dir),
+        ).grid(row=row, column=2, sticky=tk.E)
+        return entry
+
+    def _select_model_file(self, path_var: tk.StringVar, initial_dir: Path) -> None:
+        """ファイル選択ダイアログを開き、選択結果を path_var に反映する。
+
+        Args:
+            path_var: 選択結果の書き込み先 StringVar。
+            initial_dir: path_var が未設定の場合に使う既定フォルダ。
+        """
+        current = path_var.get()
+        start_dir = str(Path(current).parent) if current else str(initial_dir)
+        filename = filedialog.askopenfilename(
+            initialdir=start_dir,
+            filetypes=(
+                ("Model files", "*.safetensors *.ckpt *.bin"),
+                ("Safetensors", "*.safetensors"),
+                ("Checkpoint", "*.ckpt"),
+                ("Binary", "*.bin"),
+                ("All files", "*.*"),
+            ),
+        )
+        if filename:
+            path_var.set(filename)
+
+    def _run_log_row(self, parent: ttk.Frame, row: int, key: str) -> tk.Text:
+        """RUNボタン直下に横長の実行ログ欄をグリッド配置する。
+
+        既存レイアウト（ラベル列0 / 入力列1 / ボタン列2）を崩さないよう、
+        columnspan=3 で全幅にまたがる行として追加する。
+        マージ系処理の ProgressCallback から逐次メッセージが届くたびに
+        _drain_logs() がここへ反映する。
+
+        Args:
+            parent: 配置先のサブタブフレーム。
+            row: グリッド行番号（既存コントロールの直下を指定）。
+            key: タブ識別キー（"model_merge" / "lora_fuse" / "lora_merge" / "lora_extract"）。
+
+        Returns:
+            tk.Text: 生成したログ表示欄ウィジェット。
+        """
+        frame = ttk.LabelFrame(parent, text=gettext("run_log_label"))
+        frame.grid(row=row, column=0, columnspan=3, sticky=tk.EW, pady=(8, 0))
+        text = tk.Text(frame, height=4, wrap=tk.NONE, font=("TkDefaultFont", 9))
+        text.pack(fill=tk.X, expand=True, padx=4, pady=4)
+        text.configure(state=tk.DISABLED)
+        self._mini_log_widgets[key] = text
+        self._mini_log_queues[key] = queue.Queue()
+        return text
+
+    def _clear_run_log(self, key: str) -> None:
+        """指定タブの実行ログ欄を空にする（RUN開始時に前回分をリセット）。
+
+        Args:
+            key: タブ識別キー。
+        """
+        widget = self._mini_log_widgets.get(key)
+        if widget is None:
+            return
+        widget.configure(state=tk.NORMAL)
+        widget.delete("1.0", tk.END)
+        widget.configure(state=tk.DISABLED)
+
+    def _trim_run_log(self, widget: tk.Text, max_lines: int = 200) -> None:
+        """実行ログ欄の行数を上限内に保つ（メモリ肥大化防止）。
+
+        Args:
+            widget: 対象の Text ウィジェット。
+            max_lines: 保持する最大行数。
+        """
+        line_count = int(widget.index("end-1c").split(".")[0])
+        if line_count > max_lines:
+            widget.delete("1.0", f"{line_count - max_lines + 1}.0")
+
     def _output_controls(self, parent: ttk.Frame, row: int) -> None:
         ttk.Label(parent, text=gettext("output_label")).grid(row=row, column=0, sticky=tk.W, pady=6)
         ttk.Entry(parent, textvariable=self.output_var).grid(row=row, column=1, sticky=tk.EW, padx=8)
@@ -946,26 +1056,35 @@ class AnimaModelEditor(tk.Tk):
             self.device_var.set(resolved)
             self.log(gettext("log_cuda_fallback"))
 
-    def _make_progress_cb(self, requested_device: str):
-        """進捗コールバックを返す。フォールバックメッセージを検知してGUIに反映。"""
+    def _make_progress_cb(self, requested_device: str, mini_key: str | None = None):
+        """進捗コールバックを返す。フォールバックメッセージを検知してGUIに反映。
+
+        Args:
+            requested_device: ユーザーが要求したデバイス（"cpu"/"cuda"系）。
+            mini_key: 指定時、メインログに加えて該当タブの横長実行ログにも配信する。
+        """
         _HINTS = ("CUDA is not available", "CUDA は利用できません",
                   "Falling back to CPU", "CPUにフォールバック")
         def _cb(msg: str) -> None:
             self.log_queue.put(msg)
+            if mini_key is not None and mini_key in self._mini_log_queues:
+                self._mini_log_queues[mini_key].put(msg)
             if requested_device.startswith("cuda") and any(h in msg for h in _HINTS):
                 self.after(0, lambda: self._sync_device_var("cpu"))
         return _cb
 
     # ─── ファイル操作 ─────────────────────────────────────────
     def refresh_files(self) -> None:
+        """checkpoints/lora フォルダを再走査し、分析タブ等の選択候補一覧を更新する。
+
+        1-1/1-2/2-1/2-2 のベース・対象指定は Entry + Browse 方式のため、
+        ここでは Combobox の values 更新は行わず、model_choices/lora_choices
+        （分析タブ・学習タブ用の選択肢リスト）のみを更新する。
+        """
         models = scan_models(self.paths.checkpoints)
         loras = scan_models(self.paths.lora)
         self.model_choices = [str(path) for path in models]
         self.lora_choices = [str(path) for path in loras]
-        for combo in (self.base_combo, self.secondary_combo, self.lora_base_combo, self.extract_base_combo, self.extract_target_combo):
-            combo["values"] = self.model_choices
-        for combo in (self.lora_combo, self.lora_merge_base_combo, self.secondary_lora_combo):
-            combo["values"] = self.lora_choices
         if self.model_choices and not self.base_model_var.get():
             self.base_model_var.set(self.model_choices[0])
         if len(self.model_choices) > 1 and not self.secondary_model_var.get():
@@ -1185,6 +1304,7 @@ class AnimaModelEditor(tk.Tk):
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
         self._write_merge_log(gettext("merge_log_model"), self.base_model_var.get(), self.secondary_model_var.get())
+        self._clear_run_log("model_merge")
         self._run_background(
             lambda: merge_models(
                 Path(self.base_model_var.get()),
@@ -1192,7 +1312,7 @@ class AnimaModelEditor(tk.Tk):
                 Path(self.output_var.get()),
                 self.options(),
                 _dev,
-                self._make_progress_cb(_dev),
+                self._make_progress_cb(_dev, "model_merge"),
             )
         )
 
@@ -1200,6 +1320,7 @@ class AnimaModelEditor(tk.Tk):
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
         self._write_merge_log(gettext("merge_log_lora_fuse"), self.base_model_var.get(), self.lora_var.get())
+        self._clear_run_log("lora_fuse")
         self._run_background(
             lambda: fuse_lora_into_model(
                 Path(self.base_model_var.get()),
@@ -1207,7 +1328,7 @@ class AnimaModelEditor(tk.Tk):
                 Path(self.output_var.get()),
                 self.options(),
                 _dev,
-                self._make_progress_cb(_dev),
+                self._make_progress_cb(_dev, "lora_fuse"),
             )
         )
 
@@ -1215,6 +1336,7 @@ class AnimaModelEditor(tk.Tk):
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
         self._write_merge_log(gettext("merge_log_lora_merge"), self.lora_var.get(), self.secondary_lora_var.get())
+        self._clear_run_log("lora_merge")
         self._run_background(
             lambda: merge_loras(
                 Path(self.lora_var.get()),
@@ -1222,7 +1344,7 @@ class AnimaModelEditor(tk.Tk):
                 Path(self.output_var.get()),
                 self.options(),
                 _dev,
-                self._make_progress_cb(_dev),
+                self._make_progress_cb(_dev, "lora_merge"),
             )
         )
 
@@ -1230,6 +1352,7 @@ class AnimaModelEditor(tk.Tk):
         self._merge_stop_event.clear()
         _dev = self.device_var.get()
         self._write_merge_log(gettext("merge_log_diff_extract"), self.base_model_var.get(), self.secondary_model_var.get())
+        self._clear_run_log("lora_extract")
         self._run_background(
             lambda: extract_lora_difference(
                 Path(self.base_model_var.get()),
@@ -1238,7 +1361,7 @@ class AnimaModelEditor(tk.Tk):
                 self.options(),
                 int(self.extract_rank_var.get()),
                 _dev,
-                self._make_progress_cb(_dev),
+                self._make_progress_cb(_dev, "lora_extract"),
             )
         )
 
@@ -1379,6 +1502,23 @@ class AnimaModelEditor(tk.Tk):
                 self.log(self.log_queue.get_nowait())
             except queue.Empty:
                 break
+        for key, mini_queue in self._mini_log_queues.items():
+            widget = self._mini_log_widgets.get(key)
+            if widget is None:
+                continue
+            updated = False
+            while True:
+                try:
+                    message = mini_queue.get_nowait()
+                except queue.Empty:
+                    break
+                widget.configure(state=tk.NORMAL)
+                widget.insert(tk.END, message + "\n")
+                updated = True
+            if updated:
+                self._trim_run_log(widget)
+                widget.see(tk.END)
+                widget.configure(state=tk.DISABLED)
         self.after(100, self._drain_logs)
 
 

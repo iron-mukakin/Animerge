@@ -18,3 +18,41 @@
   Checkpoints: 2
   LoRA files : 5
 
+2026-06-20 04:32:08 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 04:36:47 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 04:41:27 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 04:46:20 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 04:46:48 [LoRAマージ開始]
+  Model A : E:\Animerge\lora\FlanneryPokemon_ANIMA.safetensors
+  Model B : E:\Animerge\lora\Lunalight Perfume Dancer & Liger Dancer Anima Sqq V1.2.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_lora.safetensors
+2026-06-20 04:53:30 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 04:53:37 [本体マージ開始]
+  Model A : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\cottonanima_base1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-06-20 04:57:05 [Rescan Folders]
+  Checkpoints: 3
+  LoRA files : 2
+
