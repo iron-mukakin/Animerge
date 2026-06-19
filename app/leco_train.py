@@ -57,27 +57,61 @@ LAYER_COLUMNS      = 3
 # blocks.0-8=Input, blocks.9-18=Middle, blocks.19-27=Output
 _BLOCK_CAT: list[str] = ["Input"] * 9 + ["Middle"] * 10 + ["Output"] * 9
 
-# LECO プロンプトTOMLのデフォルトテンプレート（LECO形式）
-_TOML_TEMPLATE = """\
-# LECO Prompt Settings
-# action: "erase" で target 概念を消去 / "enhance" で強調
-# multiplier: 学習時の LoRA 強度（デフォルト 1.0）
-# weight: このエントリの loss 重み（デフォルト 1.0）
-# guidance_scale: ターゲット構築時のスケール（大きいほど効果が強い）
-# resolution: 整数 512 または [height, width] 形式
+# LECO プロンプトTOMLのデフォルトテンプレート（LECO形式・多言語対応）
+def _leco_toml_template_text() -> str:
+    """現在の言語設定に応じたLECOプロンプトTOMLテンプレートを生成する。
 
-[[prompts]]
-target        = "概念・スタイル名"
-positive      = "target を含む肯定プロンプト"
-unconditional = ""
-neutral       = ""
-action        = "erase"
-guidance_scale = 1.0
-resolution    = 512
-batch_size    = 1
-multiplier    = 1.0
-weight        = 1.0
-"""
+    コメント行・プレースホルダ値は i18n キー（leco_tpl_*）から取得するため、
+    言語切り替えに追従する。TOML構造自体（キー名・デフォルト値）は固定。
+
+    Returns:
+        str: 表示・保存用のTOMLテンプレート文字列。
+    """
+    return (
+        f"{gettext('leco_tpl_header')}\n"
+        f"{gettext('leco_tpl_action')}\n"
+        f"{gettext('leco_tpl_multiplier')}\n"
+        f"{gettext('leco_tpl_weight')}\n"
+        f"{gettext('leco_tpl_guidance')}\n"
+        f"{gettext('leco_tpl_resolution')}\n"
+        "\n"
+        "[[prompts]]\n"
+        f"target        = \"{gettext('leco_tpl_target_value')}\"\n"
+        f"positive      = \"{gettext('leco_tpl_positive_value')}\"\n"
+        "unconditional = \"\"\n"
+        "neutral       = \"\"\n"
+        "action        = \"erase\"\n"
+        "guidance_scale = 1.0\n"
+        "resolution    = 512\n"
+        "batch_size    = 1\n"
+        "multiplier    = 1.0\n"
+        "weight        = 1.0\n"
+    )
+
+
+def _ensure_subtab_style(widget: tk.Misc) -> None:
+    """gui.py の副タブ配色（SubTab.TNotebook.Tab）をこのウィジェット上で保証する。
+
+    gui.py 側で既に登録済みなら上書き再設定するだけで実害はない
+    （ttk.Style.configure は冪等）。leco_train.py 単体テスト実行時など
+    gui.py の _apply_styles() を経由しないケースのフォールバックも兼ねる。
+
+    Args:
+        widget: スタイル登録に使う tkinter ウィジェット（ルート取得用）。
+    """
+    style = ttk.Style(widget)
+    style.configure(
+        "SubTab.TNotebook.Tab",
+        font=("TkDefaultFont", 9, "bold"),
+        padding=(10, 4),
+        background="#475569",
+        foreground="black",
+    )
+    style.map(
+        "SubTab.TNotebook.Tab",
+        background=[("selected", "#334155"), ("active", "#64748B")],
+        foreground=[("selected", "green"), ("active", "purple")],
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -93,7 +127,8 @@ def build_leco_train_tab(
 
     state = _LecoTrainState(paths, log_fn, get_model_choices)
 
-    nb = ttk.Notebook(parent)
+    _ensure_subtab_style(parent)
+    nb = ttk.Notebook(parent, style="SubTab.TNotebook")
     nb.pack(fill=tk.BOTH, expand=True)
 
     tab_model          = ttk.Frame(nb, padding=8)
@@ -333,15 +368,7 @@ def _build_prompts_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     # --- LECO概要説明 ---
     lf_info = ttk.LabelFrame(parent, text=gettext("leco_info_label"))
     lf_info.pack(fill=tk.X, pady=(0, 6))
-    info_text = (
-        "target: 消去または強調する概念／スタイル\n"
-        "positive: target を含む肯定プロンプト（eraseの消去源）\n"
-        "neutral: 中立的な参照プロンプト（アンカー）\n"
-        "unconditional: 空文字列推奨（CFGの非条件側）\n"
-        "action: \"erase\" (概念消去) / \"enhance\" (概念強調)\n"
-        "guidance_scale: 部分デノイズのCFGスケール（デフォルト3.0）"
-    )
-    ttk.Label(lf_info, text=info_text, justify=tk.LEFT,
+    ttk.Label(lf_info, text=gettext("leco_info_text"), justify=tk.LEFT,
               foreground="#475569", font=("TkDefaultFont", 9)).pack(
         anchor=tk.W, padx=8, pady=4)
 
@@ -360,7 +387,7 @@ def _build_prompts_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     toml_text.grid(row=0, column=0, sticky=tk.NSEW)
 
     # 初期テンプレートを表示
-    toml_text.insert(tk.END, _TOML_TEMPLATE)
+    toml_text.insert(tk.END, _leco_toml_template_text())
 
     # state に toml_text への参照を保持（保存時に使用）
     s._toml_text_widget = toml_text
@@ -400,7 +427,7 @@ def _save_toml(s: _LecoTrainState, text_widget: tk.Text) -> None:
 
 def _insert_template(text_widget: tk.Text) -> None:
     text_widget.delete("1.0", tk.END)
-    text_widget.insert(tk.END, _TOML_TEMPLATE)
+    text_widget.insert(tk.END, _leco_toml_template_text())
 
 
 # ──────────────────────────────────────────────────────────────────────────────

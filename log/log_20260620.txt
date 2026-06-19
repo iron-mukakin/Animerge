@@ -56,3 +56,27 @@
   Checkpoints: 3
   LoRA files : 2
 
+2026-06-20 05:02:08 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 05:03:21 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 05:03:38 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 05:10:12 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 05:11:12 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
+2026-06-20 05:12:26 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 2
+
