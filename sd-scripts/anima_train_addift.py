@@ -239,6 +239,166 @@ def compute_addift_loss(
 
 
 # ---------------------------------------------------------------------------
+# Diffusion-DPO (dpo.txt 式14相当の近似実装)
+#
+# 設計方針 (A案): 別途ref_modelコピーを持たず、既存ADDifTのLoRA multiplier
+# ON/OFF切替を reference(=multiplier 0, 凍結相当) / policy(=multiplier 有効)
+# として流用する。VRAM追加コストなしで Diffusion-DPO の比較構造を近似する。
+#
+# 注意: 本実装の損失スケールは原論文 (beta=2000-5000 想定) とは異なる。
+# 1latentペア固定で学習する都合上、--preference_beta はUIで実験的に
+# 調整することを前提とした小さめの値 (デフォルト 5.0) を採用している。
+# ---------------------------------------------------------------------------
+
+ADDIFT_MODE_NONE = "none"
+ADDIFT_MODE_DPO = "dpo"
+ADDIFT_MODES_UNIMPLEMENTED = ("sdpo", "mapo")
+
+
+def predict_policy_and_reference_noise(
+    accelerator,
+    dit: anima_models.Anima,
+    net_unwrapped,
+    timesteps_normalized: torch.Tensor,
+    noisy_latent: torch.Tensor,
+    embeds_tuple,
+    weight_dtype: torch.dtype,
+    device,
+    policy_multiplier: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """同一latentに対し reference(multiplier=0, no_grad) と policy(指定multiplier, grad有効) の
+    ノイズ予測を順に計算して返す。
+
+    Args:
+        accelerator: Accelerate の Accelerator インスタンス。
+        dit: Anima DiT本体。
+        net_unwrapped: unwrap済みのネットワーク (multiplier制御用)。
+        timesteps_normalized: [0, 1] 正規化済みタイムステップ。
+        noisy_latent: ノイズ付加済みlatent (4D: [B, C, H, W])。
+        embeds_tuple: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)。
+        weight_dtype: 演算dtype。
+        device: 演算device。
+        policy_multiplier: policy側で適用するnetwork multiplier。
+
+    Returns:
+        tuple[torch.Tensor, torch.Tensor]: (policy_pred, reference_pred)
+    """
+    net_unwrapped.set_multiplier(0.0)
+    with torch.no_grad(), accelerator.autocast():
+        reference_pred = predict_noise_anima(
+            dit, timesteps_normalized, noisy_latent, embeds_tuple, weight_dtype, device,
+        ).detach()
+
+    net_unwrapped.set_multiplier(policy_multiplier)
+    with accelerator.autocast():
+        policy_pred = predict_noise_anima(
+            dit, timesteps_normalized, noisy_latent, embeds_tuple, weight_dtype, device,
+        )
+    net_unwrapped.set_multiplier(0.0)
+    return policy_pred, reference_pred
+
+
+def compute_dpo_loss(
+    preference_beta: float,
+    noise_win: torch.Tensor,
+    policy_pred_win: torch.Tensor,
+    reference_pred_win: torch.Tensor,
+    noise_lose: torch.Tensor,
+    policy_pred_lose: torch.Tensor,
+    reference_pred_lose: torch.Tensor,
+    diff_mask: Optional[torch.Tensor],
+) -> torch.Tensor:
+    """Diffusion-DPO損失 (dpo.txt 式14相当) を計算する。
+
+    L(theta) = -E[log sigmoid(-beta * delta_error)]
+    delta_error = (loss_w - ref_loss_w) - (loss_l - ref_loss_l)
+
+    Args:
+        preference_beta: 基準モデルからの乖離を制御する正則化係数 (--preference_beta)。
+        noise_win: winペアに付加した実ノイズ epsilon_w。
+        policy_pred_win: policyモデルのwin予測。
+        reference_pred_win: referenceモデルのwin予測。
+        noise_lose: loseペアに付加した実ノイズ epsilon_l。
+        policy_pred_lose: policyモデルのlose予測。
+        reference_pred_lose: referenceモデルのlose予測。
+        diff_mask: 損失計算範囲を限定する差分マスク (任意)。
+
+    Returns:
+        torch.Tensor: スカラー損失。
+    """
+    if diff_mask is not None:
+        noise_win = noise_win * diff_mask
+        policy_pred_win = policy_pred_win * diff_mask
+        reference_pred_win = reference_pred_win * diff_mask
+        noise_lose = noise_lose * diff_mask
+        policy_pred_lose = policy_pred_lose * diff_mask
+        reference_pred_lose = reference_pred_lose * diff_mask
+
+    loss_win = torch.nn.functional.mse_loss(
+        policy_pred_win.float(), noise_win.float(), reduction="none"
+    ).mean(dim=(1, 2, 3))
+    ref_loss_win = torch.nn.functional.mse_loss(
+        reference_pred_win.float(), noise_win.float(), reduction="none"
+    ).mean(dim=(1, 2, 3))
+    loss_lose = torch.nn.functional.mse_loss(
+        policy_pred_lose.float(), noise_lose.float(), reduction="none"
+    ).mean(dim=(1, 2, 3))
+    ref_loss_lose = torch.nn.functional.mse_loss(
+        reference_pred_lose.float(), noise_lose.float(), reduction="none"
+    ).mean(dim=(1, 2, 3))
+
+    delta_error = (loss_win - ref_loss_win) - (loss_lose - ref_loss_lose)
+    dpo_logits = -preference_beta * delta_error
+    return -torch.nn.functional.logsigmoid(dpo_logits).mean()
+
+
+def train_addift_dpo_step(
+    accelerator,
+    dit: anima_models.Anima,
+    net_unwrapped,
+    args: argparse.Namespace,
+    latent_lose: torch.Tensor,
+    latent_win: torch.Tensor,
+    timesteps: torch.Tensor,
+    timesteps_normalized: torch.Tensor,
+    embeds_tuple,
+    weight_dtype: torch.dtype,
+    device,
+    policy_multiplier: float,
+    diff_mask: Optional[torch.Tensor],
+) -> torch.Tensor:
+    """DPOモード1イテレーション分の損失を計算する。
+
+    win/loseの役割は固定 (turn反転なし)。win = image_b (変換後/好ましい),
+    lose = image_a (変換前/好ましくない)。
+
+    Returns:
+        torch.Tensor: スカラー損失。
+    """
+    noise_win = torch.randn_like(latent_win)
+    noise_lose = torch.randn_like(latent_lose)
+
+    noisy_win = add_rectified_flow_noise(latent_win, noise_win, timesteps)
+    noisy_lose = add_rectified_flow_noise(latent_lose, noise_lose, timesteps)
+
+    policy_pred_win, reference_pred_win = predict_policy_and_reference_noise(
+        accelerator, dit, net_unwrapped, timesteps_normalized, noisy_win,
+        embeds_tuple, weight_dtype, device, policy_multiplier,
+    )
+    policy_pred_lose, reference_pred_lose = predict_policy_and_reference_noise(
+        accelerator, dit, net_unwrapped, timesteps_normalized, noisy_lose,
+        embeds_tuple, weight_dtype, device, policy_multiplier,
+    )
+
+    return compute_dpo_loss(
+        args.preference_beta,
+        noise_win, policy_pred_win, reference_pred_win,
+        noise_lose, policy_pred_lose, reference_pred_lose,
+        diff_mask,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Save
 # ---------------------------------------------------------------------------
 
@@ -296,6 +456,17 @@ def setup_parser() -> argparse.ArgumentParser:
     train_util.add_dit_training_arguments(parser)
     anima_train_utils.add_anima_training_arguments(parser)
     add_logging_arguments(parser)
+
+    # ── DPOモード ────────────────────────────────────────────────────────
+    parser.add_argument(
+        "--addift_mode", type=str, default="none",
+        choices=["none", "dpo", "sdpo", "mapo"],
+        help="ADDifT拡張モード。'dpo' 以外の sdpo/mapo は未実装 / ADDifT extension mode",
+    )
+    parser.add_argument(
+        "--preference_beta", type=float, default=5.0,
+        help="DPOモードの正則化係数 beta (基準モデルからの乖離を制御) / DPO regularization beta",
+    )
 
     # ── ADDifT固有: 画像ペア ────────────────────────────────────────────
     parser.add_argument(
@@ -414,6 +585,8 @@ def main():
         raise ValueError("--diff_use_diff_mask requires --diff_mask_path")
     if args.train_min_timesteps >= args.train_max_timesteps:
         raise ValueError("--train_min_timesteps must be less than --train_max_timesteps")
+    if args.addift_mode in ADDIFT_MODES_UNIMPLEMENTED:
+        raise NotImplementedError(f"--addift_mode={args.addift_mode} は未実装です。")
 
     if args.seed is None:
         args.seed = random.randint(0, 2**32 - 1)
@@ -556,9 +729,6 @@ def main():
             optimizer.zero_grad(set_to_none=True)
 
             batch_size = latent_a.shape[0]
-            noise = torch.randn_like(latent_a)
-
-            turn = global_step % 2 == 0
 
             timesteps = sample_curriculum_timesteps(
                 step_index=global_step,
@@ -570,35 +740,52 @@ def main():
             )
             timesteps_normalized = (timesteps.float() / 1000.0).to(device, dtype=weight_dtype)
 
-            # turn=True:  A=無効側(reference) / B=有効側(prediction)
-            # turn=False: B=無効側(reference) / A=有効側(prediction), multiplierは逆方向
-            reference_latent = latent_a if turn else latent_b
-            prediction_latent = latent_b if turn else latent_a
-
-            noisy_reference = add_rectified_flow_noise(reference_latent, noise, timesteps)
-            noisy_prediction = add_rectified_flow_noise(prediction_latent, noise, timesteps)
-
             net_unwrapped = accelerator.unwrap_model(network)
+            is_dpo_mode = args.addift_mode == ADDIFT_MODE_DPO
 
-            # ── 無効側: network OFF (no_grad) ──────────────────────────
-            net_unwrapped.set_multiplier(0.0)
-            with torch.no_grad(), accelerator.autocast():
-                reference_pred = predict_noise_anima(
-                    dit, timesteps_normalized, noisy_reference, embeds_tuple, weight_dtype, device,
-                ).detach()
-
-            # ── 有効側: network ON ───────────────────────────────────────
-            multiplier = base_multiplier_unit if turn else -base_multiplier_unit * abs(args.diff_alt_ratio)
-            net_unwrapped.set_multiplier(multiplier)
-            with accelerator.autocast():
-                prediction_pred = predict_noise_anima(
-                    dit, timesteps_normalized, noisy_prediction, embeds_tuple, weight_dtype, device,
+            if is_dpo_mode:
+                # win = image_b (変換後/好ましい), lose = image_a (変換前/好ましくない)。
+                # turn反転は行わず役割を固定する。
+                turn = True
+                multiplier = base_multiplier_unit
+                loss = train_addift_dpo_step(
+                    accelerator, dit, net_unwrapped, args,
+                    latent_lose=latent_a, latent_win=latent_b,
+                    timesteps=timesteps, timesteps_normalized=timesteps_normalized,
+                    embeds_tuple=embeds_tuple, weight_dtype=weight_dtype, device=device,
+                    policy_multiplier=multiplier, diff_mask=diff_mask,
                 )
-            net_unwrapped.set_multiplier(0.0)
+            else:
+                noise = torch.randn_like(latent_a)
+                turn = global_step % 2 == 0
 
-            loss = compute_addift_loss(
-                args, prediction_pred, reference_pred, timesteps, diff_mask,
-            )
+                # turn=True:  A=無効側(reference) / B=有効側(prediction)
+                # turn=False: B=無効側(reference) / A=有効側(prediction), multiplierは逆方向
+                reference_latent = latent_a if turn else latent_b
+                prediction_latent = latent_b if turn else latent_a
+
+                noisy_reference = add_rectified_flow_noise(reference_latent, noise, timesteps)
+                noisy_prediction = add_rectified_flow_noise(prediction_latent, noise, timesteps)
+
+                # ── 無効側: network OFF (no_grad) ──────────────────────────
+                net_unwrapped.set_multiplier(0.0)
+                with torch.no_grad(), accelerator.autocast():
+                    reference_pred = predict_noise_anima(
+                        dit, timesteps_normalized, noisy_reference, embeds_tuple, weight_dtype, device,
+                    ).detach()
+
+                # ── 有効側: network ON ───────────────────────────────────────
+                multiplier = base_multiplier_unit if turn else -base_multiplier_unit * abs(args.diff_alt_ratio)
+                net_unwrapped.set_multiplier(multiplier)
+                with accelerator.autocast():
+                    prediction_pred = predict_noise_anima(
+                        dit, timesteps_normalized, noisy_prediction, embeds_tuple, weight_dtype, device,
+                    )
+                net_unwrapped.set_multiplier(0.0)
+
+                loss = compute_addift_loss(
+                    args, prediction_pred, reference_pred, timesteps, diff_mask,
+                )
 
             accelerator.backward(loss)
 

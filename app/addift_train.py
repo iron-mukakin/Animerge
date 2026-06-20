@@ -26,6 +26,7 @@ from typing import Callable
 
 try:
     from .i18n import gettext, load_language
+    from . import addift_dpo_ui
 except ImportError:
     import sys as _sys
     from pathlib import Path as _Path
@@ -33,6 +34,7 @@ except ImportError:
     if str(_app_dir) not in _sys.path:
         _sys.path.insert(0, str(_app_dir))
     from i18n import gettext, load_language  # type: ignore[no-redef]
+    import addift_dpo_ui  # type: ignore[no-redef]
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 定数（lora_train.py / leco_train.py と共通）
@@ -171,6 +173,7 @@ class _AddifTTrainState:
         self.max_grad_norm    = tk.DoubleVar(value=1.0)
 
         # ── ADDifT固有パラメータ ──────────────────────────────────
+        addift_dpo_ui.attach_dpo_mode_vars(self)
         self.train_min_timesteps = tk.IntVar(value=200)
         self.train_max_timesteps = tk.IntVar(value=400)
         self.train_fixed_timesteps_in_batch = tk.BooleanVar(value=False)
@@ -355,13 +358,14 @@ def _build_dataset_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
     preview_b = ttk.Label(lf, anchor=tk.CENTER, relief=tk.GROOVE)
     preview_b.grid(row=2, column=3, rowspan=2, padx=(8, 4), pady=3, sticky=tk.N)
 
-    ttk.Label(lf, text=gettext("addift_image_a_label"), foreground="#1D4ED8").grid(
-        row=0, column=0, columnspan=3, sticky=tk.W, padx=(4, 2), pady=(3, 0))
+    label_image_a = ttk.Label(lf, text=gettext("addift_image_a_label"), foreground="#1D4ED8")
+    label_image_a.grid(row=0, column=0, columnspan=3, sticky=tk.W, padx=(4, 2), pady=(3, 0))
     _image_preview_row(lf, 1, gettext("addift_image_a_path"), s.image_a_path, preview_a)
 
-    ttk.Label(lf, text=gettext("addift_image_b_label"), foreground="#1D4ED8").grid(
-        row=2, column=0, columnspan=3, sticky=tk.W, padx=(4, 2), pady=(6, 0))
+    label_image_b = ttk.Label(lf, text=gettext("addift_image_b_label"), foreground="#1D4ED8")
+    label_image_b.grid(row=2, column=0, columnspan=3, sticky=tk.W, padx=(4, 2), pady=(6, 0))
     _image_preview_row(lf, 3, gettext("addift_image_b_path"), s.image_b_path, preview_b)
+    addift_dpo_ui.attach_dataset_label_refresh(s, label_image_a, label_image_b)
 
     ttk.Label(lf, text=gettext("addift_caption_label"), width=26, anchor=tk.W).grid(
         row=4, column=0, sticky=tk.W, padx=(4, 2), pady=(8, 3))
@@ -486,6 +490,9 @@ def _build_train_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
         row=5, column=2, sticky=tk.W, padx=(0, 2), pady=3)
     ttk.Entry(lf, textvariable=s.max_grad_norm, width=10).grid(
         row=5, column=3, sticky=tk.W, padx=(0, 4), pady=3)
+
+    # ── DPOモード（ADDifT固有パラメータの先頭に相当）─────────────────
+    addift_dpo_ui.build_dpo_mode_controls(parent, s)
 
     # ── ADDifT固有パラメータ ─────────────────────────────────────────
     lf2 = ttk.LabelFrame(parent, text=gettext("addift_params_label"))
@@ -1416,6 +1423,8 @@ def _build_command(s: _AddifTTrainState) -> list[str]:
             _weight_str = ",".join(f"{w:.4f}" for w in _weights)
             cmd += ["--network_args", f"anima_block_lr_weight={_weight_str}"]
 
+    addift_dpo_ui.append_dpo_command_args(s, cmd)
+
     return cmd
 
 
@@ -1437,6 +1446,9 @@ def _refresh_cmd(s: _AddifTTrainState, text_widget: tk.Text) -> None:
 # バリデーション / 実行 / 停止
 # ──────────────────────────────────────────────────────────────────────────────
 def _validate(s: _AddifTTrainState) -> str | None:
+    _dpo_error = addift_dpo_ui.validate_dpo_mode(s)
+    if _dpo_error is not None:
+        return _dpo_error
     if not s.model_path.get():
         return gettext("lora_validate_no_model")
     if not s.vae_path.get():
@@ -1684,6 +1696,7 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
             "sample_b_enabled":          bool(s.sample_b_enabled.get()),
             "sample_b_prompt":           s.sample_b_prompt.get(),
             "sample_b_negative_prompt":  s.sample_b_negative_prompt.get(),
+            **addift_dpo_ui.collect_dpo_mode_preset(s),
         }
 
     def _apply(data: dict) -> None:
@@ -1810,6 +1823,7 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
         if s.layer_canvas is not None and s.layer_inner is not None:
             _refresh_layer_controls_addift(s, s.layer_canvas, s.layer_inner)
         _apply(data)
+        addift_dpo_ui.apply_dpo_mode_preset(s, data)
         _reflect_timesteps_preset_state_addift(s)
         s.log_fn(gettext("lora_preset_log_loaded", name=src.name))
 

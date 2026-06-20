@@ -632,5 +632,16 @@
   "addift_stop_no_proc": "[ADDifT Train] 実行中のプロセスはありません。",
   "addift_stop_sent": "[ADDifT Train] 停止信号を送信しました。",
   "unload_addift_proc": "[Unload] ADDifT学習プロセスを終了しました。",
-  "lora_sample_load_error": "サンプルギャラリーの初期化に失敗しました。\n{error}"
+  "lora_sample_load_error": "サンプルギャラリーの初期化に失敗しました。\n{error}",
+  "addift_dpo_mode_label": "DPOモード",
+  "addift_dpo_mode_enable": "DPOモードを有効化",
+  "addift_mode_select_label": "モード選択",
+  "addift_mode_dpo": "DPO",
+  "addift_mode_sdpo": "SDPO（未実装）",
+  "addift_mode_mapo": "MaPO（未実装）",
+  "addift_preference_beta_label": "preference_beta",
+  "addift_preference_beta_note": "基準モデルからの乖離を制御する正則化係数。本実装は論文(2000〜5000)とは損失スケールが異なるため、小さめの値から調整してください。",
+  "addift_image_win_label": "画像win（好ましい）",
+  "addift_image_lose_label": "画像lose（好ましくない）",
+  "addift_validate_sdpo_mapo_unimplemented": "SDPO/MaPOは未実装です。DPOを選択するか、モードを無効化してください。"
 }
