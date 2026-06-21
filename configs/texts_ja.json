@@ -643,5 +643,17 @@
   "addift_preference_beta_note": "基準モデルからの乖離を制御する正則化係数。本実装は論文(2000〜5000)とは損失スケールが異なるため、小さめの値から調整してください。",
   "addift_image_win_label": "画像win（好ましい）",
   "addift_image_lose_label": "画像lose（好ましくない）",
-  "addift_validate_sdpo_mapo_unimplemented": "SDPO/MaPOは未実装です。DPOを選択するか、モードを無効化してください。"
+  "addift_validate_sdpo_mapo_unimplemented": "SDPO/MaPOは未実装です。DPOを選択するか、モードを無効化してください。",
+  "addift_monitor_param_win_loss": "Win Loss",
+  "addift_monitor_param_lose_loss": "Lose Loss",
+  "addift_es_dpo_label": "EarlyStoppingDPO",
+  "addift_es_dpo_enable": "Win Loss低下・Lose Loss増加が見られない場合に警告/停止",
+  "addift_es_dpo_note": "（50%→警告 / 100%→緊急停止）",
+  "addift_monitor_es_dpo_title": "EarlyStoppingDPO",
+  "addift_monitor_es_dpo_progress": "Win/Lose 不整合 {count} / {patience} step",
+  "addift_monitor_es_dpo_reset": "[ES-DPO] Win Loss低下・Lose Loss増加の正しい推移を確認。カウントリセット ({old} → 0)",
+  "addift_monitor_es_dpo_warn": "[ES-DPO 警告] Win Loss低下・Lose Loss増加の正しい推移が {warn} step見られません ({count}/{patience})。学習方向に異常の可能性があります。",
+  "addift_monitor_es_dpo_stop": "[ES-DPO 緊急停止] {patience} step連続でWin/Lose推移の異常が継続しました。学習を停止します。",
+  "addift_win_aux_weight_enable": "win側補助ペナルティを有効化(DPO-Positive方式)",
+  "addift_win_aux_weight_note": "winがreferenceより悪化した場合のみ追加ペナルティを課す補助項。0で無効。"
 }

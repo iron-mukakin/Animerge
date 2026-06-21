@@ -695,6 +695,8 @@ def _build_adv_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
     ttk.Label(lf3, text=gettext("leco_es_note"),
               foreground="#64748B").grid(row=0, column=3, sticky=tk.W, padx=(0, 8), pady=4)
 
+    addift_dpo_ui.build_es_dpo_controls(parent, s)
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 階層学習 / モニターグラフ / モニター階層 / サンプル生成

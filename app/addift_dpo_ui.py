@@ -4,7 +4,7 @@ addift_train.py から呼び出されるフック関数群をまとめたモジ�
 addift_train.py 本体への侵襲を最小化しつつ、以下の機能を提供する:
 
   - DPOモード有効化チェックボックス + モード選択プルダウン (DPO/SDPO/MaPO)
-  - DPOモード専用パラメータ (preference_beta) の表示/非表示制御
+  - DPOモード専用パラメータ (preference_beta, win_aux_weight) の表示/非表示制御
   - データセットタブの画像A/B ラベルを win/lose 表記へ動的切替
   - accelerate launch コマンドへの --addift_mode / --preference_beta 付与
   - プリセット (JSON) への保存・復元
@@ -49,6 +49,8 @@ _MODE_LABEL_KEYS: dict[str, str] = {
 }
 
 _DEFAULT_PREFERENCE_BETA = 5.0
+_DEFAULT_WIN_AUX_WEIGHT = 1.0
+_DEFAULT_ES_DPO_PATIENCE = 10
 
 
 def attach_dpo_mode_vars(state: object) -> None:
@@ -64,8 +66,13 @@ def attach_dpo_mode_vars(state: object) -> None:
     state.addift_mode_enabled = tk.BooleanVar(value=False)
     state.addift_mode_name = tk.StringVar(value=ADDIFT_MODE_DPO)
     state.preference_beta = tk.DoubleVar(value=_DEFAULT_PREFERENCE_BETA)
+    state.win_aux_weight_enabled = tk.BooleanVar(value=False)
+    state.win_aux_weight = tk.DoubleVar(value=_DEFAULT_WIN_AUX_WEIGHT)
+    state.es_dpo_enabled = tk.BooleanVar(value=False)
+    state.es_dpo_patience = tk.IntVar(value=_DEFAULT_ES_DPO_PATIENCE)
     state._dpo_dataset_label_widgets: dict[str, ttk.Label] = {}
     state._dpo_mode_widgets: list[tk.Widget] = []
+    state._dpo_adv_widgets: list[tk.Widget] = []
 
 
 def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
@@ -95,6 +102,9 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
         frame, textvariable=mode_display, values=list(mode_label_by_key.values()),
         state="readonly", width=20,
     )
+    win_aux_check = ttk.Checkbutton(frame, text=gettext("addift_win_aux_weight_enable"),
+                                     variable=state.win_aux_weight_enabled)
+    win_aux_entry = ttk.Entry(frame, textvariable=state.win_aux_weight, width=10)
 
     def _reflect_dpo_mode_state(_event: object = None) -> None:
         selected_key = mode_key_by_label.get(mode_display.get())
@@ -107,8 +117,15 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
         is_dpo_active = enabled and state.addift_mode_name.get() == ADDIFT_MODE_DPO
         beta_state = tk.NORMAL if is_dpo_active else tk.DISABLED
         beta_entry.configure(state=beta_state)
+        win_aux_check.configure(state=tk.NORMAL if is_dpo_active else tk.DISABLED)
+        win_aux_entry.configure(
+            state=tk.NORMAL if (is_dpo_active and state.win_aux_weight_enabled.get()) else tk.DISABLED
+        )
 
         _refresh_dataset_labels(state)
+        getattr(state, "_dpo_adv_visibility_cb", lambda: None)()
+
+    win_aux_check.configure(command=_reflect_dpo_mode_state)
 
     ttk.Checkbutton(
         frame, text=gettext("addift_dpo_mode_enable"),
@@ -125,8 +142,49 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
     ttk.Label(frame, text=gettext("addift_preference_beta_note"), foreground="#64748B").grid(
         row=2, column=0, columnspan=4, sticky=tk.W, padx=4, pady=(0, 4))
 
-    state._dpo_mode_widgets = [mode_combobox, beta_entry]
+    win_aux_check.grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=4, pady=3)
+    win_aux_entry.grid(row=3, column=2, sticky=tk.W, padx=(0, 4), pady=3)
+    ttk.Label(frame, text=gettext("addift_win_aux_weight_note"), foreground="#64748B").grid(
+        row=4, column=0, columnspan=4, sticky=tk.W, padx=4, pady=(0, 4))
+
+    state._dpo_mode_widgets = [mode_combobox, beta_entry, win_aux_check, win_aux_entry]
     _reflect_dpo_mode_state()
+    return frame
+
+
+def build_es_dpo_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
+    """EarlyStoppingDPO設定枠 (詳細タブ・既存EarlyStopping下段) を構築する。
+
+    DPOモード有効時のみ表示される。
+
+    Args:
+        parent: 詳細タブのコンテナ。
+        state: _AddifTTrainState インスタンス。
+
+    Returns:
+        ttk.LabelFrame: 構築した枠 (pack/pack_forgetで表示制御される)。
+    """
+    frame = ttk.LabelFrame(parent, text=gettext("addift_es_dpo_label"))
+
+    ttk.Checkbutton(frame, text=gettext("addift_es_dpo_enable"),
+                     variable=state.es_dpo_enabled).grid(
+        row=0, column=0, sticky=tk.W, padx=8, pady=4)
+    ttk.Label(frame, text=gettext("leco_es_watch_steps"), anchor=tk.W).grid(
+        row=0, column=1, sticky=tk.W, padx=(12, 2), pady=4)
+    ttk.Spinbox(frame, from_=2, to=500, textvariable=state.es_dpo_patience, width=6).grid(
+        row=0, column=2, sticky=tk.W, padx=(0, 8), pady=4)
+    ttk.Label(frame, text=gettext("addift_es_dpo_note"), foreground="#64748B").grid(
+        row=0, column=3, sticky=tk.W, padx=(0, 8), pady=4)
+
+    def _refresh_visibility() -> None:
+        is_dpo_active = state.addift_mode_enabled.get() and state.addift_mode_name.get() == ADDIFT_MODE_DPO
+        if is_dpo_active:
+            frame.pack(fill=tk.X, pady=(8, 0))
+        else:
+            frame.pack_forget()
+
+    state._dpo_adv_visibility_cb = _refresh_visibility
+    _refresh_visibility()
     return frame
 
 
@@ -179,7 +237,7 @@ def validate_dpo_mode(state: object) -> str | None:
 
 
 def append_dpo_command_args(state: object, cmd: list[str]) -> None:
-    """accelerate launch コマンド配列へ --addift_mode / --preference_beta を追加する(破壊的)。
+    """accelerate launch コマンド配列へ --addift_mode / --preference_beta / --win_aux_weight を追加する(破壊的)。
 
     Args:
         state: _AddifTTrainState インスタンス。
@@ -191,6 +249,8 @@ def append_dpo_command_args(state: object, cmd: list[str]) -> None:
     is_dpo_active = state.addift_mode_enabled.get() and state.addift_mode_name.get() == ADDIFT_MODE_DPO
     if is_dpo_active:
         cmd += ["--addift_mode", ADDIFT_MODE_DPO, "--preference_beta", str(state.preference_beta.get())]
+        if state.win_aux_weight_enabled.get():
+            cmd += ["--win_aux_weight", str(state.win_aux_weight.get())]
     else:
         cmd += ["--addift_mode", "none"]
 
@@ -198,9 +258,13 @@ def append_dpo_command_args(state: object, cmd: list[str]) -> None:
 def collect_dpo_mode_preset(state: object) -> dict:
     """プリセット保存用に DPOモード設定を dict 化する。"""
     return {
-        "addift_mode_enabled": bool(state.addift_mode_enabled.get()),
-        "addift_mode_name":    state.addift_mode_name.get(),
-        "preference_beta":     float(state.preference_beta.get()),
+        "addift_mode_enabled":     bool(state.addift_mode_enabled.get()),
+        "addift_mode_name":        state.addift_mode_name.get(),
+        "preference_beta":         float(state.preference_beta.get()),
+        "win_aux_weight_enabled":  bool(state.win_aux_weight_enabled.get()),
+        "win_aux_weight":          float(state.win_aux_weight.get()),
+        "es_dpo_enabled":          bool(state.es_dpo_enabled.get()),
+        "es_dpo_patience":         int(state.es_dpo_patience.get()),
     }
 
 
@@ -222,7 +286,12 @@ def apply_dpo_mode_preset(state: object, data: dict) -> None:
         except (tk.TclError, ValueError):
             var.set(default)
 
-    _restore(state.addift_mode_enabled, "addift_mode_enabled", False)
-    _restore(state.addift_mode_name,    "addift_mode_name",    ADDIFT_MODE_DPO)
-    _restore(state.preference_beta,     "preference_beta",     _DEFAULT_PREFERENCE_BETA)
+    _restore(state.addift_mode_enabled,    "addift_mode_enabled",    False)
+    _restore(state.addift_mode_name,       "addift_mode_name",       ADDIFT_MODE_DPO)
+    _restore(state.preference_beta,        "preference_beta",        _DEFAULT_PREFERENCE_BETA)
+    _restore(state.win_aux_weight_enabled, "win_aux_weight_enabled", False)
+    _restore(state.win_aux_weight,         "win_aux_weight",         _DEFAULT_WIN_AUX_WEIGHT)
+    _restore(state.es_dpo_enabled,         "es_dpo_enabled",         False)
+    _restore(state.es_dpo_patience,        "es_dpo_patience",        _DEFAULT_ES_DPO_PATIENCE)
     _refresh_dataset_labels(state)
+    getattr(state, "_dpo_adv_visibility_cb", lambda: None)()

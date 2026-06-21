@@ -1,0 +1,143 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_addift_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --image_a E:/Animerge/開発用ファイル/000.png --image_b E:/Animerge/開発用ファイル/001.png --caption solo, looking_at_viewer, blush, smile, short_hair, shirt, black_hair, 1boy, brown_eyes, collarbone, white_shirt, upper_body, male_focus, short_sleeves, teeth, indoors, striped_clothes, blurry, grin, blurry_background, red_shirt, t-shirt, striped_shirt, wooden_floor, door, two-tone_shirt, hallway --output_dir E:\Animerge\lora --output_name addift_output --network_module networks.lora --network_dim 8 --network_alpha 4.0 --learning_rate 5e-5 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --train_iterations 200 --save_every_n_steps 50 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --train_min_timesteps 100 --train_max_timesteps 200 --diff_alt_ratio 1.0 --network_strength 5.0 --train_loss_function MSE --train_snr_gamma 0.0 --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --gradient_checkpointing --qwen_image_vae_2d --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":0.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":1.0,"Output_MLP":1.0,"Output_Norm":1.0,"Output_ResNet":1.0,"Output_Timestep":1.0} --addift_mode dpo --preference_beta 5.0
+
+accelerator device: cuda
+2026-06-21 22:54:29 INFO     Loading Qwen3 text       anima_train_addift.py:638
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:265
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-06-21 22:54:38 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+                             keys matched successfully>
+                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
+                             Parameters: 596,049,920
+                    INFO     Loading Anima VAE...     anima_train_addift.py:643
+                    INFO     Using image-only          anima_train_utils.py:167
+                             Qwen-Image 2D VAE
+                    INFO     Initializing   qwen_image_autoencoder_kl_2d.py:535
+                             image-only
+                             QwenImage 2D
+                             VAE
+                    INFO     Loading VAE    qwen_image_autoencoder_kl_2d.py:550
+                             from
+                             F:/Game_Files/
+                             ComfyUI_window
+                             s_portable/Com
+                             fyUI/models/va
+                             e/qwen_image_v
+                             ae.safetensors
+2026-06-21 22:54:39 INFO     Converted        qwen_image_autoencoder_kl.py:1538
+                             ComfyUI
+                             AutoencoderKL
+                             state dict keys
+                             to official
+                             format
+                    INFO     Skipped 8      qwen_image_autoencoder_kl_2d.py:454
+                             temporal-only
+                             VAE weights
+                             for QwenImage
+                             2D VAE
+                    INFO     Loaded         qwen_image_autoencoder_kl_2d.py:555
+                             image-only
+                             QwenImage 2D
+                             VAE: <All keys
+                             matched
+                             successfully>
+                    INFO     Encoding image_a:        anima_train_addift.py:649
+                             E:/Animerge/開発用ファイ
+                             ル/000.png
+                    INFO     Encoding image_b:        anima_train_addift.py:651
+                             E:/Animerge/開発用ファイ
+                             ル/001.png
+2026-06-21 22:54:40 INFO     Loading Anima DiT model  anima_train_addift.py:677
+                             (attn_mode=torch)...
+2026-06-21 22:54:41 INFO     Loading DiT model from          anima_utils.py:166
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, device=cpu
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusion_
+                             models/anima-base-v1.0.safetensor
+                             s']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
+Loading anima-base-v1.0.safetensors:   7%|▋         | 51/685 [00:00<00:01, 508.58it/s]
+Loading anima-base-v1.0.safetensors:  15%|█▍        | 102/685 [00:00<00:01, 440.48it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 151/685 [00:00<00:01, 460.45it/s]
+Loading anima-base-v1.0.safetensors:  29%|██▉       | 198/685 [00:00<00:01, 433.52it/s]
+Loading anima-base-v1.0.safetensors:  35%|███▌      | 242/685 [00:00<00:01, 434.13it/s]
+Loading anima-base-v1.0.safetensors:  43%|████▎     | 292/685 [00:00<00:00, 449.96it/s]
+Loading anima-base-v1.0.safetensors:  49%|████▉     | 338/685 [00:00<00:00, 430.08it/s]
+Loading anima-base-v1.0.safetensors:  57%|█████▋    | 388/685 [00:00<00:00, 446.61it/s]
+Loading anima-base-v1.0.safetensors:  63%|██████▎   | 433/685 [00:00<00:00, 438.26it/s]
+Loading anima-base-v1.0.safetensors:  70%|██████▉   | 478/685 [00:01<00:00, 418.61it/s]
+Loading anima-base-v1.0.safetensors:  77%|███████▋  | 528/685 [00:01<00:00, 440.54it/s]
+Loading anima-base-v1.0.safetensors:  86%|████████▌ | 588/685 [00:01<00:00, 486.48it/s]
+2026-06-21 22:54:42 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+                             renamed. Examples:
+                             [('net.blocks.0.adaln_modulation
+                             _cross_attn.1.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.1.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             cross_attn.2.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.2.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             mlp.1.weight',
+                             'blocks.0.adaln_modulation_mlp.1
+                             .weight')]
+                    INFO     Loaded DiT model from           anima_utils.py:210
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, unexpected missing keys:
+                             0, unexpected keys: 0
+2026-06-21 22:54:45 INFO     anima_matrix_scales detected: using    lora.py:468
+                             per-module LR via
+                             get_lr_weight_for_lora
+                    INFO     create LoRA network. base dim (rank): lora.py:1039
+                             8, alpha: 4.0
+                    INFO     neuron dropout: p=None, rank dropout: lora.py:1040
+                             p=None, module dropout: p=None
+                    INFO     create LoRA for Text Encoder:         lora.py:1134
+                    INFO     create LoRA for Text Encoder: 0       lora.py:1139
+                             modules.
+                    INFO     create LoRA for U-Net: 508 modules.   lora.py:1147
+                    INFO     anima_matrix_scales: 15 groups loaded lora.py:1251
+                    INFO     enable LoRA for U-Net: 508 modules    lora.py:1194
+                    INFO     use AdamW optimizer | {}        train_util.py:5230
+steps:   0%|          | 0/200 [00:00<?, ?it/s]
+steps:   0%|          | 1/200 [00:11<36:53, 11.12s/it, loss=0.6931, win_loss=0.0000, lose_loss=0.0000]
+steps:   1%|          | 2/200 [00:22<36:14, 10.98s/it, loss=0.6927, win_loss=0.0010, lose_loss=0.0016]
+steps:   2%|▏         | 3/200 [00:32<35:51, 10.92s/it, loss=0.6929, win_loss=0.0013, lose_loss=0.0016]
+steps:   2%|▏         | 4/200 [00:43<35:44, 10.94s/it, loss=0.6928, win_loss=0.0022, lose_loss=0.0026]
+steps:   2%|▎         | 5/200 [00:54<35:27, 10.91s/it, loss=0.6922, win_loss=0.0021, lose_loss=0.0032]
+steps:   3%|▎         | 6/200 [01:05<35:12, 10.89s/it, loss=0.6923, win_loss=0.0020, lose_loss=0.0029]
+steps:   4%|▎         | 7/200 [01:16<35:12, 10.94s/it, loss=0.6911, win_loss=0.0011, lose_loss=0.0035]
+steps:   4%|▍         | 8/200 [01:27<34:56, 10.92s/it, loss=0.6906, win_loss=0.0007, lose_loss=0.0035]
+steps:   4%|▍         | 9/200 [01:38<34:41, 10.90s/it, loss=0.6908, win_loss=0.0003, lose_loss=0.0030]
+steps:   5%|▌         | 10/200 [01:49<34:27, 10.88s/it, loss=0.6911, win_loss=0.0015, lose_loss=0.0040]
+steps:   6%|▌         | 11/200 [02:00<34:25, 10.93s/it, loss=0.6893, win_loss=0.0019, lose_loss=0.0060]
+steps:   6%|▌         | 12/200 [02:11<34:14, 10.93s/it, loss=0.6882, win_loss=0.0020, lose_loss=0.0073]
+steps:   6%|▋         | 13/200 [02:21<34:00, 10.91s/it, loss=0.6881, win_loss=0.0036, lose_loss=0.0090]
+steps:   7%|▋         | 14/200 [02:32<33:46, 10.90s/it, loss=0.6873, win_loss=0.0045, lose_loss=0.0111]
+steps:   8%|▊         | 15/200 [02:43<33:42, 10.93s/it, loss=0.6878, win_loss=0.0070, lose_loss=0.0131]
+steps:   8%|▊         | 16/200 [02:54<33:30, 10.93s/it, loss=0.6883, win_loss=0.0095, lose_loss=0.0149]
+steps:   8%|▊         | 17/200 [03:05<33:20, 10.93s/it, loss=0.6858, win_loss=0.0095, lose_loss=0.0179]
+steps:   9%|▉         | 18/200 [03:16<33:12, 10.95s/it, loss=0.6855, win_loss=0.0118, lose_loss=0.0207]forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFCFD413ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFCFEB9E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFCFFF07C1C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFCFD413ECD  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFCFEB9E957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFCFFF07C1C  Unknown               Unknown  Unknown
+[ADDifT Train] 終了 (code=1)

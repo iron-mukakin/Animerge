@@ -298,8 +298,12 @@ def predict_policy_and_reference_noise(
     return policy_pred, reference_pred
 
 
+_DPO_NORM_EPS = 1e-6
+
+
 def compute_dpo_loss(
     preference_beta: float,
+    win_aux_weight: float,
     noise_win: torch.Tensor,
     policy_pred_win: torch.Tensor,
     reference_pred_win: torch.Tensor,
@@ -307,14 +311,20 @@ def compute_dpo_loss(
     policy_pred_lose: torch.Tensor,
     reference_pred_lose: torch.Tensor,
     diff_mask: Optional[torch.Tensor],
-) -> torch.Tensor:
-    """Diffusion-DPO損失 (dpo.txt 式14相当) を計算する。
+) -> tuple[torch.Tensor, float, float, float, float]:
+    """Diffusion-DPO損失 (dpo.txt 式14相当) を計算する。win_aux_weight>0でDPOP風の補助ペナルティを付与する。
 
-    L(theta) = -E[log sigmoid(-beta * delta_error)]
+    L(theta) = -E[log sigmoid(-beta * delta_error)] + win_aux_weight * max(0, win_delta)
     delta_error = (loss_w - ref_loss_w) - (loss_l - ref_loss_l)
+
+    win_aux_weightの項は、win側がreference(基準モデル)より悪化した場合
+    (win_delta > 0) にのみ働く補助ペナルティ。DPO-Positive (Pal et al., 2024) の
+    考え方を画像領域のMSE損失へ適用したもので、win側がDPOのマージン最大化だけに
+    引きずられて改善されない問題を緩和する。
 
     Args:
         preference_beta: 基準モデルからの乖離を制御する正則化係数 (--preference_beta)。
+        win_aux_weight: win側補助ペナルティの重み (--win_aux_weight)。0で無効。
         noise_win: winペアに付加した実ノイズ epsilon_w。
         policy_pred_win: policyモデルのwin予測。
         reference_pred_win: referenceモデルのwin予測。
@@ -324,7 +334,13 @@ def compute_dpo_loss(
         diff_mask: 損失計算範囲を限定する差分マスク (任意)。
 
     Returns:
-        torch.Tensor: スカラー損失。
+        tuple[torch.Tensor, float, float, float, float]:
+            (スカラー損失, win_delta, lose_delta,
+             win_delta_normalized = win_delta / (ref_loss_win + eps),
+             lose_delta_normalized = lose_delta / (ref_loss_lose + eps))。
+            正規化指標は、referenceモデルがwin/loseをもともと得意/不得意とする
+            ベースライン誤差スケールの違いを打ち消すための相対指標であり、
+            EarlyStoppingDPOおよびモニターグラフはこちらを使用する。
     """
     if diff_mask is not None:
         noise_win = noise_win * diff_mask
@@ -347,9 +363,22 @@ def compute_dpo_loss(
         reference_pred_lose.float(), noise_lose.float(), reduction="none"
     ).mean(dim=(1, 2, 3))
 
-    delta_error = (loss_win - ref_loss_win) - (loss_lose - ref_loss_lose)
+    ref_loss_win_mean  = ref_loss_win.mean()
+    ref_loss_lose_mean = ref_loss_lose.mean()
+    win_delta  = (loss_win - ref_loss_win).mean()
+    lose_delta = (loss_lose - ref_loss_lose).mean()
+
+    delta_error = win_delta - lose_delta
     dpo_logits = -preference_beta * delta_error
-    return -torch.nn.functional.logsigmoid(dpo_logits).mean()
+    loss = -torch.nn.functional.logsigmoid(dpo_logits).mean()
+
+    if win_aux_weight > 0.0:
+        loss = loss + win_aux_weight * torch.clamp(win_delta, min=0.0)
+
+    win_delta_norm  = win_delta  / (ref_loss_win_mean  + _DPO_NORM_EPS)
+    lose_delta_norm = lose_delta / (ref_loss_lose_mean + _DPO_NORM_EPS)
+
+    return loss, win_delta.item(), lose_delta.item(), win_delta_norm.item(), lose_delta_norm.item()
 
 
 def train_addift_dpo_step(
@@ -366,14 +395,15 @@ def train_addift_dpo_step(
     device,
     policy_multiplier: float,
     diff_mask: Optional[torch.Tensor],
-) -> torch.Tensor:
+) -> tuple[torch.Tensor, float, float, float, float]:
     """DPOモード1イテレーション分の損失を計算する。
 
     win/loseの役割は固定 (turn反転なし)。win = image_b (変換後/好ましい),
     lose = image_a (変換前/好ましくない)。
 
     Returns:
-        torch.Tensor: スカラー損失。
+        tuple[torch.Tensor, float, float, float, float]:
+            (スカラー損失, win_delta, lose_delta, win_delta_norm, lose_delta_norm)。
     """
     noise_win = torch.randn_like(latent_win)
     noise_lose = torch.randn_like(latent_lose)
@@ -392,6 +422,7 @@ def train_addift_dpo_step(
 
     return compute_dpo_loss(
         args.preference_beta,
+        args.win_aux_weight,
         noise_win, policy_pred_win, reference_pred_win,
         noise_lose, policy_pred_lose, reference_pred_lose,
         diff_mask,
@@ -466,6 +497,13 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--preference_beta", type=float, default=5.0,
         help="DPOモードの正則化係数 beta (基準モデルからの乖離を制御) / DPO regularization beta",
+    )
+    parser.add_argument(
+        "--win_aux_weight", type=float, default=0.0,
+        help=(
+            "win側がreferenceモデルより悪化した場合(win_delta>0)にのみ働く補助ペナルティの重み"
+            "(DPO-Positive方式)。0で無効 / DPOP-style auxiliary penalty weight for win side"
+        ),
     )
 
     # ── ADDifT固有: 画像ペア ────────────────────────────────────────────
@@ -742,13 +780,20 @@ def main():
 
             net_unwrapped = accelerator.unwrap_model(network)
             is_dpo_mode = args.addift_mode == ADDIFT_MODE_DPO
+            dpo_win_delta: Optional[float] = None
+            dpo_lose_delta: Optional[float] = None
+            dpo_win_delta_norm: Optional[float] = None
+            dpo_lose_delta_norm: Optional[float] = None
 
             if is_dpo_mode:
                 # win = image_b (変換後/好ましい), lose = image_a (変換前/好ましくない)。
                 # turn反転は行わず役割を固定する。
                 turn = True
                 multiplier = base_multiplier_unit
-                loss = train_addift_dpo_step(
+                (
+                    loss, dpo_win_delta, dpo_lose_delta,
+                    dpo_win_delta_norm, dpo_lose_delta_norm,
+                ) = train_addift_dpo_step(
                     accelerator, dit, net_unwrapped, args,
                     latent_lose=latent_a, latent_win=latent_b,
                     timesteps=timesteps, timesteps_normalized=timesteps_normalized,
@@ -804,8 +849,18 @@ def main():
                 "network_multiplier": multiplier,
                 "turn": int(turn),
             }
+            postfix = {"loss": f"{logs['loss']:.4f}"}
+            if dpo_win_delta is not None and dpo_lose_delta is not None:
+                # tqdm postfix (モニターグラフ/EarlyStoppingDPOが解析する値):
+                # 基準モデルのwin/lose得意・不得意差を打ち消した正規化指標を使用する。
+                logs["win_loss_raw"]  = dpo_win_delta
+                logs["lose_loss_raw"] = dpo_lose_delta
+                logs["win_loss"]  = dpo_win_delta_norm
+                logs["lose_loss"] = dpo_lose_delta_norm
+                postfix["win_loss"]  = f"{dpo_win_delta_norm:.4f}"
+                postfix["lose_loss"] = f"{dpo_lose_delta_norm:.4f}"
             accelerator.log(logs, step=global_step)
-            progress_bar.set_postfix(loss=f"{logs['loss']:.4f}", refresh=False)
+            progress_bar.set_postfix(postfix, refresh=False)
             progress_bar.update(1)
 
             if (
