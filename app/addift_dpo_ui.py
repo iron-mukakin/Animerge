@@ -49,8 +49,9 @@ _MODE_LABEL_KEYS: dict[str, str] = {
 }
 
 _DEFAULT_PREFERENCE_BETA = 5.0
-_DEFAULT_WIN_AUX_WEIGHT = 1.0
+_DEFAULT_WIN_AUX_WEIGHT = 0.1
 _DEFAULT_ES_DPO_PATIENCE = 10
+_DEFAULT_ES_DPO_WARMUP_RATIO = 0.1  # 全stepに対する判定スキップ割合(序盤の不安定期間を除外)
 
 
 def attach_dpo_mode_vars(state: object) -> None:
@@ -70,6 +71,7 @@ def attach_dpo_mode_vars(state: object) -> None:
     state.win_aux_weight = tk.DoubleVar(value=_DEFAULT_WIN_AUX_WEIGHT)
     state.es_dpo_enabled = tk.BooleanVar(value=False)
     state.es_dpo_patience = tk.IntVar(value=_DEFAULT_ES_DPO_PATIENCE)
+    state.es_dpo_warmup_ratio = tk.DoubleVar(value=_DEFAULT_ES_DPO_WARMUP_RATIO)
     state._dpo_dataset_label_widgets: dict[str, ttk.Label] = {}
     state._dpo_mode_widgets: list[tk.Widget] = []
     state._dpo_adv_widgets: list[tk.Widget] = []
@@ -176,6 +178,15 @@ def build_es_dpo_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
     ttk.Label(frame, text=gettext("addift_es_dpo_note"), foreground="#64748B").grid(
         row=0, column=3, sticky=tk.W, padx=(0, 8), pady=4)
 
+    ttk.Label(frame, text=gettext("addift_es_dpo_warmup_label"), anchor=tk.W).grid(
+        row=1, column=0, sticky=tk.W, padx=8, pady=(0, 4))
+    ttk.Spinbox(
+        frame, from_=0.0, to=0.9, increment=0.05, textvariable=state.es_dpo_warmup_ratio,
+        width=6, format="%.2f",
+    ).grid(row=1, column=1, sticky=tk.W, padx=(0, 2), pady=(0, 4))
+    ttk.Label(frame, text=gettext("addift_es_dpo_warmup_note"), foreground="#64748B").grid(
+        row=1, column=2, columnspan=2, sticky=tk.W, padx=(0, 8), pady=(0, 4))
+
     def _refresh_visibility() -> None:
         is_dpo_active = state.addift_mode_enabled.get() and state.addift_mode_name.get() == ADDIFT_MODE_DPO
         if is_dpo_active:
@@ -265,6 +276,7 @@ def collect_dpo_mode_preset(state: object) -> dict:
         "win_aux_weight":          float(state.win_aux_weight.get()),
         "es_dpo_enabled":          bool(state.es_dpo_enabled.get()),
         "es_dpo_patience":         int(state.es_dpo_patience.get()),
+        "es_dpo_warmup_ratio":     float(state.es_dpo_warmup_ratio.get()),
     }
 
 
@@ -293,5 +305,6 @@ def apply_dpo_mode_preset(state: object, data: dict) -> None:
     _restore(state.win_aux_weight,         "win_aux_weight",         _DEFAULT_WIN_AUX_WEIGHT)
     _restore(state.es_dpo_enabled,         "es_dpo_enabled",         False)
     _restore(state.es_dpo_patience,        "es_dpo_patience",        _DEFAULT_ES_DPO_PATIENCE)
+    _restore(state.es_dpo_warmup_ratio,    "es_dpo_warmup_ratio",    _DEFAULT_ES_DPO_WARMUP_RATIO)
     _refresh_dataset_labels(state)
     getattr(state, "_dpo_adv_visibility_cb", lambda: None)()

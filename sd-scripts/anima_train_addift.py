@@ -203,6 +203,30 @@ def sample_curriculum_timesteps(
 # Loss
 # ---------------------------------------------------------------------------
 
+def _masked_mean(
+    tensor: torch.Tensor,
+    mask: Optional[torch.Tensor],
+) -> torch.Tensor:
+    """マスク適用後の tensor を、マスクで有効化された画素数のみで平均する。
+
+    mask が None の場合は通常の mean(dim=(1,2,3)) と等価。
+    mask の shape が [B,1,H,W] でも tensor が [B,C,H,W] でも
+    expand_as() により正しくチャネル方向へ拡張して計算する。
+
+    Args:
+        tensor: 要素ごとの損失値テンソル ([B, C, H, W])。
+            マスク外の画素はすでに 0 埋めされていることを前提とする。
+        mask: 差分マスク ([B, 1, H, W] または [B, C, H, W])、任意。
+
+    Returns:
+        torch.Tensor: shape [B] のバッチ別平均損失。
+    """
+    if mask is None:
+        return tensor.mean(dim=(1, 2, 3))
+    mask_sum = mask.expand_as(tensor).sum(dim=(1, 2, 3)).clamp(min=1.0)
+    return tensor.sum(dim=(1, 2, 3)) / mask_sum
+
+
 def compute_addift_loss(
     args: argparse.Namespace,
     prediction: torch.Tensor,
@@ -226,7 +250,7 @@ def compute_addift_loss(
     else:  # Smooth-L1
         loss = torch.nn.functional.smooth_l1_loss(prediction.float(), reference.float(), reduction="none")
 
-    loss = loss.mean(dim=(1, 2, 3))
+    loss = _masked_mean(loss, diff_mask)
 
     if args.train_snr_gamma > 0:
         sigmas = (timesteps.float() / 1000.0).clamp(min=1e-6, max=1.0 - 1e-6)
@@ -350,18 +374,26 @@ def compute_dpo_loss(
         policy_pred_lose = policy_pred_lose * diff_mask
         reference_pred_lose = reference_pred_lose * diff_mask
 
-    loss_win = torch.nn.functional.mse_loss(
-        policy_pred_win.float(), noise_win.float(), reduction="none"
-    ).mean(dim=(1, 2, 3))
-    ref_loss_win = torch.nn.functional.mse_loss(
-        reference_pred_win.float(), noise_win.float(), reduction="none"
-    ).mean(dim=(1, 2, 3))
-    loss_lose = torch.nn.functional.mse_loss(
-        policy_pred_lose.float(), noise_lose.float(), reduction="none"
-    ).mean(dim=(1, 2, 3))
-    ref_loss_lose = torch.nn.functional.mse_loss(
-        reference_pred_lose.float(), noise_lose.float(), reduction="none"
-    ).mean(dim=(1, 2, 3))
+    loss_win = _masked_mean(
+        torch.nn.functional.mse_loss(
+            policy_pred_win.float(), noise_win.float(), reduction="none"
+        ), diff_mask
+    )
+    ref_loss_win = _masked_mean(
+        torch.nn.functional.mse_loss(
+            reference_pred_win.float(), noise_win.float(), reduction="none"
+        ), diff_mask
+    )
+    loss_lose = _masked_mean(
+        torch.nn.functional.mse_loss(
+            policy_pred_lose.float(), noise_lose.float(), reduction="none"
+        ), diff_mask
+    )
+    ref_loss_lose = _masked_mean(
+        torch.nn.functional.mse_loss(
+            reference_pred_lose.float(), noise_lose.float(), reduction="none"
+        ), diff_mask
+    )
 
     ref_loss_win_mean  = ref_loss_win.mean()
     ref_loss_lose_mean = ref_loss_lose.mean()
@@ -804,10 +836,16 @@ def main():
                 noise = torch.randn_like(latent_a)
                 turn = global_step % 2 == 0
 
-                # turn=True:  A=無効側(reference) / B=有効側(prediction)
-                # turn=False: B=無効側(reference) / A=有効側(prediction), multiplierは逆方向
-                reference_latent = latent_a if turn else latent_b
-                prediction_latent = latent_b if turn else latent_a
+                # 【正のLoRA強度 = B(target)方向】に統一した代入
+                # turn=True:  prediction=A(LoRA on+), reference=B(LoRA off)
+                #             MSE(DiT(noisy_a,+m), DiT(noisy_b,0))
+                #             → LoRAがAをBに近づける → 正multiplier = B方向
+                # turn=False: prediction=B(LoRA on-), reference=A(LoRA off)
+                #             MSE(DiT(noisy_b,-m), DiT(noisy_a,0))
+                #             → 負LoRAがBをAに近づける → 正multiplier = B方向（一貫）
+                # DPOモード(win=B=target)と方向性を統一。
+                reference_latent = latent_b if turn else latent_a
+                prediction_latent = latent_a if turn else latent_b
 
                 noisy_reference = add_rectified_flow_noise(reference_latent, noise, timesteps)
                 noisy_prediction = add_rectified_flow_noise(prediction_latent, noise, timesteps)

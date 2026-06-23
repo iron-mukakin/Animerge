@@ -68,6 +68,28 @@ def _is_dpo_mode_active(state: "_AddifTTrainState") -> bool:
         return False
 
 
+def _linear_regression_slope(values: list[float]) -> float:
+    """単純最小二乗法によるトレンドの傾きを計算する(numpy非依存)。
+
+    Args:
+        values: 等間隔の時系列サンプル(古い順)。
+
+    Returns:
+        float: 傾き(x=サンプルindex, y=valuesに対する回帰直線の傾き)。
+            サンプル数が2未満、またはxの分散が0の場合は0.0を返す。
+    """
+    sample_count = len(values)
+    if sample_count < 2:
+        return 0.0
+    mean_x = (sample_count - 1) / 2.0
+    mean_y = sum(values) / sample_count
+    numerator = sum((idx - mean_x) * (y - mean_y) for idx, y in enumerate(values))
+    denominator = sum((idx - mean_x) ** 2 for idx in range(sample_count))
+    if denominator == 0.0:
+        return 0.0
+    return numerator / denominator
+
+
 class AddifTMonitorGraph:
     """ADDifT学習リアルタイムモニタリングウィジェット。
 
@@ -115,10 +137,9 @@ class AddifTMonitorGraph:
         self._es_warned     = False
         self._es_stopped    = False
 
-        # EarlyStoppingDPO 状態
+        # EarlyStoppingDPO 状態（傾き判定方式: 直近es_dpo_patience step分の
+        # win_loss/lose_loss系列から線形回帰の傾きを毎step再計算する）
         self._es_dpo_count        = 0
-        self._es_dpo_prev_win     = float("nan")
-        self._es_dpo_prev_lose    = float("nan")
         self._es_dpo_warned       = False
         self._es_dpo_stopped      = False
 
@@ -574,23 +595,34 @@ class AddifTMonitorGraph:
             self._stop_training()
 
     def _check_es_dpo(self, win_loss: float, lose_loss: float) -> None:
-        """Win Loss低下・Lose Loss増加の正しい推移を監視して警告/緊急停止を行う。
+        """Win Loss/Lose Lossのトレンド(傾き)を監視して警告/緊急停止を行う。
 
         受け取るwin_loss/lose_lossは、referenceモデルのwin/lose各々に対する
         ベースライン誤差(ref_loss_win, ref_loss_lose)で正規化済みの相対指標
-        ((loss_win-ref_loss_win)/ref_loss_win 等)。referenceモデルがwin画像を
-        もともと得意としている(ref_loss_winが小さい)場合でも、絶対量ではなく
-        相対変化で判定するため公平に推移を検出できる。
+        ((loss_win-ref_loss_win)/ref_loss_win 等)。
 
-        毎stepの判定:
-            Win Lossが前stepより低下 かつ Lose Lossが前stepより増加
-                → カウントを0にリセット (正常な推移)
-            いずれかを満たさない
-                → カウントを+1
+        判定方式(傾き判定):
+            直近 es_dpo_patience step分の win_loss/lose_loss 系列に対して
+            最小二乗法で傾き(slope)を算出し、
+                healthy = (win_loss の傾き < 0) かつ (lose_loss の傾き > 0)
+            で健全性を判定する。単一step間の単純比較(ノイズに弱い)ではなく
+            ウィンドウ全体のトレンドで判定することで、step単位の揺らぎを吸収する。
+
+            healthy → カウントを0にリセット
+            not healthy (トレンドが改善せず悪化したまま) → カウントを+1
+            カウントが patience の50%到達 → 警告
+            カウントが patience に到達 → 緊急停止
+
+        序盤ウォームアップ:
+            全step数に対する es_dpo_warmup_ratio 割合のstepは判定をスキップする
+            (学習序盤はLoRA未収束でトレンドが不安定なため)。総step数が未確定の場合
+            (total_steps==0)はウォームアップ判定を行わず、ウィンドウ分のサンプルが
+            蓄積されるまで判定をスキップする。
         """
         try:
-            enabled  = bool(self._state.es_dpo_enabled.get())
-            patience = int(self._state.es_dpo_patience.get())
+            enabled      = bool(self._state.es_dpo_enabled.get())
+            patience     = int(self._state.es_dpo_patience.get())
+            warmup_ratio = float(getattr(self._state, "es_dpo_warmup_ratio", None).get())
         except Exception:
             self._es_dpo_status_var.set(gettext("leco_monitor_es_disabled"))
             self._es_dpo_progress["value"] = 0
@@ -601,20 +633,44 @@ class AddifTMonitorGraph:
             self._es_dpo_progress["value"] = 0
             return
 
-        if not math.isnan(self._es_dpo_prev_win) and not math.isnan(self._es_dpo_prev_lose):
-            is_healthy = win_loss < self._es_dpo_prev_win and lose_loss > self._es_dpo_prev_lose
-            if is_healthy:
-                if self._es_dpo_count > 0:
-                    self._append_report(
-                        gettext("addift_monitor_es_dpo_reset", old=self._es_dpo_count),
-                        "normal",
+        warmup_ratio = min(max(warmup_ratio, 0.0), 0.9)
+        if self._total_steps > 0:
+            warmup_steps = int(self._total_steps * warmup_ratio)
+            if self._step_in_run < warmup_steps:
+                self._es_dpo_status_var.set(
+                    gettext(
+                        "addift_monitor_es_dpo_warmup",
+                        step=self._step_in_run, warmup=warmup_steps,
                     )
-                self._es_dpo_count  = 0
-                self._es_dpo_warned = False
-            else:
-                self._es_dpo_count += 1
-        self._es_dpo_prev_win  = win_loss
-        self._es_dpo_prev_lose = lose_loss
+                )
+                self._es_dpo_progress["value"] = 0
+                return
+
+        window = patience
+        if len(self._win_loss) < window:
+            self._es_dpo_status_var.set(
+                gettext(
+                    "addift_monitor_es_dpo_insufficient",
+                    have=len(self._win_loss), need=window,
+                )
+            )
+            self._es_dpo_progress["value"] = 0
+            return
+
+        win_slope  = _linear_regression_slope(self._win_loss[-window:])
+        lose_slope = _linear_regression_slope(self._lose_loss[-window:])
+        is_healthy = win_slope < 0.0 and lose_slope > 0.0
+
+        if is_healthy:
+            if self._es_dpo_count > 0:
+                self._append_report(
+                    gettext("addift_monitor_es_dpo_reset", old=self._es_dpo_count),
+                    "normal",
+                )
+            self._es_dpo_count  = 0
+            self._es_dpo_warned = False
+        else:
+            self._es_dpo_count += 1
 
         pct = int(self._es_dpo_count / patience * 100)
         self._es_dpo_progress["value"] = min(pct, 100)
@@ -800,8 +856,6 @@ class AddifTMonitorGraph:
         self._es_warned      = False
         self._es_stopped     = False
         self._es_dpo_count     = 0
-        self._es_dpo_prev_win  = float("nan")
-        self._es_dpo_prev_lose = float("nan")
         self._es_dpo_warned    = False
         self._es_dpo_stopped   = False
         self._tqdm_eta_sec   = None

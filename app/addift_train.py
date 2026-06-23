@@ -53,8 +53,8 @@ LOSS_FUNCTIONS = ["MSE", "L1", "Smooth-L1"]
 
 # timesteps プリセット（フェーズ2 §4: train_min/max_timesteps + network_strength を一括設定）
 TIMESTEPS_PRESETS: dict[str, dict] = {
-    "local":       {"min": 100, "max": 300,  "strength": 5.0, "label_key": "addift_timesteps_preset_local"},
-    "style":       {"min": 200, "max": 400,  "strength": 5.0, "label_key": "addift_timesteps_preset_style"},
+    "local":       {"min": 100, "max": 500,  "strength": 5.0, "label_key": "addift_timesteps_preset_local"},
+    "style":       {"min": 200, "max": 600,  "strength": 5.0, "label_key": "addift_timesteps_preset_style"},
     "composition": {"min": 500, "max": 1000, "strength": 1.0, "label_key": "addift_timesteps_preset_composition"},
 }
 
@@ -175,7 +175,7 @@ class _AddifTTrainState:
         # ── ADDifT固有パラメータ ──────────────────────────────────
         addift_dpo_ui.attach_dpo_mode_vars(self)
         self.train_min_timesteps = tk.IntVar(value=200)
-        self.train_max_timesteps = tk.IntVar(value=400)
+        self.train_max_timesteps = tk.IntVar(value=600)
         self.train_fixed_timesteps_in_batch = tk.BooleanVar(value=False)
         self.diff_alt_ratio   = tk.DoubleVar(value=1.0)
         self.network_strength = tk.DoubleVar(value=5.0)
@@ -1739,7 +1739,7 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
         _s(s.mixed_precision,   "mixed_precision",    "bf16")
         _s(s.max_grad_norm,     "max_grad_norm",      1.0)
         _s(s.train_min_timesteps, "train_min_timesteps", 200)
-        _s(s.train_max_timesteps, "train_max_timesteps", 400)
+        _s(s.train_max_timesteps, "train_max_timesteps", 600)
         _s(s.train_fixed_timesteps_in_batch, "train_fixed_timesteps_in_batch", False)
         _s(s.diff_alt_ratio,     "diff_alt_ratio",     1.0)
         _s(s.network_strength,   "network_strength",  5.0)

@@ -1,0 +1,1846 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_addift_wrapper.py --pretrained_model_name_or_path F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/anima-base-v1.0.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --image_a E:/Animerge/開発用ファイル/000.png --image_b E:/Animerge/開発用ファイル/001.png --caption solo, looking_at_viewer, blush, smile, short_hair, shirt, black_hair, 1boy, brown_eyes, collarbone, white_shirt, upper_body, male_focus, short_sleeves, teeth, indoors, striped_clothes, blurry, grin, blurry_background, red_shirt, t-shirt, striped_shirt, wooden_floor, door, two-tone_shirt, hallway --output_dir E:\Animerge\lora --output_name addift_output --network_module networks.lora --network_dim 8 --network_alpha 4.0 --learning_rate 2e-4 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --train_iterations 300 --save_every_n_steps 50 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --train_min_timesteps 200 --train_max_timesteps 700 --diff_alt_ratio 0.0 --network_strength 5.0 --train_loss_function MSE --train_snr_gamma 0.0 --attn_mode torch --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --gradient_checkpointing --qwen_image_vae_2d --sample_every_n_steps 25 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen --sample_keep_vae --network_args anima_matrix_scales={"Input_Attention":1.0,"Input_MLP":1.0,"Input_Norm":0.0,"Input_ResNet":1.0,"Input_Timestep":1.0,"Middle_Attention":1.0,"Middle_MLP":1.0,"Middle_Norm":1.0,"Middle_ResNet":1.0,"Middle_Timestep":1.0,"Output_Attention":1.0,"Output_MLP":1.0,"Output_Norm":1.0,"Output_ResNet":1.0,"Output_Timestep":1.0} --addift_mode none
+
+accelerator device: cuda
+2026-06-22 19:17:52 INFO     Loading Qwen3 text       anima_train_addift.py:638
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:265
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-06-22 19:18:00 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:312
+                             keys matched successfully>
+2026-06-22 19:18:01 INFO     Loaded Qwen3 text encoder.      anima_utils.py:320
+                             Parameters: 596,049,920
+                    INFO     Loading Anima VAE...     anima_train_addift.py:643
+                    INFO     Using image-only          anima_train_utils.py:167
+                             Qwen-Image 2D VAE
+                    INFO     Initializing   qwen_image_autoencoder_kl_2d.py:535
+                             image-only
+                             QwenImage 2D
+                             VAE
+                    INFO     Loading VAE    qwen_image_autoencoder_kl_2d.py:550
+                             from
+                             F:/Game_Files/
+                             ComfyUI_window
+                             s_portable/Com
+                             fyUI/models/va
+                             e/qwen_image_v
+                             ae.safetensors
+                    INFO     Converted        qwen_image_autoencoder_kl.py:1538
+                             ComfyUI
+                             AutoencoderKL
+                             state dict keys
+                             to official
+                             format
+                    INFO     Skipped 8      qwen_image_autoencoder_kl_2d.py:454
+                             temporal-only
+                             VAE weights
+                             for QwenImage
+                             2D VAE
+                    INFO     Loaded         qwen_image_autoencoder_kl_2d.py:555
+                             image-only
+                             QwenImage 2D
+                             VAE: <All keys
+                             matched
+                             successfully>
+                    INFO     Encoding image_a:        anima_train_addift.py:649
+                             E:/Animerge/開発用ファイ
+                             ル/000.png
+2026-06-22 19:18:02 INFO     Encoding image_b:        anima_train_addift.py:651
+                             E:/Animerge/開発用ファイ
+                             ル/001.png
+                    INFO     sample_keep_vae=True:    anima_train_addift.py:665
+                             VAE をVRAMに保持します。
+                    INFO     Loading Anima DiT model  anima_train_addift.py:677
+                             (attn_mode=torch)...
+2026-06-22 19:18:03 INFO     Loading DiT model from          anima_utils.py:166
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, device=cpu
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusion_
+                             models/anima-base-v1.0.safetensor
+                             s']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+Loading anima-base-v1.0.safetensors:   0%|          | 0/685 [00:00<?, ?it/s]
+Loading anima-base-v1.0.safetensors:   7%|▋         | 51/685 [00:00<00:01, 469.09it/s]
+Loading anima-base-v1.0.safetensors:  14%|█▍        | 98/685 [00:00<00:01, 435.13it/s]
+Loading anima-base-v1.0.safetensors:  22%|██▏       | 149/685 [00:00<00:01, 445.41it/s]
+Loading anima-base-v1.0.safetensors:  28%|██▊       | 194/685 [00:00<00:01, 428.67it/s]
+Loading anima-base-v1.0.safetensors:  36%|███▌      | 244/685 [00:00<00:01, 435.15it/s]
+Loading anima-base-v1.0.safetensors:  43%|████▎     | 293/685 [00:00<00:00, 437.12it/s]
+Loading anima-base-v1.0.safetensors:  50%|████▉     | 340/685 [00:00<00:00, 432.11it/s]
+Loading anima-base-v1.0.safetensors:  57%|█████▋    | 393/685 [00:00<00:00, 447.22it/s]
+Loading anima-base-v1.0.safetensors:  64%|██████▍   | 438/685 [00:01<00:00, 434.44it/s]
+Loading anima-base-v1.0.safetensors:  72%|███████▏  | 491/685 [00:01<00:00, 447.97it/s]
+Loading anima-base-v1.0.safetensors:  78%|███████▊  | 536/685 [00:01<00:00, 435.78it/s]
+Loading anima-base-v1.0.safetensors:  94%|█████████▍| 644/685 [00:01<00:00, 599.64it/s]
+2026-06-22 19:18:05 INFO     [key normalization] 685 key(s)   anima_utils.py:81
+                             renamed. Examples:
+                             [('net.blocks.0.adaln_modulation
+                             _cross_attn.1.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.1.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             cross_attn.2.weight',
+                             'blocks.0.adaln_modulation_cross
+                             _attn.2.weight'),
+                             ('net.blocks.0.adaln_modulation_
+                             mlp.1.weight',
+                             'blocks.0.adaln_modulation_mlp.1
+                             .weight')]
+                    INFO     Loaded DiT model from           anima_utils.py:210
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/diffusio
+                             n_models/anima-base-v1.0.safete
+                             nsors, unexpected missing keys:
+                             0, unexpected keys: 0
+2026-06-22 19:18:07 INFO     anima_matrix_scales detected: using    lora.py:468
+                             per-module LR via
+                             get_lr_weight_for_lora
+                    INFO     create LoRA network. base dim (rank): lora.py:1039
+                             8, alpha: 4.0
+                    INFO     neuron dropout: p=None, rank dropout: lora.py:1040
+                             p=None, module dropout: p=None
+                    INFO     create LoRA for Text Encoder:         lora.py:1134
+                    INFO     create LoRA for Text Encoder: 0       lora.py:1139
+                             modules.
+                    INFO     create LoRA for U-Net: 508 modules.   lora.py:1147
+                    INFO     anima_matrix_scales: 15 groups loaded lora.py:1251
+                    INFO     enable LoRA for U-Net: 508 modules    lora.py:1194
+2026-06-22 19:18:08 INFO     use AdamW optimizer | {}        train_util.py:5230
+steps:   0%|          | 0/300 [00:00<?, ?it/s]
+steps:   0%|          | 1/300 [00:05<28:17,  5.68s/it, loss=0.0074]
+steps:   1%|          | 2/300 [00:11<27:31,  5.54s/it, loss=0.0072]
+steps:   1%|          | 3/300 [00:16<27:13,  5.50s/it, loss=0.0068]
+steps:   1%|▏         | 4/300 [00:21<26:57,  5.47s/it, loss=0.0069]
+steps:   2%|▏         | 5/300 [00:27<26:50,  5.46s/it, loss=0.0062]
+steps:   2%|▏         | 6/300 [00:32<26:40,  5.44s/it, loss=0.0064]
+steps:   2%|▏         | 7/300 [00:38<26:37,  5.45s/it, loss=0.0058]
+steps:   3%|▎         | 8/300 [00:43<26:27,  5.44s/it, loss=0.0063]
+steps:   3%|▎         | 9/300 [00:49<26:29,  5.46s/it, loss=0.0057]
+steps:   3%|▎         | 10/300 [00:54<26:27,  5.48s/it, loss=0.0056]
+steps:   4%|▎         | 11/300 [01:00<26:20,  5.47s/it, loss=0.0058]
+steps:   4%|▍         | 12/300 [01:05<26:11,  5.46s/it, loss=0.0071]
+steps:   4%|▍         | 13/300 [01:11<26:01,  5.44s/it, loss=0.0050]
+steps:   5%|▍         | 14/300 [01:16<25:55,  5.44s/it, loss=0.0064]
+steps:   5%|▌         | 15/300 [01:21<25:57,  5.46s/it, loss=0.0050]
+steps:   5%|▌         | 16/300 [01:27<25:48,  5.45s/it, loss=0.0064]
+steps:   6%|▌         | 17/300 [01:32<25:38,  5.44s/it, loss=0.0043]
+steps:   6%|▌         | 18/300 [01:38<25:29,  5.43s/it, loss=0.0059]
+steps:   6%|▋         | 19/300 [01:43<25:22,  5.42s/it, loss=0.0042]
+steps:   7%|▋         | 20/300 [01:49<25:15,  5.41s/it, loss=0.0055]
+steps:   7%|▋         | 21/300 [01:54<25:09,  5.41s/it, loss=0.0048]
+steps:   7%|▋         | 22/300 [01:59<25:09,  5.43s/it, loss=0.0072]
+steps:   8%|▊         | 23/300 [02:05<25:03,  5.43s/it, loss=0.0034]
+steps:   8%|▊         | 24/300 [02:10<24:59,  5.43s/it, loss=0.0065]
+steps:   8%|▊         | 25/300 [02:16<24:51,  5.43s/it, loss=0.0032]2026-06-22 19:20:24 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=47.0688
+                             valid_rows_norm=47.0688
+                             mean_abs=0.022217
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4859
+                             valid_rows_norm=25.4859
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+2026-06-22 19:20:25 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=278.0257
+                             uncond_norm=280.4492
+                             cond-uncond_norm=50.5885
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=335.9538
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.50it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.52it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.48it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.42it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.49it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.54it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.38it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.43it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.49it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.45it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.31it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.37it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.41it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.45it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.47it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.46it/s]
+Sampling:  85%|████████▌ | 17/20 [00:06<00:01,  2.40it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.41it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.44it/s]2026-06-22 19:20:33 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=281.7492
+                             uncond_norm=281.8523
+                             cond-uncond_norm=6.5532
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=282.5795
+                             latents norm=138.3673
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.36it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=154.3676
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000025_00_2
+                             0260622192033_42.png
+steps:   9%|▊         | 26/300 [02:31<37:49,  8.28s/it, loss=0.0061]
+steps:   9%|▉         | 27/300 [02:36<33:50,  7.44s/it, loss=0.0024]
+steps:   9%|▉         | 28/300 [02:42<31:11,  6.88s/it, loss=0.0057]
+steps:  10%|▉         | 29/300 [02:47<29:22,  6.50s/it, loss=0.0020]
+steps:  10%|█         | 30/300 [02:53<27:55,  6.20s/it, loss=0.0052]
+steps:  10%|█         | 31/300 [02:58<26:45,  5.97s/it, loss=0.0052]
+steps:  11%|█         | 32/300 [03:04<25:54,  5.80s/it, loss=0.0072]
+steps:  11%|█         | 33/300 [03:09<25:17,  5.68s/it, loss=0.0030]
+steps:  11%|█▏        | 34/300 [03:14<24:50,  5.60s/it, loss=0.0071]
+steps:  12%|█▏        | 35/300 [03:20<24:28,  5.54s/it, loss=0.0025]
+steps:  12%|█▏        | 36/300 [03:25<24:14,  5.51s/it, loss=0.0069]
+steps:  12%|█▏        | 37/300 [03:31<23:59,  5.47s/it, loss=0.0023]
+steps:  13%|█▎        | 38/300 [03:36<23:48,  5.45s/it, loss=0.0063]
+steps:  13%|█▎        | 39/300 [03:41<23:39,  5.44s/it, loss=0.0017]
+steps:  13%|█▎        | 40/300 [03:47<23:32,  5.43s/it, loss=0.0049]
+steps:  14%|█▎        | 41/300 [03:52<23:26,  5.43s/it, loss=0.0035]
+steps:  14%|█▍        | 42/300 [03:58<23:19,  5.42s/it, loss=0.0071]
+steps:  14%|█▍        | 43/300 [04:03<23:11,  5.42s/it, loss=0.0025]
+steps:  15%|█▍        | 44/300 [04:09<23:05,  5.41s/it, loss=0.0067]
+steps:  15%|█▌        | 45/300 [04:14<22:58,  5.41s/it, loss=0.0020]
+steps:  15%|█▌        | 46/300 [04:19<22:53,  5.41s/it, loss=0.0068]
+steps:  16%|█▌        | 47/300 [04:25<22:49,  5.41s/it, loss=0.0015]
+steps:  16%|█▌        | 48/300 [04:30<22:42,  5.41s/it, loss=0.0064]
+steps:  16%|█▋        | 49/300 [04:36<22:38,  5.41s/it, loss=0.0015]
+steps:  17%|█▋        | 50/300 [04:41<22:32,  5.41s/it, loss=0.0064]2026-06-22 19:22:50 INFO     saved model to:          anima_train_addift.py:473
+                             E:\Animerge\lora\addift_
+                             output-step00000050.safe
+                             tensors
+                    INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=46.5553
+                             valid_rows_norm=46.5553
+                             mean_abs=0.021851
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.3600
+                             valid_rows_norm=25.3600
+                             mean_abs=0.004547
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:22:51 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=277.0914
+                             uncond_norm=280.0779
+                             cond-uncond_norm=51.7569
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=336.3599
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.49it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.37it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.14it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:07,  2.21it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.17it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.28it/s]
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.33it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.36it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.41it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.45it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.48it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.44it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.49it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.50it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:01,  2.54it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.54it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.57it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.55it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.55it/s]2026-06-22 19:22:59 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=283.7002
+                             uncond_norm=283.6924
+                             cond-uncond_norm=5.6287
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=284.6033
+                             latents norm=140.3397
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.54it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=156.7109
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000050_00_2
+                             0260622192259_42.png
+steps:  17%|█▋        | 51/300 [04:56<34:46,  8.38s/it, loss=0.0034]
+steps:  17%|█▋        | 52/300 [05:02<31:10,  7.54s/it, loss=0.0073]
+steps:  18%|█▊        | 53/300 [05:07<28:35,  6.95s/it, loss=0.0023]
+steps:  18%|█▊        | 54/300 [05:13<26:40,  6.50s/it, loss=0.0074]
+steps:  18%|█▊        | 55/300 [05:18<25:14,  6.18s/it, loss=0.0016]
+steps:  19%|█▊        | 56/300 [05:24<24:13,  5.96s/it, loss=0.0069]
+steps:  19%|█▉        | 57/300 [05:29<23:27,  5.79s/it, loss=0.0016]
+steps:  19%|█▉        | 58/300 [05:35<22:56,  5.69s/it, loss=0.0066]
+steps:  20%|█▉        | 59/300 [05:40<22:34,  5.62s/it, loss=0.0012]
+steps:  20%|██        | 60/300 [05:46<22:14,  5.56s/it, loss=0.0059]
+steps:  20%|██        | 61/300 [05:51<22:01,  5.53s/it, loss=0.0026]
+steps:  21%|██        | 62/300 [05:56<21:47,  5.49s/it, loss=0.0072]
+steps:  21%|██        | 63/300 [06:02<21:36,  5.47s/it, loss=0.0023]
+steps:  21%|██▏       | 64/300 [06:07<21:26,  5.45s/it, loss=0.0069]
+steps:  22%|██▏       | 65/300 [06:13<21:18,  5.44s/it, loss=0.0017]
+steps:  22%|██▏       | 66/300 [06:18<21:11,  5.44s/it, loss=0.0066]
+steps:  22%|██▏       | 67/300 [06:23<21:03,  5.42s/it, loss=0.0013]
+steps:  23%|██▎       | 68/300 [06:29<20:57,  5.42s/it, loss=0.0061]
+steps:  23%|██▎       | 69/300 [06:34<20:56,  5.44s/it, loss=0.0011]
+steps:  23%|██▎       | 70/300 [06:40<20:51,  5.44s/it, loss=0.0051]
+steps:  24%|██▎       | 71/300 [06:45<20:58,  5.50s/it, loss=0.0033]
+steps:  24%|██▍       | 72/300 [06:51<21:01,  5.53s/it, loss=0.0076]
+steps:  24%|██▍       | 73/300 [06:57<20:54,  5.53s/it, loss=0.0019]
+steps:  25%|██▍       | 74/300 [07:02<20:41,  5.49s/it, loss=0.0075]
+steps:  25%|██▌       | 75/300 [07:07<20:30,  5.47s/it, loss=0.0016]2026-06-22 19:25:15 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+2026-06-22 19:25:16 INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=47.4579
+                             valid_rows_norm=47.4579
+                             mean_abs=0.022339
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4818
+                             valid_rows_norm=25.4818
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:25:17 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.2425
+                             uncond_norm=280.1608
+                             cond-uncond_norm=52.9847
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=335.9819
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.44it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.43it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.35it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.41it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.44it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.46it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.50it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.51it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.52it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:03,  2.54it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.56it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.56it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.54it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.48it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.46it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.48it/s]
+Sampling:  85%|████████▌ | 17/20 [00:06<00:01,  2.53it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.53it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.53it/s]2026-06-22 19:25:24 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=284.7310
+                             uncond_norm=284.7531
+                             cond-uncond_norm=5.7720
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=285.5629
+                             latents norm=139.3163
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.50it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=155.4670
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000075_00_2
+                             0260622192524_42.png
+steps:  25%|██▌       | 76/300 [07:22<30:37,  8.20s/it, loss=0.0059]
+steps:  26%|██▌       | 77/300 [07:27<27:22,  7.37s/it, loss=0.0014]
+steps:  26%|██▌       | 78/300 [07:33<25:04,  6.78s/it, loss=0.0060]
+steps:  26%|██▋       | 79/300 [07:38<23:26,  6.37s/it, loss=0.0010]
+steps:  27%|██▋       | 80/300 [07:44<22:19,  6.09s/it, loss=0.0053]
+steps:  27%|██▋       | 81/300 [07:49<21:28,  5.88s/it, loss=0.0023]
+steps:  27%|██▋       | 82/300 [07:54<20:53,  5.75s/it, loss=0.0072]
+steps:  28%|██▊       | 83/300 [08:00<20:25,  5.65s/it, loss=0.0018]
+steps:  28%|██▊       | 84/300 [08:05<20:04,  5.57s/it, loss=0.0069]
+steps:  28%|██▊       | 85/300 [08:11<19:47,  5.52s/it, loss=0.0016]
+steps:  29%|██▊       | 86/300 [08:16<19:34,  5.49s/it, loss=0.0067]
+steps:  29%|██▉       | 87/300 [08:21<19:23,  5.46s/it, loss=0.0017]
+steps:  29%|██▉       | 88/300 [08:27<19:14,  5.45s/it, loss=0.0065]
+steps:  30%|██▉       | 89/300 [08:32<19:07,  5.44s/it, loss=0.0012]
+steps:  30%|███       | 90/300 [08:38<19:01,  5.44s/it, loss=0.0055]
+steps:  30%|███       | 91/300 [08:43<18:56,  5.44s/it, loss=0.0022]
+steps:  31%|███       | 92/300 [08:49<18:48,  5.42s/it, loss=0.0073]
+steps:  31%|███       | 93/300 [08:54<18:41,  5.42s/it, loss=0.0017]
+steps:  31%|███▏      | 94/300 [08:59<18:37,  5.42s/it, loss=0.0063]
+steps:  32%|███▏      | 95/300 [09:05<18:30,  5.42s/it, loss=0.0015]
+steps:  32%|███▏      | 96/300 [09:10<18:24,  5.41s/it, loss=0.0060]
+steps:  32%|███▏      | 97/300 [09:16<18:18,  5.41s/it, loss=0.0013]
+steps:  33%|███▎      | 98/300 [09:21<18:12,  5.41s/it, loss=0.0062]
+steps:  33%|███▎      | 99/300 [09:26<18:06,  5.41s/it, loss=0.0009]
+steps:  33%|███▎      | 100/300 [09:32<18:01,  5.41s/it, loss=0.0050]2026-06-22 19:27:40 INFO     saved model to:          anima_train_addift.py:473
+                             E:\Animerge\lora\addift_
+                             output-step00000100.safe
+                             tensors
+                    INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+2026-06-22 19:27:41 INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=46.5426
+                             valid_rows_norm=46.5426
+                             mean_abs=0.021729
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.3615
+                             valid_rows_norm=25.3615
+                             mean_abs=0.004547
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:27:42 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=275.7145
+                             uncond_norm=280.7651
+                             cond-uncond_norm=53.7257
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=334.1220
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.53it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.57it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.61it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.54it/s]
+Sampling:  25%|██▌       | 5/20 [00:01<00:05,  2.50it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.51it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.46it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.51it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.52it/s]
+Sampling:  50%|█████     | 10/20 [00:03<00:04,  2.46it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.42it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.48it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.30it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.29it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.28it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.23it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.24it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.32it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.38it/s]2026-06-22 19:27:50 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=281.1166
+                             uncond_norm=281.0788
+                             cond-uncond_norm=5.7984
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=282.1864
+                             latents norm=135.7998
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.37it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=151.3138
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000100_00_2
+                             0260622192750_42.png
+steps:  34%|███▎      | 101/300 [09:47<27:52,  8.41s/it, loss=0.0020]
+steps:  34%|███▍      | 102/300 [09:53<24:46,  7.51s/it, loss=0.0073]
+steps:  34%|███▍      | 103/300 [09:58<22:35,  6.88s/it, loss=0.0016]
+steps:  35%|███▍      | 104/300 [10:04<21:04,  6.45s/it, loss=0.0066]
+steps:  35%|███▌      | 105/300 [10:09<19:57,  6.14s/it, loss=0.0012]
+steps:  35%|███▌      | 106/300 [10:14<19:10,  5.93s/it, loss=0.0062]
+steps:  36%|███▌      | 107/300 [10:20<18:34,  5.78s/it, loss=0.0009]
+steps:  36%|███▌      | 108/300 [10:25<18:10,  5.68s/it, loss=0.0060]
+steps:  36%|███▋      | 109/300 [10:31<17:51,  5.61s/it, loss=0.0008]
+steps:  37%|███▋      | 110/300 [10:36<17:33,  5.55s/it, loss=0.0060]
+steps:  37%|███▋      | 111/300 [10:42<17:22,  5.51s/it, loss=0.0021]
+steps:  37%|███▋      | 112/300 [10:47<17:12,  5.49s/it, loss=0.0073]
+steps:  38%|███▊      | 113/300 [10:52<17:03,  5.47s/it, loss=0.0015]
+steps:  38%|███▊      | 114/300 [10:58<16:55,  5.46s/it, loss=0.0071]
+steps:  38%|███▊      | 115/300 [11:03<16:50,  5.46s/it, loss=0.0013]
+steps:  39%|███▊      | 116/300 [11:09<16:44,  5.46s/it, loss=0.0067]
+steps:  39%|███▉      | 117/300 [11:14<16:36,  5.44s/it, loss=0.0010]
+steps:  39%|███▉      | 118/300 [11:20<16:28,  5.43s/it, loss=0.0061]
+steps:  40%|███▉      | 119/300 [11:25<16:24,  5.44s/it, loss=0.0008]
+steps:  40%|████      | 120/300 [11:30<16:19,  5.44s/it, loss=0.0058]
+steps:  40%|████      | 121/300 [11:36<16:12,  5.43s/it, loss=0.0020]
+steps:  41%|████      | 122/300 [11:41<16:08,  5.44s/it, loss=0.0066]
+steps:  41%|████      | 123/300 [11:47<16:01,  5.43s/it, loss=0.0015]
+steps:  41%|████▏     | 124/300 [11:52<15:54,  5.42s/it, loss=0.0063]
+steps:  42%|████▏     | 125/300 [11:58<15:48,  5.42s/it, loss=0.0011]2026-06-22 19:30:06 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=40.7559
+                             valid_rows_norm=40.7559
+                             mean_abs=0.018555
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=24.3290
+                             valid_rows_norm=24.3290
+                             mean_abs=0.004364
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:30:07 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=275.7531
+                             uncond_norm=281.7716
+                             cond-uncond_norm=52.3124
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=327.7088
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.54it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.53it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.53it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.57it/s]
+Sampling:  25%|██▌       | 5/20 [00:01<00:05,  2.52it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.52it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.42it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.45it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.43it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.40it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.47it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.38it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.45it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.37it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.41it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.47it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.25it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.16it/s]
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.00it/s]2026-06-22 19:30:15 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=281.4573
+                             uncond_norm=281.5492
+                             cond-uncond_norm=5.3758
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=281.9461
+                             latents norm=136.5800
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.10it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=152.2410
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000125_00_2
+                             0260622193015_42.png
+steps:  42%|████▏     | 126/300 [12:13<24:11,  8.34s/it, loss=0.0064]
+steps:  42%|████▏     | 127/300 [12:18<21:30,  7.46s/it, loss=0.0009]
+steps:  43%|████▎     | 128/300 [12:24<19:38,  6.85s/it, loss=0.0058]
+steps:  43%|████▎     | 129/300 [12:29<18:16,  6.41s/it, loss=0.0008]
+steps:  43%|████▎     | 130/300 [12:34<17:20,  6.12s/it, loss=0.0048]
+steps:  44%|████▎     | 131/300 [12:40<16:37,  5.90s/it, loss=0.0020]
+steps:  44%|████▍     | 132/300 [12:45<16:08,  5.76s/it, loss=0.0067]
+steps:  44%|████▍     | 133/300 [12:51<15:45,  5.66s/it, loss=0.0013]
+steps:  45%|████▍     | 134/300 [12:56<15:26,  5.58s/it, loss=0.0068]
+steps:  45%|████▌     | 135/300 [13:01<15:12,  5.53s/it, loss=0.0010]
+steps:  45%|████▌     | 136/300 [13:07<15:00,  5.49s/it, loss=0.0062]
+steps:  46%|████▌     | 137/300 [13:12<14:50,  5.46s/it, loss=0.0010]
+steps:  46%|████▌     | 138/300 [13:18<14:42,  5.45s/it, loss=0.0064]
+steps:  46%|████▋     | 139/300 [13:23<14:35,  5.44s/it, loss=0.0008]
+steps:  47%|████▋     | 140/300 [13:28<14:28,  5.43s/it, loss=0.0051]
+steps:  47%|████▋     | 141/300 [13:34<14:22,  5.42s/it, loss=0.0018]
+steps:  47%|████▋     | 142/300 [13:39<14:17,  5.42s/it, loss=0.0075]
+steps:  48%|████▊     | 143/300 [13:45<14:11,  5.42s/it, loss=0.0012]
+steps:  48%|████▊     | 144/300 [13:50<14:06,  5.42s/it, loss=0.0070]
+steps:  48%|████▊     | 145/300 [13:56<13:59,  5.42s/it, loss=0.0011]
+steps:  49%|████▊     | 146/300 [14:01<13:54,  5.42s/it, loss=0.0065]
+steps:  49%|████▉     | 147/300 [14:06<13:48,  5.41s/it, loss=0.0009]
+steps:  49%|████▉     | 148/300 [14:12<13:43,  5.42s/it, loss=0.0061]
+steps:  50%|████▉     | 149/300 [14:17<13:38,  5.42s/it, loss=0.0008]
+steps:  50%|█████     | 150/300 [14:23<13:32,  5.41s/it, loss=0.0045]2026-06-22 19:32:31 INFO     saved model to:          anima_train_addift.py:473
+                             E:\Animerge\lora\addift_
+                             output-step00000150.safe
+                             tensors
+                    INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+2026-06-22 19:32:32 INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=41.2923
+                             valid_rows_norm=41.2923
+                             mean_abs=0.019043
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=24.4232
+                             valid_rows_norm=24.4232
+                             mean_abs=0.004395
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:32:33 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=277.0266
+                             uncond_norm=281.5832
+                             cond-uncond_norm=52.7330
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=334.1057
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.25it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:08,  2.21it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.23it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:07,  2.26it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.27it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.30it/s]
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.29it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.33it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.34it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.32it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.27it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.23it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.27it/s]
+Sampling:  70%|███████   | 14/20 [00:06<00:02,  2.27it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.28it/s]
+Sampling:  80%|████████  | 16/20 [00:07<00:01,  2.31it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.19it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.26it/s]
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.26it/s]2026-06-22 19:32:41 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=277.8453
+                             uncond_norm=277.9210
+                             cond-uncond_norm=5.4597
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=278.4211
+                             latents norm=136.6707
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.30it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=152.1859
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000150_00_2
+                             0260622193241_42.png
+steps:  50%|█████     | 151/300 [14:39<21:17,  8.58s/it, loss=0.0016]
+steps:  51%|█████     | 152/300 [14:44<18:48,  7.62s/it, loss=0.0067]
+steps:  51%|█████     | 153/300 [14:49<17:04,  6.97s/it, loss=0.0014]
+steps:  51%|█████▏    | 154/300 [14:55<15:49,  6.50s/it, loss=0.0071]
+steps:  52%|█████▏    | 155/300 [15:00<14:54,  6.17s/it, loss=0.0010]
+steps:  52%|█████▏    | 156/300 [15:06<14:15,  5.94s/it, loss=0.0056]
+steps:  52%|█████▏    | 157/300 [15:11<13:46,  5.78s/it, loss=0.0015]
+steps:  53%|█████▎    | 158/300 [15:16<13:25,  5.67s/it, loss=0.0062]
+steps:  53%|█████▎    | 159/300 [15:22<13:08,  5.60s/it, loss=0.0007]
+steps:  53%|█████▎    | 160/300 [15:27<12:56,  5.55s/it, loss=0.0056]
+steps:  54%|█████▎    | 161/300 [15:33<12:44,  5.50s/it, loss=0.0020]
+steps:  54%|█████▍    | 162/300 [15:38<12:35,  5.48s/it, loss=0.0068]
+steps:  54%|█████▍    | 163/300 [15:44<12:29,  5.47s/it, loss=0.0012]
+steps:  55%|█████▍    | 164/300 [15:49<12:21,  5.45s/it, loss=0.0068]
+steps:  55%|█████▌    | 165/300 [15:54<12:14,  5.44s/it, loss=0.0010]
+steps:  55%|█████▌    | 166/300 [16:00<12:08,  5.44s/it, loss=0.0064]
+steps:  56%|█████▌    | 167/300 [16:05<12:02,  5.43s/it, loss=0.0007]
+steps:  56%|█████▌    | 168/300 [16:11<11:58,  5.44s/it, loss=0.0061]
+steps:  56%|█████▋    | 169/300 [16:16<11:51,  5.43s/it, loss=0.0009]
+steps:  57%|█████▋    | 170/300 [16:22<11:44,  5.42s/it, loss=0.0049]
+steps:  57%|█████▋    | 171/300 [16:27<11:38,  5.42s/it, loss=0.0023]
+steps:  57%|█████▋    | 172/300 [16:32<11:33,  5.42s/it, loss=0.0072]
+steps:  58%|█████▊    | 173/300 [16:38<11:28,  5.42s/it, loss=0.0012]
+steps:  58%|█████▊    | 174/300 [16:43<11:22,  5.41s/it, loss=0.0071]
+steps:  58%|█████▊    | 175/300 [16:49<11:16,  5.41s/it, loss=0.0010]2026-06-22 19:34:57 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=44.0370
+                             valid_rows_norm=44.0370
+                             mean_abs=0.020630
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=24.8923
+                             valid_rows_norm=24.8923
+                             mean_abs=0.004486
+                             shape=(1, 512, 1024)
+2026-06-22 19:34:58 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.7994
+                             uncond_norm=281.0118
+                             cond-uncond_norm=52.8268
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=335.1670
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.44it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.32it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.30it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.35it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.32it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.32it/s]
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.33it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.27it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.27it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.19it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:04,  2.18it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.20it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.19it/s]
+Sampling:  70%|███████   | 14/20 [00:06<00:02,  2.22it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.23it/s]
+Sampling:  80%|████████  | 16/20 [00:07<00:01,  2.29it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.31it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.30it/s]
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.36it/s]2026-06-22 19:35:06 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=277.9326
+                             uncond_norm=277.8820
+                             cond-uncond_norm=5.4063
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=278.9315
+                             latents norm=136.6813
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.33it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=152.1841
+2026-06-22 19:35:07 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000175_00_2
+                             0260622193507_42.png
+steps:  59%|█████▊    | 176/300 [17:04<17:23,  8.42s/it, loss=0.0064]
+steps:  59%|█████▉    | 177/300 [17:09<15:24,  7.52s/it, loss=0.0007]
+steps:  59%|█████▉    | 178/300 [17:15<13:59,  6.88s/it, loss=0.0058]
+steps:  60%|█████▉    | 179/300 [17:20<12:59,  6.44s/it, loss=0.0007]
+steps:  60%|██████    | 180/300 [17:26<12:15,  6.13s/it, loss=0.0040]
+steps:  60%|██████    | 181/300 [17:31<11:43,  5.91s/it, loss=0.0017]
+steps:  61%|██████    | 182/300 [17:36<11:20,  5.76s/it, loss=0.0069]
+steps:  61%|██████    | 183/300 [17:42<11:01,  5.66s/it, loss=0.0011]
+steps:  61%|██████▏   | 184/300 [17:47<10:49,  5.60s/it, loss=0.0070]
+steps:  62%|██████▏   | 185/300 [17:53<10:37,  5.54s/it, loss=0.0008]
+steps:  62%|██████▏   | 186/300 [17:58<10:26,  5.50s/it, loss=0.0066]
+steps:  62%|██████▏   | 187/300 [18:04<10:18,  5.47s/it, loss=0.0008]
+steps:  63%|██████▎   | 188/300 [18:09<10:10,  5.45s/it, loss=0.0066]
+steps:  63%|██████▎   | 189/300 [18:14<10:03,  5.44s/it, loss=0.0007]
+steps:  63%|██████▎   | 190/300 [18:20<09:56,  5.42s/it, loss=0.0056]
+steps:  64%|██████▎   | 191/300 [18:25<09:50,  5.42s/it, loss=0.0018]
+steps:  64%|██████▍   | 192/300 [18:31<09:44,  5.41s/it, loss=0.0070]
+steps:  64%|██████▍   | 193/300 [18:36<09:38,  5.41s/it, loss=0.0012]
+steps:  65%|██████▍   | 194/300 [18:41<09:33,  5.41s/it, loss=0.0069]
+steps:  65%|██████▌   | 195/300 [18:47<09:27,  5.41s/it, loss=0.0009]
+steps:  65%|██████▌   | 196/300 [18:52<09:22,  5.40s/it, loss=0.0072]
+steps:  66%|██████▌   | 197/300 [18:58<09:17,  5.41s/it, loss=0.0007]
+steps:  66%|██████▌   | 198/300 [19:03<09:12,  5.41s/it, loss=0.0057]
+steps:  66%|██████▋   | 199/300 [19:08<09:07,  5.42s/it, loss=0.0008]
+steps:  67%|██████▋   | 200/300 [19:14<09:00,  5.41s/it, loss=0.0050]2026-06-22 19:37:22 INFO     saved model to:          anima_train_addift.py:473
+                             E:\Animerge\lora\addift_
+                             output-step00000200.safe
+                             tensors
+                    INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+2026-06-22 19:37:23 INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=44.7682
+                             valid_rows_norm=44.7682
+                             mean_abs=0.020996
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.0047
+                             valid_rows_norm=25.0047
+                             mean_abs=0.004517
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:37:24 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.5611
+                             uncond_norm=281.3356
+                             cond-uncond_norm=52.7361
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=333.1061
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.44it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.55it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.42it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.46it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.42it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.49it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.54it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.54it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.54it/s]
+Sampling:  50%|█████     | 10/20 [00:03<00:03,  2.54it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.54it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.51it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.52it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.41it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.45it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.36it/s]
+Sampling:  85%|████████▌ | 17/20 [00:06<00:01,  2.41it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.42it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.46it/s]2026-06-22 19:37:31 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=278.6591
+                             uncond_norm=278.7003
+                             cond-uncond_norm=5.2055
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=279.2822
+                             latents norm=136.7040
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.48it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=152.2127
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000200_00_2
+                             0260622193731_42.png
+steps:  67%|██████▋   | 201/300 [19:29<13:44,  8.33s/it, loss=0.0017]
+steps:  67%|██████▋   | 202/300 [19:34<12:09,  7.44s/it, loss=0.0070]
+steps:  68%|██████▊   | 203/300 [19:40<11:02,  6.83s/it, loss=0.0013]
+steps:  68%|██████▊   | 204/300 [19:45<10:14,  6.40s/it, loss=0.0066]
+steps:  68%|██████▊   | 205/300 [19:51<09:39,  6.10s/it, loss=0.0008]
+steps:  69%|██████▊   | 206/300 [19:56<09:12,  5.88s/it, loss=0.0068]
+steps:  69%|██████▉   | 207/300 [20:01<08:54,  5.74s/it, loss=0.0008]
+steps:  69%|██████▉   | 208/300 [20:07<08:38,  5.64s/it, loss=0.0062]
+steps:  70%|██████▉   | 209/300 [20:12<08:26,  5.57s/it, loss=0.0006]
+steps:  70%|███████   | 210/300 [20:18<08:16,  5.52s/it, loss=0.0045]
+steps:  70%|███████   | 211/300 [20:23<08:07,  5.48s/it, loss=0.0016]
+steps:  71%|███████   | 212/300 [20:28<08:00,  5.46s/it, loss=0.0074]
+steps:  71%|███████   | 213/300 [20:34<07:53,  5.44s/it, loss=0.0011]
+steps:  71%|███████▏  | 214/300 [20:39<07:47,  5.44s/it, loss=0.0066]
+steps:  72%|███████▏  | 215/300 [20:45<07:41,  5.43s/it, loss=0.0009]
+steps:  72%|███████▏  | 216/300 [20:50<07:35,  5.42s/it, loss=0.0066]
+steps:  72%|███████▏  | 217/300 [20:55<07:30,  5.42s/it, loss=0.0006]
+steps:  73%|███████▎  | 218/300 [21:01<07:24,  5.42s/it, loss=0.0058]
+steps:  73%|███████▎  | 219/300 [21:06<07:18,  5.41s/it, loss=0.0009]
+steps:  73%|███████▎  | 220/300 [21:12<07:12,  5.41s/it, loss=0.0057]
+steps:  74%|███████▎  | 221/300 [21:17<07:07,  5.41s/it, loss=0.0015]
+steps:  74%|███████▍  | 222/300 [21:22<07:02,  5.42s/it, loss=0.0074]
+steps:  74%|███████▍  | 223/300 [21:28<06:56,  5.41s/it, loss=0.0012]
+steps:  75%|███████▍  | 224/300 [21:33<06:51,  5.41s/it, loss=0.0065]
+steps:  75%|███████▌  | 225/300 [21:39<06:45,  5.41s/it, loss=0.0009]2026-06-22 19:39:47 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=45.8815
+                             valid_rows_norm=45.8815
+                             mean_abs=0.021606
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.2743
+                             valid_rows_norm=25.2743
+                             mean_abs=0.004547
+                             shape=(1, 512, 1024)
+2026-06-22 19:39:48 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.9509
+                             uncond_norm=280.8977
+                             cond-uncond_norm=53.4680
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=337.6584
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.48it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.39it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.18it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:07,  2.24it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.34it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.37it/s]
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.25it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.36it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.42it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.48it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.47it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.51it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.51it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.52it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:01,  2.55it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.54it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.37it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.42it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.45it/s]2026-06-22 19:39:56 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=277.9528
+                             uncond_norm=278.0948
+                             cond-uncond_norm=5.4345
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=278.2934
+                             latents norm=137.7010
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.47it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=153.2921
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000225_00_2
+                             0260622193956_42.png
+steps:  75%|███████▌  | 226/300 [21:54<10:09,  8.24s/it, loss=0.0064]
+steps:  76%|███████▌  | 227/300 [21:59<08:59,  7.39s/it, loss=0.0009]
+steps:  76%|███████▌  | 228/300 [22:04<08:09,  6.79s/it, loss=0.0065]
+steps:  76%|███████▋  | 229/300 [22:10<07:32,  6.38s/it, loss=0.0008]
+steps:  77%|███████▋  | 230/300 [22:15<07:06,  6.09s/it, loss=0.0057]
+steps:  77%|███████▋  | 231/300 [22:21<06:45,  5.88s/it, loss=0.0017]
+steps:  77%|███████▋  | 232/300 [22:26<06:29,  5.73s/it, loss=0.0071]
+steps:  78%|███████▊  | 233/300 [22:31<06:17,  5.64s/it, loss=0.0013]
+steps:  78%|███████▊  | 234/300 [22:37<06:07,  5.56s/it, loss=0.0065]
+steps:  78%|███████▊  | 235/300 [22:42<05:58,  5.51s/it, loss=0.0011]
+steps:  79%|███████▊  | 236/300 [22:48<05:50,  5.48s/it, loss=0.0069]
+steps:  79%|███████▉  | 237/300 [22:53<05:44,  5.46s/it, loss=0.0010]
+steps:  79%|███████▉  | 238/300 [22:58<05:37,  5.45s/it, loss=0.0057]
+steps:  80%|███████▉  | 239/300 [23:04<05:31,  5.43s/it, loss=0.0008]
+steps:  80%|████████  | 240/300 [23:09<05:25,  5.42s/it, loss=0.0056]
+steps:  80%|████████  | 241/300 [23:15<05:19,  5.42s/it, loss=0.0017]
+steps:  81%|████████  | 242/300 [23:20<05:14,  5.42s/it, loss=0.0072]
+steps:  81%|████████  | 243/300 [23:25<05:09,  5.42s/it, loss=0.0013]
+steps:  81%|████████▏ | 244/300 [23:31<05:03,  5.42s/it, loss=0.0066]
+steps:  82%|████████▏ | 245/300 [23:36<04:58,  5.42s/it, loss=0.0010]
+steps:  82%|████████▏ | 246/300 [23:42<04:52,  5.42s/it, loss=0.0063]
+steps:  82%|████████▏ | 247/300 [23:47<04:46,  5.41s/it, loss=0.0007]
+steps:  83%|████████▎ | 248/300 [23:52<04:41,  5.41s/it, loss=0.0060]
+steps:  83%|████████▎ | 249/300 [23:58<04:35,  5.41s/it, loss=0.0007]
+steps:  83%|████████▎ | 250/300 [24:03<04:30,  5.42s/it, loss=0.0055]2026-06-22 19:42:12 INFO     saved model to:          anima_train_addift.py:473
+                             E:\Animerge\lora\addift_
+                             output-step00000250.safe
+                             tensors
+                    INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=46.7134
+                             valid_rows_norm=46.7134
+                             mean_abs=0.022095
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.4793
+                             valid_rows_norm=25.4793
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+2026-06-22 19:42:13 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.8048
+                             uncond_norm=280.8009
+                             cond-uncond_norm=53.3597
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=337.1298
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.34it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.39it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.46it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.37it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.42it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.45it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.48it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.49it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.54it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:03,  2.52it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.53it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.53it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.53it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.39it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.40it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.27it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.29it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.33it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.32it/s]2026-06-22 19:42:21 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=280.4992
+                             uncond_norm=280.5565
+                             cond-uncond_norm=5.9661
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=281.2953
+                             latents norm=137.7413
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.37it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=153.4004
+                    INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000250_00_2
+                             0260622194221_42.png
+steps:  84%|████████▎ | 251/300 [24:19<06:52,  8.41s/it, loss=0.0017]
+steps:  84%|████████▍ | 252/300 [24:24<06:00,  7.50s/it, loss=0.0076]
+steps:  84%|████████▍ | 253/300 [24:30<05:23,  6.88s/it, loss=0.0010]
+steps:  85%|████████▍ | 254/300 [24:35<04:55,  6.43s/it, loss=0.0067]
+steps:  85%|████████▌ | 255/300 [24:40<04:36,  6.14s/it, loss=0.0009]
+steps:  85%|████████▌ | 256/300 [24:46<04:20,  5.91s/it, loss=0.0066]
+steps:  86%|████████▌ | 257/300 [24:51<04:07,  5.76s/it, loss=0.0007]
+steps:  86%|████████▌ | 258/300 [24:57<03:57,  5.65s/it, loss=0.0057]
+steps:  86%|████████▋ | 259/300 [25:02<03:48,  5.57s/it, loss=0.0008]
+steps:  87%|████████▋ | 260/300 [25:07<03:41,  5.53s/it, loss=0.0051]
+steps:  87%|████████▋ | 261/300 [25:13<03:34,  5.49s/it, loss=0.0014]
+steps:  87%|████████▋ | 262/300 [25:18<03:27,  5.46s/it, loss=0.0073]
+steps:  88%|████████▊ | 263/300 [25:24<03:21,  5.45s/it, loss=0.0012]
+steps:  88%|████████▊ | 264/300 [25:29<03:15,  5.43s/it, loss=0.0064]
+steps:  88%|████████▊ | 265/300 [25:34<03:10,  5.43s/it, loss=0.0009]
+steps:  89%|████████▊ | 266/300 [25:40<03:04,  5.42s/it, loss=0.0068]
+steps:  89%|████████▉ | 267/300 [25:45<02:58,  5.42s/it, loss=0.0009]
+steps:  89%|████████▉ | 268/300 [25:51<02:53,  5.41s/it, loss=0.0059]
+steps:  90%|████████▉ | 269/300 [25:56<02:47,  5.41s/it, loss=0.0007]
+steps:  90%|█████████ | 270/300 [26:01<02:42,  5.41s/it, loss=0.0049]
+steps:  90%|█████████ | 271/300 [26:07<02:36,  5.41s/it, loss=0.0017]
+steps:  91%|█████████ | 272/300 [26:12<02:31,  5.41s/it, loss=0.0074]
+steps:  91%|█████████ | 273/300 [26:18<02:26,  5.41s/it, loss=0.0012]
+steps:  91%|█████████▏| 274/300 [26:23<02:20,  5.42s/it, loss=0.0071]
+steps:  92%|█████████▏| 275/300 [26:29<02:15,  5.42s/it, loss=0.0008]2026-06-22 19:44:37 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=45.5145
+                             valid_rows_norm=45.5145
+                             mean_abs=0.021362
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.2969
+                             valid_rows_norm=25.2969
+                             mean_abs=0.004547
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-06-22 19:44:38 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.4967
+                             uncond_norm=280.3279
+                             cond-uncond_norm=52.8684
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=336.1541
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:07,  2.53it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.46it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:06,  2.45it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.50it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:05,  2.51it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:05,  2.53it/s]
+Sampling:  35%|███▌      | 7/20 [00:02<00:05,  2.53it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:04,  2.53it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.53it/s]
+Sampling:  50%|█████     | 10/20 [00:03<00:03,  2.55it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.59it/s]
+Sampling:  60%|██████    | 12/20 [00:04<00:03,  2.61it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:02,  2.59it/s]
+Sampling:  70%|███████   | 14/20 [00:05<00:02,  2.61it/s]
+Sampling:  75%|███████▌  | 15/20 [00:05<00:01,  2.59it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.57it/s]
+Sampling:  85%|████████▌ | 17/20 [00:06<00:01,  2.56it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.54it/s]
+Sampling:  95%|█████████▌| 19/20 [00:07<00:00,  2.55it/s]2026-06-22 19:44:45 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=280.9676
+                             uncond_norm=280.9557
+                             cond-uncond_norm=5.9226
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=281.9951
+                             latents norm=138.4355
+Sampling: 100%|██████████| 20/20 [00:07<00:00,  2.55it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=154.2872
+2026-06-22 19:44:46 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000275_00_2
+                             0260622194446_42.png
+steps:  92%|█████████▏| 276/300 [26:43<03:15,  8.13s/it, loss=0.0064]
+steps:  92%|█████████▏| 277/300 [26:48<02:48,  7.33s/it, loss=0.0009]
+steps:  93%|█████████▎| 278/300 [26:54<02:28,  6.75s/it, loss=0.0054]
+steps:  93%|█████████▎| 279/300 [26:59<02:13,  6.35s/it, loss=0.0009]
+steps:  93%|█████████▎| 280/300 [27:05<02:01,  6.07s/it, loss=0.0051]
+steps:  94%|█████████▎| 281/300 [27:10<01:51,  5.88s/it, loss=0.0014]
+steps:  94%|█████████▍| 282/300 [27:16<01:43,  5.73s/it, loss=0.0069]
+steps:  94%|█████████▍| 283/300 [27:21<01:35,  5.63s/it, loss=0.0011]
+steps:  95%|█████████▍| 284/300 [27:26<01:29,  5.58s/it, loss=0.0072]
+steps:  95%|█████████▌| 285/300 [27:32<01:22,  5.53s/it, loss=0.0010]
+steps:  95%|█████████▌| 286/300 [27:37<01:16,  5.49s/it, loss=0.0067]
+steps:  96%|█████████▌| 287/300 [27:43<01:11,  5.47s/it, loss=0.0008]
+steps:  96%|█████████▌| 288/300 [27:48<01:05,  5.45s/it, loss=0.0065]
+steps:  96%|█████████▋| 289/300 [27:53<01:00,  5.46s/it, loss=0.0008]
+steps:  97%|█████████▋| 290/300 [27:59<00:54,  5.44s/it, loss=0.0050]
+steps:  97%|█████████▋| 291/300 [28:04<00:48,  5.43s/it, loss=0.0017]
+steps:  97%|█████████▋| 292/300 [28:10<00:43,  5.50s/it, loss=0.0072]
+steps:  98%|█████████▊| 293/300 [28:15<00:38,  5.50s/it, loss=0.0011]
+steps:  98%|█████████▊| 294/300 [28:21<00:33,  5.50s/it, loss=0.0064]
+steps:  98%|█████████▊| 295/300 [28:26<00:27,  5.50s/it, loss=0.0008]
+steps:  99%|█████████▊| 296/300 [28:32<00:21,  5.49s/it, loss=0.0068]
+steps:  99%|█████████▉| 297/300 [28:37<00:16,  5.47s/it, loss=0.0006]
+steps:  99%|█████████▉| 298/300 [28:43<00:10,  5.48s/it, loss=0.0057]
+steps: 100%|█████████▉| 299/300 [28:48<00:05,  5.49s/it, loss=0.0006]
+steps: 100%|██████████| 300/300 [28:54<00:00,  5.48s/it, loss=0.0057]2026-06-22 19:47:02 INFO     [SampleGen] prompt='solo,  anima_sample_gen.py:275
+                             looking_at_viewer, blush,
+                             smile, short_hair, shirt,
+                             black_hair, 1boy,
+                             brown_eyes, collarbone,
+                             white_shirt, upper_body,
+                             male_focus, short_sleeves,
+                             teeth, indoors,
+                             striped_clothes, blurry,
+                             grin, blurry_background,
+                             red_shirt, t-shirt,
+                             striped_shirt,
+                             wooden_floor, door,
+                             two-tone_shirt, hallway,',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='solo,
+                             looking_at_viewer, blush,
+                             smile, s'
+                             qwen3_nonzero=86/512
+                             qwen3_norm=1107.6346
+                             qwen3_mean=0.349609
+                             t5_nonzero=107
+                             t5_ids=[6729, 6, 479, 834,
+                             144, 834, 4576, 49, 6,
+                             27323, 6, 3993, 6, 710,
+                             834, 19176, 6, 8677, 6,
+                             1001, 834, 19176, 6, 209,
+                             7531, 6, 4216, 834, 13370,
+                             7, 6, 13756, 12269, 6, 872,
+                             834, 9486, 6, 4548, 834,
+                             6965, 6, 5069, 834, 25198,
+                             6, 710, 834, 7, 109, 15,
+                             162, 7, 6, 3841, 6, 5297,
+                             7, 6, 3, 27465, 834, 21974,
+                             15, 7, 6, 16810, 651, 6, 3,
+                             18363, 6, 16810, 651, 834,
+                             1549, 9232, 6, 1131, 834,
+                             9486, 6, 3, 17, 18, 9486,
+                             6, 3, 27465, 834, 9486, 6,
+                             5726, 834, 20924, 6, 1365,
+                             6, 192, 18, 6948, 834,
+                             9486, 6, 24409, 6, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=107/512,
+                             crossattn_emb norm=45.7846
+                             valid_rows_norm=45.7846
+                             mean_abs=0.021484
+                             shape=(1, 512, 1024)
+                    INFO     [DIAG2] PRE-adapter         anima_sample_gen.py:98
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16 t5_ids=[6025,
+                             463, 6, 731, 463, 6, 2604,
+                             834, 4347, 2604, 834, 4482,
+                             2604, 834, 519, 1]
+                    INFO     [DIAG] encode_prompt:      anima_sample_gen.py:124
+                             t5_nonzero=16/512,
+                             crossattn_emb norm=25.3577
+                             valid_rows_norm=25.3577
+                             mean_abs=0.004578
+                             shape=(1, 512, 1024)
+2026-06-22 19:47:03 INFO     [DIAG] _denoise start:     anima_sample_gen.py:176
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]                    INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:196
+                             cond_norm=276.9688
+                             uncond_norm=280.5316
+                             cond-uncond_norm=52.4282
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:206
+                             noise_pred norm=336.2181
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:08,  2.33it/s]
+Sampling:  10%|█         | 2/20 [00:00<00:07,  2.39it/s]
+Sampling:  15%|█▌        | 3/20 [00:01<00:07,  2.40it/s]
+Sampling:  20%|██        | 4/20 [00:01<00:06,  2.30it/s]
+Sampling:  25%|██▌       | 5/20 [00:02<00:06,  2.25it/s]
+Sampling:  30%|███       | 6/20 [00:02<00:06,  2.30it/s]
+Sampling:  35%|███▌      | 7/20 [00:03<00:05,  2.31it/s]
+Sampling:  40%|████      | 8/20 [00:03<00:05,  2.35it/s]
+Sampling:  45%|████▌     | 9/20 [00:03<00:04,  2.34it/s]
+Sampling:  50%|█████     | 10/20 [00:04<00:04,  2.34it/s]
+Sampling:  55%|█████▌    | 11/20 [00:04<00:03,  2.36it/s]
+Sampling:  60%|██████    | 12/20 [00:05<00:03,  2.32it/s]
+Sampling:  65%|██████▌   | 13/20 [00:05<00:03,  2.27it/s]
+Sampling:  70%|███████   | 14/20 [00:06<00:02,  2.29it/s]
+Sampling:  75%|███████▌  | 15/20 [00:06<00:02,  2.30it/s]
+Sampling:  80%|████████  | 16/20 [00:06<00:01,  2.29it/s]
+Sampling:  85%|████████▌ | 17/20 [00:07<00:01,  2.33it/s]
+Sampling:  90%|█████████ | 18/20 [00:07<00:00,  2.30it/s]
+Sampling:  95%|█████████▌| 19/20 [00:08<00:00,  2.34it/s]2026-06-22 19:47:11 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:196
+                             cond_norm=280.4322
+                             uncond_norm=280.4274
+                             cond-uncond_norm=6.2655
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:206
+                             noise_pred norm=281.5425
+                             latents norm=139.1731
+Sampling: 100%|██████████| 20/20 [00:08<00:00,  2.36it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:217
+                             latents norm=155.2525
+2026-06-22 19:47:12 INFO     [SampleGen] saved:         anima_sample_gen.py:555
+                             E:\Animerge\log\sample_gen
+                             \addift_output_000300_00_2
+                             0260622194712_42.png
+                    INFO     saved model to:          anima_train_addift.py:473
+                             E:\Animerge\lora\addift_
+                             output.safetensors
+steps: 100%|██████████| 300/300 [29:04<00:00,  5.82s/it, loss=0.0057]
+[ADDifT Train] 終了 (code=0)

@@ -1,0 +1,22 @@
+2026-06-23 05:56:16 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 8
+
+2026-06-23 05:57:36 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 8
+
+2026-06-23 06:05:56 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 8
+
+2026-06-23 06:12:18 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
+2026-06-23 06:12:50 [Unload Models] VRAM/RAM cache cleared
+
+2026-06-23 21:21:06 [Rescan Folders]
+  Checkpoints: 2
+  LoRA files : 3
+
