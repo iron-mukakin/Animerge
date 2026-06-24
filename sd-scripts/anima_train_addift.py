@@ -233,24 +233,50 @@ def compute_addift_loss(
     reference: torch.Tensor,
     timesteps: torch.Tensor,
     diff_mask: Optional[torch.Tensor],
+    bg_weight: float = 0.0,
 ) -> torch.Tensor:
     """ADDifT の損失: prediction (network有効側予測) と reference (network無効側予測) の差。
 
     train_snr_gamma > 0 の場合、Rectified Flow の SNR = (1 - sigma)^2 / sigma^2 を用いて
     Min-SNR-gamma 重み付けを行う(sigma = timesteps / 1000)。
+
+    bg_weight > 0 かつ diff_mask が有効な場合、マスク外領域の
+    (prediction - reference)² に bg_weight を乗じた正則化項を加算する。
+    LoRA がマスク外領域でドリフトすることを抑制する（ブレーキ機能）。
     """
     if diff_mask is not None:
-        prediction = prediction * diff_mask
-        reference = reference * diff_mask
+        prediction_masked = prediction * diff_mask
+        reference_masked = reference * diff_mask
+    else:
+        prediction_masked = prediction
+        reference_masked = reference
 
     if args.train_loss_function == "MSE":
-        loss = torch.nn.functional.mse_loss(prediction.float(), reference.float(), reduction="none")
+        loss = torch.nn.functional.mse_loss(
+            prediction_masked.float(), reference_masked.float(), reduction="none"
+        )
     elif args.train_loss_function == "L1":
-        loss = torch.nn.functional.l1_loss(prediction.float(), reference.float(), reduction="none")
+        loss = torch.nn.functional.l1_loss(
+            prediction_masked.float(), reference_masked.float(), reduction="none"
+        )
     else:  # Smooth-L1
-        loss = torch.nn.functional.smooth_l1_loss(prediction.float(), reference.float(), reduction="none")
+        loss = torch.nn.functional.smooth_l1_loss(
+            prediction_masked.float(), reference_masked.float(), reduction="none"
+        )
 
     loss = _masked_mean(loss, diff_mask)
+
+    if bg_weight > 0.0 and diff_mask is not None:
+        # マスク外領域の (prediction - reference)² を bg_weight 重みで加算。
+        # bg_mask = 1 - diff_mask なので 0/1 が反転する。
+        bg_mask = 1.0 - diff_mask
+        bg_loss_elem = torch.nn.functional.mse_loss(
+            (prediction * bg_mask).float(),
+            (reference * bg_mask).float(),
+            reduction="none",
+        )
+        bg_loss = _masked_mean(bg_loss_elem, bg_mask)
+        loss = loss + bg_weight * bg_loss
 
     if args.train_snr_gamma > 0:
         sigmas = (timesteps.float() / 1000.0).clamp(min=1e-6, max=1.0 - 1e-6)
@@ -335,6 +361,7 @@ def compute_dpo_loss(
     policy_pred_lose: torch.Tensor,
     reference_pred_lose: torch.Tensor,
     diff_mask: Optional[torch.Tensor],
+    bg_weight: float = 0.0,
 ) -> tuple[torch.Tensor, float, float, float, float]:
     """Diffusion-DPO損失 (dpo.txt 式14相当) を計算する。win_aux_weight>0でDPOP風の補助ペナルティを付与する。
 
@@ -356,6 +383,9 @@ def compute_dpo_loss(
         policy_pred_lose: policyモデルのlose予測。
         reference_pred_lose: referenceモデルのlose予測。
         diff_mask: 損失計算範囲を限定する差分マスク (任意)。
+        bg_weight: マスク外領域の正則化重み (0.0 で無効)。
+            win/lose それぞれで (policy_pred - reference_pred)² をマスク外で計算し
+            bg_weight 重みで加算する。通常モードと同一の抑制方式。
 
     Returns:
         tuple[torch.Tensor, float, float, float, float]:
@@ -406,6 +436,28 @@ def compute_dpo_loss(
 
     if win_aux_weight > 0.0:
         loss = loss + win_aux_weight * torch.clamp(win_delta, min=0.0)
+
+    if bg_weight > 0.0 and diff_mask is not None:
+        # DPO版 bg_loss: win/lose それぞれのマスク外で
+        # (policy_pred - reference_pred)² を抑制する。
+        bg_mask = 1.0 - diff_mask
+        bg_loss_win = _masked_mean(
+            torch.nn.functional.mse_loss(
+                (policy_pred_win * bg_mask).float(),
+                (reference_pred_win * bg_mask).float(),
+                reduction="none",
+            ),
+            bg_mask,
+        )
+        bg_loss_lose = _masked_mean(
+            torch.nn.functional.mse_loss(
+                (policy_pred_lose * bg_mask).float(),
+                (reference_pred_lose * bg_mask).float(),
+                reduction="none",
+            ),
+            bg_mask,
+        )
+        loss = loss + bg_weight * (bg_loss_win.mean() + bg_loss_lose.mean())
 
     win_delta_norm  = win_delta  / (ref_loss_win_mean  + _DPO_NORM_EPS)
     lose_delta_norm = lose_delta / (ref_loss_lose_mean + _DPO_NORM_EPS)
@@ -458,6 +510,7 @@ def train_addift_dpo_step(
         noise_win, policy_pred_win, reference_pred_win,
         noise_lose, policy_pred_lose, reference_pred_lose,
         diff_mask,
+        bg_weight=getattr(args, "mask_bg_weight", 0.0),
     )
 
 
@@ -586,6 +639,14 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--diff_mask_path", type=str, default=None,
         help="差分マスク画像のパス (--diff_use_diff_mask 指定時に使用) / Path to the difference mask image",
+    )
+    parser.add_argument(
+        "--mask_bg_weight", type=float, default=0.0,
+        help=(
+            "マスク外領域の正則化重み (0.0 で無効、--diff_use_diff_mask 時のみ有効)。"
+            "LoRA がマスク外でドリフトすることを抑制するブレーキ機能。"
+            "推奨範囲: 0.05〜0.1 / Background regularization weight for the unmasked region"
+        ),
     )
     parser.add_argument(
         "--train_loss_function", type=str, default="MSE", choices=LOSS_FUNCTIONS,
@@ -868,6 +929,7 @@ def main():
 
                 loss = compute_addift_loss(
                     args, prediction_pred, reference_pred, timesteps, diff_mask,
+                    bg_weight=getattr(args, "mask_bg_weight", 0.0),
                 )
 
             accelerator.backward(loss)
@@ -919,7 +981,10 @@ def main():
                 and accelerator.is_main_process
             ):
                 net_unwrapped = accelerator.unwrap_model(network)
-                net_unwrapped.set_multiplier(1.0)
+                # 学習時と同一 multiplier でサンプル生成する。
+                # base_multiplier_unit = 0.25 * args.network_strength
+                # （= 学習ループの turn=True 側と同じ値）
+                net_unwrapped.set_multiplier(base_multiplier_unit)
                 net_unwrapped.eval()
                 dit_unwrapped = accelerator.unwrap_model(dit)
                 try:

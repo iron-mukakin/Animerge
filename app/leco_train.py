@@ -38,7 +38,7 @@ except ImportError:
 # ──────────────────────────────────────────────────────────────────────────────
 OPTIMIZERS = [
     "AdamW", "AdamW8bit", "Adafactor", "DAdaptAdam",
-    "DAdaptAdaGrad", "DAdaptSGD", "Lion", "Prodigy",
+    "DAdaptAdaGrad", "DAdaptSGD", "Lion", "Prodigy", "CAME",
 ]
 LR_SCHEDULERS = [
     "constant", "constant_with_warmup", "cosine",

@@ -41,7 +41,7 @@ except ImportError:
 # ──────────────────────────────────────────────────────────────────────────────
 OPTIMIZERS = [
     "AdamW", "AdamW8bit", "Adafactor", "DAdaptAdam",
-    "DAdaptAdaGrad", "DAdaptSGD", "Lion", "Prodigy",
+    "DAdaptAdaGrad", "DAdaptSGD", "Lion", "Prodigy", "CAME",
 ]
 LR_SCHEDULERS = [
     "constant", "constant_with_warmup", "cosine",
@@ -53,8 +53,8 @@ LOSS_FUNCTIONS = ["MSE", "L1", "Smooth-L1"]
 
 # timesteps プリセット（フェーズ2 §4: train_min/max_timesteps + network_strength を一括設定）
 TIMESTEPS_PRESETS: dict[str, dict] = {
-    "local":       {"min": 100, "max": 500,  "strength": 5.0, "label_key": "addift_timesteps_preset_local"},
-    "style":       {"min": 200, "max": 600,  "strength": 5.0, "label_key": "addift_timesteps_preset_style"},
+    "local":       {"min": 100, "max": 300,  "strength": 5.0, "label_key": "addift_timesteps_preset_local"},
+    "style":       {"min": 200, "max": 400,  "strength": 5.0, "label_key": "addift_timesteps_preset_style"},
     "composition": {"min": 500, "max": 1000, "strength": 1.0, "label_key": "addift_timesteps_preset_composition"},
 }
 
@@ -149,8 +149,10 @@ class _AddifTTrainState:
         self.image_a_path     = tk.StringVar()
         self.image_b_path     = tk.StringVar()
         self.caption          = tk.StringVar(value="")
-        self.diff_use_diff_mask = tk.BooleanVar(value=False)
-        self.diff_mask_path  = tk.StringVar()
+        self.diff_use_diff_mask    = tk.BooleanVar(value=False)
+        self.diff_mask_path        = tk.StringVar()
+        self.mask_bg_weight_enabled = tk.BooleanVar(value=False)
+        self.mask_bg_weight        = tk.DoubleVar(value=0.05)
 
         # ── ネットワーク ─────────────────────────────────────────
         self.network_dim      = tk.IntVar(value=8)
@@ -175,7 +177,7 @@ class _AddifTTrainState:
         # ── ADDifT固有パラメータ ──────────────────────────────────
         addift_dpo_ui.attach_dpo_mode_vars(self)
         self.train_min_timesteps = tk.IntVar(value=200)
-        self.train_max_timesteps = tk.IntVar(value=600)
+        self.train_max_timesteps = tk.IntVar(value=400)
         self.train_fixed_timesteps_in_batch = tk.BooleanVar(value=False)
         self.diff_alt_ratio   = tk.DoubleVar(value=1.0)
         self.network_strength = tk.DoubleVar(value=5.0)
@@ -378,13 +380,50 @@ def _build_dataset_tab(parent: ttk.Frame, s: _AddifTTrainState) -> None:
     lf2.pack(fill=tk.X)
     lf2.columnconfigure(1, weight=1)
 
-    ttk.Checkbutton(lf2, text=gettext("addift_diff_use_diff_mask"),
-                    variable=s.diff_use_diff_mask).grid(
-        row=0, column=0, columnspan=3, sticky=tk.W, padx=8, pady=3)
+    # サブフレームを先に生成し、check/spinboxをその子として作る。
+    # lf2 直下の grid 列幅に干渉しないよう columnspan=3 で全幅 span する。
+    bg_row_frame = ttk.Frame(lf2)
+    bg_weight_check = ttk.Checkbutton(
+        bg_row_frame, text=gettext("addift_mask_bg_weight_enable"),
+        variable=s.mask_bg_weight_enabled,
+    )
+    bg_weight_entry = ttk.Spinbox(
+        bg_row_frame, from_=0.01, to=1.0, increment=0.01,
+        textvariable=s.mask_bg_weight, width=6, format="%.2f",
+    )
+
+    def _refresh_mask_bg_state(*_: object) -> None:
+        # trace_add("write") は (var_name, index, mode) の3引数で呼ばれるため *_ で受ける。
+        # command= (Checkbutton) は引数なしで呼ばれるため両方に対応。
+        mask_on = s.diff_use_diff_mask.get()
+        bg_check_state = tk.NORMAL if mask_on else tk.DISABLED
+        bg_weight_check.configure(state=bg_check_state)
+        bg_entry_state = (
+            tk.NORMAL if (mask_on and s.mask_bg_weight_enabled.get()) else tk.DISABLED
+        )
+        bg_weight_entry.configure(state=bg_entry_state)
+        if not mask_on:
+            s.mask_bg_weight_enabled.set(False)
+
+    s.mask_bg_weight_enabled.trace_add("write", _refresh_mask_bg_state)
+
+    ttk.Checkbutton(
+        lf2, text=gettext("addift_diff_use_diff_mask"),
+        variable=s.diff_use_diff_mask,
+        command=_refresh_mask_bg_state,
+    ).grid(row=0, column=0, columnspan=3, sticky=tk.W, padx=8, pady=3)
     _entry_browse_row(lf2, 1, gettext("addift_diff_mask_path"), s.diff_mask_path,
                        filetypes=[("Image", "*.png;*.jpg;*.jpeg;*.webp;*.bmp"), ("All", "*.*")])
     ttk.Label(lf2, text=gettext("addift_diff_mask_note"), foreground="#64748B").grid(
         row=2, column=0, columnspan=3, sticky=tk.W, padx=8, pady=(0, 4))
+
+    bg_row_frame.grid(row=3, column=0, columnspan=3, sticky=tk.W, padx=8, pady=3)
+    bg_weight_check.grid(row=0, column=0, sticky=tk.W)
+    bg_weight_entry.grid(row=0, column=1, sticky=tk.W, padx=(4, 0))
+    ttk.Label(lf2, text=gettext("addift_mask_bg_weight_note"), foreground="#64748B").grid(
+        row=4, column=0, columnspan=3, sticky=tk.W, padx=8, pady=(0, 4))
+
+    _refresh_mask_bg_state()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1400,6 +1439,8 @@ def _build_command(s: _AddifTTrainState) -> list[str]:
         cmd.append("--diff_use_diff_mask")
         if s.diff_mask_path.get():
             cmd += ["--diff_mask_path", s.diff_mask_path.get()]
+        if s.mask_bg_weight_enabled.get():
+            cmd += ["--mask_bg_weight", str(s.mask_bg_weight.get())]
 
     # サンプル生成
     if s.sample_enabled.get() or s.sample_b_enabled.get():
@@ -1632,8 +1673,10 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
             "image_a_path":      s.image_a_path.get(),
             "image_b_path":      s.image_b_path.get(),
             "caption":           s.caption.get(),
-            "diff_use_diff_mask": bool(s.diff_use_diff_mask.get()),
-            "diff_mask_path":    s.diff_mask_path.get(),
+            "diff_use_diff_mask":     bool(s.diff_use_diff_mask.get()),
+            "diff_mask_path":         s.diff_mask_path.get(),
+            "mask_bg_weight_enabled": bool(s.mask_bg_weight_enabled.get()),
+            "mask_bg_weight":         float(s.mask_bg_weight.get()),
             # ネットワーク
             "network_dim":       int(s.network_dim.get()),
             "network_alpha":     float(s.network_alpha.get()),
@@ -1720,8 +1763,10 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
         _s(s.image_a_path,      "image_a_path",       "")
         _s(s.image_b_path,      "image_b_path",       "")
         _s(s.caption,           "caption",            "")
-        _s(s.diff_use_diff_mask, "diff_use_diff_mask", False)
-        _s(s.diff_mask_path,    "diff_mask_path",     "")
+        _s(s.diff_use_diff_mask,     "diff_use_diff_mask",     False)
+        _s(s.diff_mask_path,         "diff_mask_path",         "")
+        _s(s.mask_bg_weight_enabled, "mask_bg_weight_enabled", False)
+        _s(s.mask_bg_weight,         "mask_bg_weight",         0.05)
         _s(s.network_dim,       "network_dim",        8)
         _s(s.network_alpha,     "network_alpha",      4.0)
         _s(s.network_module,    "network_module",     "networks.lora")
@@ -1739,7 +1784,7 @@ def _build_addift_preset_tab(parent: ttk.Frame, s: "_AddifTTrainState") -> None:
         _s(s.mixed_precision,   "mixed_precision",    "bf16")
         _s(s.max_grad_norm,     "max_grad_norm",      1.0)
         _s(s.train_min_timesteps, "train_min_timesteps", 200)
-        _s(s.train_max_timesteps, "train_max_timesteps", 600)
+        _s(s.train_max_timesteps, "train_max_timesteps", 400)
         _s(s.train_fixed_timesteps_in_batch, "train_fixed_timesteps_in_batch", False)
         _s(s.diff_alt_ratio,     "diff_alt_ratio",     1.0)
         _s(s.network_strength,   "network_strength",  5.0)

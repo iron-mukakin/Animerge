@@ -606,6 +606,8 @@
   "addift_diff_use_diff_mask": "差分マスクを使用する (diff_use_diff_mask)",
   "addift_diff_mask_path": "diff_mask_path",
   "addift_diff_mask_note": "白=学習対象領域、黒=対象外領域として扱われます。",
+  "addift_mask_bg_weight_enable": "マスク外領域の正則化を有効化 (mask_bg_weight)",
+  "addift_mask_bg_weight_note": "マスク外でのLoRAドリフトを抑制するブレーキ機能。DPOモード時はwin/lose両方に適用。推奨: 0.05〜0.10",
   "addift_network_unet_only_note": "ADDifT は DiT (UNet相当) のみを学習します。",
   "addift_params_label": "ADDifTパラメータ",
   "addift_timesteps_preset_enable": "プリセットから選択する",
@@ -654,10 +656,6 @@
   "addift_monitor_es_dpo_reset": "[ES-DPO] Win Loss低下・Lose Loss増加の正しい推移を確認。カウントリセット ({old} → 0)",
   "addift_monitor_es_dpo_warn": "[ES-DPO 警告] Win Loss低下・Lose Loss増加の正しい推移が {warn} step見られません ({count}/{patience})。学習方向に異常の可能性があります。",
   "addift_monitor_es_dpo_stop": "[ES-DPO 緊急停止] {patience} step連続でWin/Lose推移の異常が継続しました。学習を停止します。",
-  "addift_es_dpo_warmup_label": "判定スキップ割合(序盤)",
-  "addift_es_dpo_warmup_note": "（全step数に対する割合。既定0.10=先頭10%は判定対象外）",
-  "addift_monitor_es_dpo_warmup": "[ES-DPO] 序盤ウォームアップ中のため判定スキップ ({step}/{warmup} step)",
-  "addift_monitor_es_dpo_insufficient": "[ES-DPO] サンプル不足のため判定待機中 ({have}/{need} step)",
   "addift_win_aux_weight_enable": "win側補助ペナルティを有効化(DPO-Positive方式)",
   "addift_win_aux_weight_note": "winがreferenceより悪化した場合のみ追加ペナルティを課す補助項。0で無効。"
 }

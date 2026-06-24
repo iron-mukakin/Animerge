@@ -54,57 +54,63 @@ REM ==================================================
 REM Create venv
 REM ==================================================
 
-if not exist "%PY%" (
+set "NEEDS_INSTALL=0"
+if not exist "%PY%" set "NEEDS_INSTALL=1"
+
+if "%NEEDS_INSTALL%"=="1" (
 
     echo [INFO] Creating venv...
-    
+
     call %PYTHON_CMD% -m venv "%VENV_DIR%"
 
-    if errorlevel 1 (
+    if %ERRORLEVEL% neq 0 (
         echo.
         echo [ERROR] venv creation failed
         echo.
         pause
         exit /b 1
     )
-)
 
-echo [OK] venv ready
-echo.
-
-REM ==================================================
-REM Upgrade pip
-REM ==================================================
-
-echo [INFO] Upgrading pip...
-
-"%PY%" -m pip install --upgrade pip setuptools wheel
-
-if errorlevel 1 (
+    echo [OK] venv created
     echo.
-    echo [ERROR] pip upgrade failed
+
+    REM ==================================================
+    REM Upgrade pip
+    REM ==================================================
+
+    echo [INFO] Upgrading pip...
+
+    "%PY%" -m pip install --upgrade pip setuptools wheel
+
+    if %ERRORLEVEL% neq 0 (
+        echo.
+        echo [ERROR] pip upgrade failed
+        echo.
+        pause
+        exit /b 1
+    )
+
     echo.
-    pause
-    exit /b 1
-)
 
-echo.
+    REM ==================================================
+    REM Install requirements
+    REM ==================================================
 
-REM ==================================================
-REM Install requirements
-REM ==================================================
-
-echo [INFO] Installing packages...
-echo.
-
-"%PY%" -m pip install -r requirements.txt
-
-if errorlevel 1 (
+    echo [INFO] Installing packages...
     echo.
-    echo [ERROR] requirements install failed
-    echo.
-    pause
-    exit /b 1
+
+    "%PY%" -m pip install -r requirements.txt
+
+    if %ERRORLEVEL% neq 0 (
+        echo.
+        echo [ERROR] requirements install failed
+        echo.
+        pause
+        exit /b 1
+    )
+
+) else (
+    echo [OK] venv already exists, skipping install
 )
 
 echo.
@@ -118,10 +124,9 @@ echo.
 
 echo.
 
-REM ------------------------------
-REM 6. アプリ起動
-REM ------------------------------
-:RUN_APP
+REM ==================================================
+REM Start Application
+REM ==================================================
 
 echo.
 echo ===== Starting Application =====

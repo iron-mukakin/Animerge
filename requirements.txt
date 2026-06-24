@@ -28,3 +28,4 @@ protobuf>=4.25.0
 
 tensorboard>=2.16.0
 matplotlib>=3.9.0
+came-pytorch>=0.1.3
