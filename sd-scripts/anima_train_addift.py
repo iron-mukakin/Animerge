@@ -53,6 +53,7 @@ from library import (
     anima_models,
     anima_train_utils,
     anima_utils,
+    compile_utils,
     custom_train_functions,
     qwen_image_autoencoder_kl,
     strategy_anima,
@@ -302,7 +303,8 @@ def compute_addift_loss(
 
 ADDIFT_MODE_NONE = "none"
 ADDIFT_MODE_DPO = "dpo"
-ADDIFT_MODES_UNIMPLEMENTED = ("sdpo", "mapo")
+ADDIFT_MODE_SDPO = "sdpo"
+ADDIFT_MODES_UNIMPLEMENTED = ("mapo",)
 
 
 def predict_policy_and_reference_noise(
@@ -351,9 +353,60 @@ def predict_policy_and_reference_noise(
 _DPO_NORM_EPS = 1e-6
 
 
+def _apply_sdpo_safe_scaling(
+    sdpo_mu: float,
+    policy_pred_win: torch.Tensor,
+    noise_win: torch.Tensor,
+    policy_pred_lose: torch.Tensor,
+    noise_lose: torch.Tensor,
+    lose_delta: torch.Tensor,
+) -> tuple[torch.Tensor, float]:
+    """Diffusion-SDPO (SDPO.txt 式) の安全スケーリング係数 lambda_safe を計算し、
+    lose側損失へ straight-through 勾配スケーリングを適用する。
+
+    出力空間勾配 g^w, g^l のプロキシとして、パラメータ空間のヤコビアンを介さず
+    (policy_pred - noise) の残差ベクトルを直接用いる。lambda_safe の算出式は
+    分子・分母がともに g の二次形式であるため、g^w, g^l に共通する定数係数
+    (masked-mean MSE勾配由来の 2/N 等) は比の計算過程で相殺され、残差そのものを
+    代用しても数学的に等価となる。
+
+    Args:
+        sdpo_mu: 安全マージンを調整するスラック係数 mu ([0.0, 1.0])。
+        policy_pred_win: policyモデルのwin予測 (diff_mask適用後)。
+        noise_win: winペアの実ノイズ epsilon_w (diff_mask適用後)。
+        policy_pred_lose: policyモデルのlose予測 (diff_mask適用後)。
+        noise_lose: loseペアの実ノイズ epsilon_l (diff_mask適用後)。
+        lose_delta: SDPO適用前の (loss_lose - ref_loss_lose).mean() スカラー。
+
+    Returns:
+        tuple[torch.Tensor, float]:
+            (straight-through スケーリング適用後の lose_delta スカラーテンソル,
+             lambda_safe の float値 (ログ出力用))。
+            スケーリング後のforward値は入力lose_deltaと数値的に同一であり、
+            backward時の勾配のみがlambda_safe倍される。
+    """
+    with torch.no_grad():
+        residual_win  = policy_pred_win.float()  - noise_win.float()
+        residual_lose = policy_pred_lose.float() - noise_lose.float()
+        inner_product = (residual_win * residual_lose).sum()
+        win_sq_norm = (residual_win * residual_win).sum()
+
+        if inner_product.item() > 0.0:
+            lambda_safe = ((1.0 - sdpo_mu) * win_sq_norm / inner_product).clamp(0.0, 1.0)
+        else:
+            # g^w^T g^l <= 0 (intrinsically safe): 制限なしでlose勾配を通す。
+            lambda_safe = win_sq_norm.new_ones(())
+
+    lose_delta_detached = lose_delta.detach()
+    lose_delta_scaled = lose_delta_detached + lambda_safe * (lose_delta - lose_delta_detached)
+    return lose_delta_scaled, lambda_safe.item()
+
+
 def compute_dpo_loss(
+    addift_mode: str,
     preference_beta: float,
     win_aux_weight: float,
+    sdpo_mu: float,
     noise_win: torch.Tensor,
     policy_pred_win: torch.Tensor,
     reference_pred_win: torch.Tensor,
@@ -362,20 +415,26 @@ def compute_dpo_loss(
     reference_pred_lose: torch.Tensor,
     diff_mask: Optional[torch.Tensor],
     bg_weight: float = 0.0,
-) -> tuple[torch.Tensor, float, float, float, float]:
-    """Diffusion-DPO損失 (dpo.txt 式14相当) を計算する。win_aux_weight>0でDPOP風の補助ペナルティを付与する。
+) -> tuple[torch.Tensor, float, float, float, float, float]:
+    """Diffusion-DPO / Diffusion-SDPO 損失を計算する。
 
-    L(theta) = -E[log sigmoid(-beta * delta_error)] + win_aux_weight * max(0, win_delta)
-    delta_error = (loss_w - ref_loss_w) - (loss_l - ref_loss_l)
+    addift_mode == "dpo"  : L(theta) = -E[log sigmoid(-beta * delta_error)]
+                            delta_error = (loss_w - ref_loss_w) - (loss_l - ref_loss_l)
+    addift_mode == "sdpo" : 上式のlose側 (loss_l - ref_loss_l) を _apply_sdpo_safe_scaling()
+                            によるstraight-through勾配スケーリング (lambda_safe) で置換する
+                            (SDPO.txt 式 Step4-6相当)。win側の勾配悪化を抑制する安全条件
+                            ΔL^w <= 0 を満たすよう、lose側勾配のみを適応的に縮小する。
 
     win_aux_weightの項は、win側がreference(基準モデル)より悪化した場合
     (win_delta > 0) にのみ働く補助ペナルティ。DPO-Positive (Pal et al., 2024) の
     考え方を画像領域のMSE損失へ適用したもので、win側がDPOのマージン最大化だけに
-    引きずられて改善されない問題を緩和する。
+    引きずられて改善されない問題を緩和する。SDPOモードと併用可能。
 
     Args:
+        addift_mode: "dpo" または "sdpo" (--addift_mode)。
         preference_beta: 基準モデルからの乖離を制御する正則化係数 (--preference_beta)。
         win_aux_weight: win側補助ペナルティの重み (--win_aux_weight)。0で無効。
+        sdpo_mu: SDPO安全マージン係数 mu (--sdpo_mu)。addift_mode=="dpo"時は無視される。
         noise_win: winペアに付加した実ノイズ epsilon_w。
         policy_pred_win: policyモデルのwin予測。
         reference_pred_win: referenceモデルのwin予測。
@@ -388,13 +447,15 @@ def compute_dpo_loss(
             bg_weight 重みで加算する。通常モードと同一の抑制方式。
 
     Returns:
-        tuple[torch.Tensor, float, float, float, float]:
+        tuple[torch.Tensor, float, float, float, float, float]:
             (スカラー損失, win_delta, lose_delta,
              win_delta_normalized = win_delta / (ref_loss_win + eps),
-             lose_delta_normalized = lose_delta / (ref_loss_lose + eps))。
+             lose_delta_normalized = lose_delta / (ref_loss_lose + eps),
+             lambda_safe)。
             正規化指標は、referenceモデルがwin/loseをもともと得意/不得意とする
             ベースライン誤差スケールの違いを打ち消すための相対指標であり、
             EarlyStoppingDPOおよびモニターグラフはこちらを使用する。
+            lambda_safeはaddift_mode=="sdpo"の場合のみ有効値、それ以外はNaN。
     """
     if diff_mask is not None:
         noise_win = noise_win * diff_mask
@@ -430,6 +491,12 @@ def compute_dpo_loss(
     win_delta  = (loss_win - ref_loss_win).mean()
     lose_delta = (loss_lose - ref_loss_lose).mean()
 
+    lambda_safe_value = float("nan")
+    if addift_mode == ADDIFT_MODE_SDPO:
+        lose_delta, lambda_safe_value = _apply_sdpo_safe_scaling(
+            sdpo_mu, policy_pred_win, noise_win, policy_pred_lose, noise_lose, lose_delta,
+        )
+
     delta_error = win_delta - lose_delta
     dpo_logits = -preference_beta * delta_error
     loss = -torch.nn.functional.logsigmoid(dpo_logits).mean()
@@ -462,7 +529,10 @@ def compute_dpo_loss(
     win_delta_norm  = win_delta  / (ref_loss_win_mean  + _DPO_NORM_EPS)
     lose_delta_norm = lose_delta / (ref_loss_lose_mean + _DPO_NORM_EPS)
 
-    return loss, win_delta.item(), lose_delta.item(), win_delta_norm.item(), lose_delta_norm.item()
+    return (
+        loss, win_delta.item(), lose_delta.item(),
+        win_delta_norm.item(), lose_delta_norm.item(), lambda_safe_value,
+    )
 
 
 def train_addift_dpo_step(
@@ -479,15 +549,17 @@ def train_addift_dpo_step(
     device,
     policy_multiplier: float,
     diff_mask: Optional[torch.Tensor],
-) -> tuple[torch.Tensor, float, float, float, float]:
-    """DPOモード1イテレーション分の損失を計算する。
+) -> tuple[torch.Tensor, float, float, float, float, float]:
+    """DPO/SDPOモード1イテレーション分の損失を計算する。
 
     win/loseの役割は固定 (turn反転なし)。win = image_b (変換後/好ましい),
-    lose = image_a (変換前/好ましくない)。
+    lose = image_a (変換前/好ましくない)。args.addift_mode が "sdpo" の場合、
+    compute_dpo_loss() 内で lose側勾配への安全スケーリング (lambda_safe) が適用される。
 
     Returns:
-        tuple[torch.Tensor, float, float, float, float]:
-            (スカラー損失, win_delta, lose_delta, win_delta_norm, lose_delta_norm)。
+        tuple[torch.Tensor, float, float, float, float, float]:
+            (スカラー損失, win_delta, lose_delta, win_delta_norm, lose_delta_norm,
+             lambda_safe)。lambda_safeはSDPOモード以外ではNaN。
     """
     noise_win = torch.randn_like(latent_win)
     noise_lose = torch.randn_like(latent_lose)
@@ -505,8 +577,10 @@ def train_addift_dpo_step(
     )
 
     return compute_dpo_loss(
+        args.addift_mode,
         args.preference_beta,
         args.win_aux_weight,
+        getattr(args, "sdpo_mu", 0.6),
         noise_win, policy_pred_win, reference_pred_win,
         noise_lose, policy_pred_lose, reference_pred_lose,
         diff_mask,
@@ -588,6 +662,13 @@ def setup_parser() -> argparse.ArgumentParser:
         help=(
             "win側がreferenceモデルより悪化した場合(win_delta>0)にのみ働く補助ペナルティの重み"
             "(DPO-Positive方式)。0で無効 / DPOP-style auxiliary penalty weight for win side"
+        ),
+    )
+    parser.add_argument(
+        "--sdpo_mu", type=float, default=0.6,
+        help=(
+            "SDPOモードの安全マージン係数 mu ([0.0, 1.0])。lose側勾配のスケーリング上限を制御する。"
+            "論文推奨レンジ: 0.2〜0.9 / SDPO (Diffusion-SDPO) safety margin slack factor mu"
         ),
     )
 
@@ -718,6 +799,13 @@ def main():
         raise ValueError("--train_min_timesteps must be less than --train_max_timesteps")
     if args.addift_mode in ADDIFT_MODES_UNIMPLEMENTED:
         raise NotImplementedError(f"--addift_mode={args.addift_mode} は未実装です。")
+    if args.addift_mode == ADDIFT_MODE_SDPO and not (0.0 <= args.sdpo_mu <= 1.0):
+        raise ValueError(f"--sdpo_mu must be within [0.0, 1.0] (got {args.sdpo_mu})")
+    if args.compile:
+        if args.torch_compile:
+            raise ValueError("--compile and --torch_compile cannot be used together")
+        if args.compile_fullgraph and args.split_attn:
+            raise ValueError("--compile_fullgraph cannot be used with --split_attn")
 
     if args.seed is None:
         args.seed = random.randint(0, 2**32 - 1)
@@ -830,6 +918,10 @@ def main():
         dit.enable_gradient_checkpointing()
         network.enable_gradient_checkpointing()
 
+    compile_utils.apply_cuda_optimizations(args)
+    if args.compile:
+        compile_utils.compile_transformer(args, dit, [dit.blocks], disable_linear=False)
+
     # ── Optimizer / scheduler ──────────────────────────────────────────────
     unet_lr = args.unet_lr if args.unet_lr is not None else args.learning_rate
     trainable_params, _ = network.prepare_optimizer_params(None, unet_lr, args.learning_rate)
@@ -872,11 +964,12 @@ def main():
             timesteps_normalized = (timesteps.float() / 1000.0).to(device, dtype=weight_dtype)
 
             net_unwrapped = accelerator.unwrap_model(network)
-            is_dpo_mode = args.addift_mode == ADDIFT_MODE_DPO
+            is_dpo_mode = args.addift_mode in (ADDIFT_MODE_DPO, ADDIFT_MODE_SDPO)
             dpo_win_delta: Optional[float] = None
             dpo_lose_delta: Optional[float] = None
             dpo_win_delta_norm: Optional[float] = None
             dpo_lose_delta_norm: Optional[float] = None
+            dpo_lambda_safe: Optional[float] = None
 
             if is_dpo_mode:
                 # win = image_b (変換後/好ましい), lose = image_a (変換前/好ましくない)。
@@ -885,7 +978,7 @@ def main():
                 multiplier = base_multiplier_unit
                 (
                     loss, dpo_win_delta, dpo_lose_delta,
-                    dpo_win_delta_norm, dpo_lose_delta_norm,
+                    dpo_win_delta_norm, dpo_lose_delta_norm, dpo_lambda_safe,
                 ) = train_addift_dpo_step(
                     accelerator, dit, net_unwrapped, args,
                     latent_lose=latent_a, latent_win=latent_b,
@@ -959,6 +1052,11 @@ def main():
                 logs["lose_loss"] = dpo_lose_delta_norm
                 postfix["win_loss"]  = f"{dpo_win_delta_norm:.4f}"
                 postfix["lose_loss"] = f"{dpo_lose_delta_norm:.4f}"
+                if dpo_lambda_safe is not None and not math.isnan(dpo_lambda_safe):
+                    # SDPOモード専用の安全スケーリング係数 ([0,1])。
+                    # モニターグラフでは ax_lose_loss へ twinx() で重ね描画する。
+                    logs["lambda_safe"] = dpo_lambda_safe
+                    postfix["lambda_safe"] = f"{dpo_lambda_safe:.4f}"
             accelerator.log(logs, step=global_step)
             progress_bar.set_postfix(postfix, refresh=False)
             progress_bar.update(1)

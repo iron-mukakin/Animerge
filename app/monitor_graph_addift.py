@@ -44,8 +44,9 @@ COLOR_WARNING  = "#EA580C"
 COLOR_DANGER   = "#DC2626"
 COLOR_INFO     = "#E2E8F0"
 COLOR_TRAIN_LOSS = "#38BDF8"
-COLOR_WIN_LOSS    = "#22C55E"
-COLOR_LOSE_LOSS   = "#F472B6"
+COLOR_WIN_LOSS      = "#22C55E"
+COLOR_LOSE_LOSS     = "#F472B6"
+COLOR_LAMBDA_SAFE   = "#FACC15"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # ログパースパターン
@@ -55,15 +56,22 @@ _RE_LOSS_TQDM    = re.compile(r",\s*loss=([0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
 # DPOモード専用: "win_loss=-0.0050" / "lose_loss=0.0080" （符号付き）
 _RE_WIN_LOSS_TQDM  = re.compile(r",?\s*win_loss=([+-]?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
 _RE_LOSE_LOSS_TQDM = re.compile(r",?\s*lose_loss=([+-]?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
+# SDPOモード専用: "lambda_safe=0.8000" (常に[0,1]、SDPO以外では出力されない)
+_RE_LAMBDA_SAFE_TQDM = re.compile(r",?\s*lambda_safe=([0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
 # tqdm 時間フィールド: "[00:03<26:53,  3.23s/it"
 _RE_TQDM_TIME    = re.compile(r"\[(\d+:\d+)<((?:\d+:)?\d+:\d+),\s*([0-9.]+)s/it")
 _RE_STEP_POSTFIX = re.compile(r"(\d+)/(\d+)\s*\[")   # tqdm: "120/500 ["
 
 
 def _is_dpo_mode_active(state: "_AddifTTrainState") -> bool:
-    """state がDPOモード有効状態かどうかを判定する。"""
+    """state がDPO系モード(DPO/SDPO)の有効状態かどうかを判定する。
+
+    Win/Lose Loss監視・EarlyStoppingDPO・グラフ2x2レイアウトはDPOとSDPOで
+    共通の仕組みを使うため、両モードをまとめて判定する
+    (元実装は "dpo" 固定判定でSDPO時に監視パネル全体が非表示になるバグがあった)。
+    """
     try:
-        return bool(state.addift_mode_enabled.get()) and state.addift_mode_name.get() == "dpo"
+        return bool(state.addift_mode_enabled.get()) and state.addift_mode_name.get() in ("dpo", "sdpo")
     except Exception:
         return False
 
@@ -114,6 +122,7 @@ class AddifTMonitorGraph:
         self._ax_lr = None
         self._ax_win_loss = None
         self._ax_lose_loss = None
+        self._ax_lambda_safe = None
 
         # ── データ系列 ──────────────────────────────────────────────
         self._steps:      list[int]   = []
@@ -121,6 +130,7 @@ class AddifTMonitorGraph:
         self._lr_vals:    list[float] = []
         self._win_loss:   list[float] = []
         self._lose_loss:  list[float] = []
+        self._lambda_safe: list[float] = []
 
         # ── 状態変数 ──────────────────────────────────────────────
         self._global_step  = 0
@@ -130,6 +140,7 @@ class AddifTMonitorGraph:
         self._last_train   = float("nan")
         self._last_win_loss  = float("nan")
         self._last_lose_loss = float("nan")
+        self._last_lambda_safe = float("nan")
 
         # EarlyStopping 状態
         self._es_rise_count = 0
@@ -386,6 +397,9 @@ class AddifTMonitorGraph:
             self._ax_lr        = self._fig.add_subplot(gs[0, 1])
             self._ax_win_loss  = self._fig.add_subplot(gs[1, 0])
             self._ax_lose_loss = self._fig.add_subplot(gs[1, 1])
+            # lambda_safe (SDPOモード専用) は既存4枠のレイアウトを変えず、
+            # ax_lose_loss に第2Y軸として重ね描画する。
+            self._ax_lambda_safe = self._ax_lose_loss.twinx()
             axes = (self._ax_loss, self._ax_lr, self._ax_win_loss, self._ax_lose_loss)
         else:
             gs = self._fig.add_gridspec(2, 1)
@@ -396,6 +410,7 @@ class AddifTMonitorGraph:
             self._ax_lr   = self._fig.add_subplot(gs[1, 0])
             self._ax_win_loss  = None
             self._ax_lose_loss = None
+            self._ax_lambda_safe = None
             axes = (self._ax_loss, self._ax_lr)
 
         self._ax_loss.set_title("Train Loss", fontsize=10)
@@ -483,6 +498,13 @@ class AddifTMonitorGraph:
             self._last_win_loss = win_val
             self._last_lose_loss = lose_val
             self._check_es_dpo(win_val, lose_val)
+
+        # ── SDPOモード専用: lambda_safe (tqdm postfix) ─────────────────
+        m_lambda_safe = _RE_LAMBDA_SAFE_TQDM.search(line)
+        if m_lambda_safe:
+            lambda_safe_val = float(m_lambda_safe.group(1))
+            self._lambda_safe.append(lambda_safe_val)
+            self._last_lambda_safe = lambda_safe_val
 
         # ── tqdm 時間フィールドから eta を取得 ────────────────────────
         m = _RE_TQDM_TIME.search(line)
@@ -830,6 +852,26 @@ class AddifTMonitorGraph:
                 ax4.set_ylabel("(loss_lose - ref_loss_lose) / ref_loss_lose", fontsize=7)
                 ax4.grid(True)
 
+                # lambda_safe (SDPOモード専用): ax_lose_lossの第2Y軸に重ね描画する。
+                # スケール([0,1]固定)がWin/Lose Lossと異なるため、既存の左Y軸・
+                # 凡例・グリッド線・4枠のレイアウトには一切干渉しない。
+                if self._ax_lambda_safe is not None:
+                    ax5 = self._ax_lambda_safe
+                    ax5.cla()
+                    ax5.set_zorder(ax4.get_zorder() - 1)
+                    ax4.patch.set_visible(False)
+                    if self._lambda_safe:
+                        ax5.plot(
+                            self._steps[:len(self._lambda_safe)],
+                            self._lambda_safe,
+                            color=COLOR_LAMBDA_SAFE, linewidth=1.0, linestyle="--",
+                            label="lambda_safe", alpha=0.85,
+                        )
+                        ax5.legend(fontsize=6, loc="lower right")
+                    ax5.set_ylim(0.0, 1.0)
+                    ax5.set_ylabel("lambda_safe", fontsize=7, color=COLOR_LAMBDA_SAFE)
+                    ax5.tick_params(axis="y", labelsize=6, labelcolor=COLOR_LAMBDA_SAFE)
+
             self._canvas.draw_idle()
 
         except Exception:
@@ -844,6 +886,7 @@ class AddifTMonitorGraph:
         self._lr_vals.clear()
         self._win_loss.clear()
         self._lose_loss.clear()
+        self._lambda_safe.clear()
         self._global_step    = 0
         self._step_in_run    = 0
         self._total_steps    = 0
@@ -851,6 +894,7 @@ class AddifTMonitorGraph:
         self._last_train     = float("nan")
         self._last_win_loss  = float("nan")
         self._last_lose_loss = float("nan")
+        self._last_lambda_safe = float("nan")
         self._es_rise_count  = 0
         self._es_prev_loss   = float("nan")
         self._es_warned      = False

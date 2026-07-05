@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 chcp 65001 >nul
 
@@ -63,7 +63,7 @@ if "%NEEDS_INSTALL%"=="1" (
 
     call %PYTHON_CMD% -m venv "%VENV_DIR%"
 
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         echo.
         echo [ERROR] venv creation failed
         echo.
@@ -82,7 +82,7 @@ if "%NEEDS_INSTALL%"=="1" (
 
     "%PY%" -m pip install --upgrade pip setuptools wheel
 
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         echo.
         echo [ERROR] pip upgrade failed
         echo.
@@ -101,7 +101,7 @@ if "%NEEDS_INSTALL%"=="1" (
 
     "%PY%" -m pip install -r requirements.txt
 
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         echo.
         echo [ERROR] requirements install failed
         echo.

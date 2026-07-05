@@ -46,6 +46,7 @@ from library import (
     anima_models,
     anima_train_utils,
     anima_utils,
+    compile_utils,
     custom_train_functions,
     qwen_image_autoencoder_kl,
     sd3_train_utils,
@@ -325,6 +326,11 @@ def main():
         raise ValueError("--output_dir is required")
     if args.network_train_text_encoder_only:
         raise ValueError("LECO does not support text encoder LoRA training")
+    if args.compile:
+        if args.torch_compile:
+            raise ValueError("--compile and --torch_compile cannot be used together")
+        if args.compile_fullgraph and args.split_attn:
+            raise ValueError("--compile_fullgraph cannot be used with --split_attn")
 
     if args.seed is None:
         args.seed = random.randint(0, 2 ** 32 - 1)
@@ -441,6 +447,10 @@ def main():
     if args.gradient_checkpointing:
         dit.enable_gradient_checkpointing()
         network.enable_gradient_checkpointing()
+
+    compile_utils.apply_cuda_optimizations(args)
+    if args.compile:
+        compile_utils.compile_transformer(args, dit, [dit.blocks], disable_linear=False)
 
     # ── Optimizer / scheduler ──────────────────────────────────────────────
     unet_lr = args.unet_lr if args.unet_lr is not None else args.learning_rate

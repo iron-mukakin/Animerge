@@ -40,7 +40,7 @@ except ImportError:
 ADDIFT_MODE_DPO = "dpo"
 ADDIFT_MODE_SDPO = "sdpo"
 ADDIFT_MODE_MAPO = "mapo"
-ADDIFT_MODES_UNIMPLEMENTED = frozenset({ADDIFT_MODE_SDPO, ADDIFT_MODE_MAPO})
+ADDIFT_MODES_UNIMPLEMENTED = frozenset({ADDIFT_MODE_MAPO})
 
 _MODE_LABEL_KEYS: dict[str, str] = {
     ADDIFT_MODE_DPO:  "addift_mode_dpo",
@@ -50,6 +50,7 @@ _MODE_LABEL_KEYS: dict[str, str] = {
 
 _DEFAULT_PREFERENCE_BETA = 5.0
 _DEFAULT_WIN_AUX_WEIGHT = 0.1
+_DEFAULT_SDPO_MU = 0.6  # SDPO安全マージン係数 (論文推奨レンジ: 0.2〜0.9)
 _DEFAULT_ES_DPO_PATIENCE = 10
 _DEFAULT_ES_DPO_WARMUP_RATIO = 0.1  # 全stepに対する判定スキップ割合(序盤の不安定期間を除外)
 
@@ -69,6 +70,7 @@ def attach_dpo_mode_vars(state: object) -> None:
     state.preference_beta = tk.DoubleVar(value=_DEFAULT_PREFERENCE_BETA)
     state.win_aux_weight_enabled = tk.BooleanVar(value=False)
     state.win_aux_weight = tk.DoubleVar(value=_DEFAULT_WIN_AUX_WEIGHT)
+    state.sdpo_mu = tk.DoubleVar(value=_DEFAULT_SDPO_MU)
     state.es_dpo_enabled = tk.BooleanVar(value=False)
     state.es_dpo_patience = tk.IntVar(value=_DEFAULT_ES_DPO_PATIENCE)
     state.es_dpo_warmup_ratio = tk.DoubleVar(value=_DEFAULT_ES_DPO_WARMUP_RATIO)
@@ -107,6 +109,8 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
     win_aux_check = ttk.Checkbutton(frame, text=gettext("addift_win_aux_weight_enable"),
                                      variable=state.win_aux_weight_enabled)
     win_aux_entry = ttk.Entry(frame, textvariable=state.win_aux_weight, width=10)
+    mu_label = ttk.Label(frame, text=gettext("addift_sdpo_mu_label"), width=22, anchor=tk.W)
+    mu_entry = ttk.Entry(frame, textvariable=state.sdpo_mu, width=10)
 
     def _reflect_dpo_mode_state(_event: object = None) -> None:
         selected_key = mode_key_by_label.get(mode_display.get())
@@ -117,12 +121,15 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
         mode_combobox.configure(state="readonly" if enabled else tk.DISABLED)
 
         is_dpo_active = enabled and state.addift_mode_name.get() == ADDIFT_MODE_DPO
-        beta_state = tk.NORMAL if is_dpo_active else tk.DISABLED
+        is_sdpo_active = enabled and state.addift_mode_name.get() == ADDIFT_MODE_SDPO
+        is_dpo_family_active = is_dpo_active or is_sdpo_active
+        beta_state = tk.NORMAL if is_dpo_family_active else tk.DISABLED
         beta_entry.configure(state=beta_state)
-        win_aux_check.configure(state=tk.NORMAL if is_dpo_active else tk.DISABLED)
+        win_aux_check.configure(state=tk.NORMAL if is_dpo_family_active else tk.DISABLED)
         win_aux_entry.configure(
-            state=tk.NORMAL if (is_dpo_active and state.win_aux_weight_enabled.get()) else tk.DISABLED
+            state=tk.NORMAL if (is_dpo_family_active and state.win_aux_weight_enabled.get()) else tk.DISABLED
         )
+        mu_entry.configure(state=tk.NORMAL if is_sdpo_active else tk.DISABLED)
 
         _refresh_dataset_labels(state)
         getattr(state, "_dpo_adv_visibility_cb", lambda: None)()
@@ -149,7 +156,12 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
     ttk.Label(frame, text=gettext("addift_win_aux_weight_note"), foreground="#64748B").grid(
         row=4, column=0, columnspan=4, sticky=tk.W, padx=4, pady=(0, 4))
 
-    state._dpo_mode_widgets = [mode_combobox, beta_entry, win_aux_check, win_aux_entry]
+    mu_label.grid(row=5, column=0, sticky=tk.W, padx=(4, 2), pady=3)
+    mu_entry.grid(row=5, column=1, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Label(frame, text=gettext("addift_sdpo_mu_note"), foreground="#64748B").grid(
+        row=6, column=0, columnspan=4, sticky=tk.W, padx=4, pady=(0, 4))
+
+    state._dpo_mode_widgets = [mode_combobox, beta_entry, win_aux_check, win_aux_entry, mu_entry]
     _reflect_dpo_mode_state()
     return frame
 
@@ -188,8 +200,11 @@ def build_es_dpo_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
         row=1, column=2, columnspan=2, sticky=tk.W, padx=(0, 8), pady=(0, 4))
 
     def _refresh_visibility() -> None:
-        is_dpo_active = state.addift_mode_enabled.get() and state.addift_mode_name.get() == ADDIFT_MODE_DPO
-        if is_dpo_active:
+        is_dpo_family_active = (
+            state.addift_mode_enabled.get()
+            and state.addift_mode_name.get() in (ADDIFT_MODE_DPO, ADDIFT_MODE_SDPO)
+        )
+        if is_dpo_family_active:
             frame.pack(fill=tk.X, pady=(8, 0))
         else:
             frame.pack_forget()
@@ -222,8 +237,11 @@ def _refresh_dataset_labels(state: object) -> None:
     if not widgets:
         return
 
-    is_dpo_active = state.addift_mode_enabled.get() and state.addift_mode_name.get() == ADDIFT_MODE_DPO
-    if is_dpo_active:
+    is_dpo_family_active = (
+        state.addift_mode_enabled.get()
+        and state.addift_mode_name.get() in (ADDIFT_MODE_DPO, ADDIFT_MODE_SDPO)
+    )
+    if is_dpo_family_active:
         widgets["a"].configure(text=gettext("addift_image_lose_label"))
         widgets["b"].configure(text=gettext("addift_image_win_label"))
     else:
@@ -243,7 +261,9 @@ def validate_dpo_mode(state: object) -> str | None:
     if not state.addift_mode_enabled.get():
         return None
     if state.addift_mode_name.get() in ADDIFT_MODES_UNIMPLEMENTED:
-        return gettext("addift_validate_sdpo_mapo_unimplemented")
+        return gettext("addift_validate_mapo_unimplemented")
+    if state.addift_mode_name.get() == ADDIFT_MODE_SDPO and not (0.0 <= state.sdpo_mu.get() <= 1.0):
+        return gettext("addift_validate_sdpo_mu_range")
     return None
 
 
@@ -257,11 +277,16 @@ def append_dpo_command_args(state: object, cmd: list[str]) -> None:
     Returns:
         None
     """
-    is_dpo_active = state.addift_mode_enabled.get() and state.addift_mode_name.get() == ADDIFT_MODE_DPO
-    if is_dpo_active:
-        cmd += ["--addift_mode", ADDIFT_MODE_DPO, "--preference_beta", str(state.preference_beta.get())]
+    mode_name = state.addift_mode_name.get()
+    is_dpo_active = state.addift_mode_enabled.get() and mode_name == ADDIFT_MODE_DPO
+    is_sdpo_active = state.addift_mode_enabled.get() and mode_name == ADDIFT_MODE_SDPO
+
+    if is_dpo_active or is_sdpo_active:
+        cmd += ["--addift_mode", mode_name, "--preference_beta", str(state.preference_beta.get())]
         if state.win_aux_weight_enabled.get():
             cmd += ["--win_aux_weight", str(state.win_aux_weight.get())]
+        if is_sdpo_active:
+            cmd += ["--sdpo_mu", str(state.sdpo_mu.get())]
     else:
         cmd += ["--addift_mode", "none"]
 
@@ -274,6 +299,7 @@ def collect_dpo_mode_preset(state: object) -> dict:
         "preference_beta":         float(state.preference_beta.get()),
         "win_aux_weight_enabled":  bool(state.win_aux_weight_enabled.get()),
         "win_aux_weight":          float(state.win_aux_weight.get()),
+        "sdpo_mu":                 float(state.sdpo_mu.get()),
         "es_dpo_enabled":          bool(state.es_dpo_enabled.get()),
         "es_dpo_patience":         int(state.es_dpo_patience.get()),
         "es_dpo_warmup_ratio":     float(state.es_dpo_warmup_ratio.get()),
@@ -303,6 +329,7 @@ def apply_dpo_mode_preset(state: object, data: dict) -> None:
     _restore(state.preference_beta,        "preference_beta",        _DEFAULT_PREFERENCE_BETA)
     _restore(state.win_aux_weight_enabled, "win_aux_weight_enabled", False)
     _restore(state.win_aux_weight,         "win_aux_weight",         _DEFAULT_WIN_AUX_WEIGHT)
+    _restore(state.sdpo_mu,                "sdpo_mu",                _DEFAULT_SDPO_MU)
     _restore(state.es_dpo_enabled,         "es_dpo_enabled",         False)
     _restore(state.es_dpo_patience,        "es_dpo_patience",        _DEFAULT_ES_DPO_PATIENCE)
     _restore(state.es_dpo_warmup_ratio,    "es_dpo_warmup_ratio",    _DEFAULT_ES_DPO_WARMUP_RATIO)

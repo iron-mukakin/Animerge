@@ -54,3 +54,4 @@ logs/tensorboard/
 checkpoints/tokenizers/
 checkpoints/whisper/
 torch_hub/
+.agents/
