@@ -47,6 +47,7 @@ COLOR_TRAIN_LOSS = "#38BDF8"
 COLOR_WIN_LOSS      = "#22C55E"
 COLOR_LOSE_LOSS     = "#F472B6"
 COLOR_LAMBDA_SAFE   = "#FACC15"
+COLOR_MARGIN_GAP    = "#A78BFA"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # ログパースパターン
@@ -58,6 +59,8 @@ _RE_WIN_LOSS_TQDM  = re.compile(r",?\s*win_loss=([+-]?[0-9]+\.[0-9]+(?:[eE][+-]?
 _RE_LOSE_LOSS_TQDM = re.compile(r",?\s*lose_loss=([+-]?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
 # SDPOモード専用: "lambda_safe=0.8000" (常に[0,1]、SDPO以外では出力されない)
 _RE_LAMBDA_SAFE_TQDM = re.compile(r",?\s*lambda_safe=([0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
+# MaPOモード専用: "margin_gap=-0.1234" (phi_win - phi_lose、範囲[-1,1])
+_RE_MARGIN_GAP_TQDM = re.compile(r",?\s*margin_gap=([+-]?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)")
 # tqdm 時間フィールド: "[00:03<26:53,  3.23s/it"
 _RE_TQDM_TIME    = re.compile(r"\[(\d+:\d+)<((?:\d+:)?\d+:\d+),\s*([0-9.]+)s/it")
 _RE_STEP_POSTFIX = re.compile(r"(\d+)/(\d+)\s*\[")   # tqdm: "120/500 ["
@@ -71,7 +74,9 @@ def _is_dpo_mode_active(state: "_AddifTTrainState") -> bool:
     (元実装は "dpo" 固定判定でSDPO時に監視パネル全体が非表示になるバグがあった)。
     """
     try:
-        return bool(state.addift_mode_enabled.get()) and state.addift_mode_name.get() in ("dpo", "sdpo")
+        return bool(state.addift_mode_enabled.get()) and state.addift_mode_name.get() in (
+            "dpo", "sdpo", "mapo",
+        )
     except Exception:
         return False
 
@@ -131,6 +136,7 @@ class AddifTMonitorGraph:
         self._win_loss:   list[float] = []
         self._lose_loss:  list[float] = []
         self._lambda_safe: list[float] = []
+        self._margin_gap: list[float] = []
 
         # ── 状態変数 ──────────────────────────────────────────────
         self._global_step  = 0
@@ -141,6 +147,7 @@ class AddifTMonitorGraph:
         self._last_win_loss  = float("nan")
         self._last_lose_loss = float("nan")
         self._last_lambda_safe = float("nan")
+        self._last_margin_gap = float("nan")
 
         # EarlyStopping 状態
         self._es_rise_count = 0
@@ -506,6 +513,13 @@ class AddifTMonitorGraph:
             self._lambda_safe.append(lambda_safe_val)
             self._last_lambda_safe = lambda_safe_val
 
+        # ── MaPOモード専用: margin_gap (tqdm postfix) ──────────────────
+        m_margin_gap = _RE_MARGIN_GAP_TQDM.search(line)
+        if m_margin_gap:
+            margin_gap_val = float(m_margin_gap.group(1))
+            self._margin_gap.append(margin_gap_val)
+            self._last_margin_gap = margin_gap_val
+
         # ── tqdm 時間フィールドから eta を取得 ────────────────────────
         m = _RE_TQDM_TIME.search(line)
         if m:
@@ -838,7 +852,12 @@ class AddifTMonitorGraph:
                     )
                 ax3.set_title("Win Loss", fontsize=9, color="#CBD5E1")
                 ax3.set_xlabel("step", fontsize=8)
-                ax3.set_ylabel("(loss_win - ref_loss_win) / ref_loss_win", fontsize=7)
+                is_mapo = self._state.addift_mode_name.get() == "mapo"
+                ax3.set_ylabel(
+                    "MSE(policy, noise) [masked, absolute]" if is_mapo
+                    else "(loss_win - ref_loss_win) / ref_loss_win",
+                    fontsize=7,
+                )
                 ax3.grid(True)
 
                 if self._lose_loss:
@@ -849,28 +868,46 @@ class AddifTMonitorGraph:
                     )
                 ax4.set_title("Lose Loss", fontsize=9, color="#CBD5E1")
                 ax4.set_xlabel("step", fontsize=8)
-                ax4.set_ylabel("(loss_lose - ref_loss_lose) / ref_loss_lose", fontsize=7)
+                ax4.set_ylabel(
+                    "MSE(policy, noise) [masked, absolute]" if is_mapo
+                    else "(loss_lose - ref_loss_lose) / ref_loss_lose",
+                    fontsize=7,
+                )
                 ax4.grid(True)
 
-                # lambda_safe (SDPOモード専用): ax_lose_lossの第2Y軸に重ね描画する。
-                # スケール([0,1]固定)がWin/Lose Lossと異なるため、既存の左Y軸・
-                # 凡例・グリッド線・4枠のレイアウトには一切干渉しない。
+                # SDPO: lambda_safe([0,1]) / MaPO: margin_gap([-1,1]) を
+                # ax_lose_lossの第2Y軸に重ね描画する。スケールがWin/Lose Lossと
+                # 異なるため、既存の左Y軸・凡例・グリッド線・4枠のレイアウトには
+                # 一切干渉しない。
                 if self._ax_lambda_safe is not None:
                     ax5 = self._ax_lambda_safe
                     ax5.cla()
                     ax5.set_zorder(ax4.get_zorder() - 1)
                     ax4.patch.set_visible(False)
-                    if self._lambda_safe:
-                        ax5.plot(
-                            self._steps[:len(self._lambda_safe)],
-                            self._lambda_safe,
-                            color=COLOR_LAMBDA_SAFE, linewidth=1.0, linestyle="--",
-                            label="lambda_safe", alpha=0.85,
-                        )
-                        ax5.legend(fontsize=6, loc="lower right")
-                    ax5.set_ylim(0.0, 1.0)
-                    ax5.set_ylabel("lambda_safe", fontsize=7, color=COLOR_LAMBDA_SAFE)
-                    ax5.tick_params(axis="y", labelsize=6, labelcolor=COLOR_LAMBDA_SAFE)
+                    if is_mapo:
+                        if self._margin_gap:
+                            ax5.plot(
+                                self._steps[:len(self._margin_gap)],
+                                self._margin_gap,
+                                color=COLOR_MARGIN_GAP, linewidth=1.0, linestyle="--",
+                                label="margin_gap", alpha=0.85,
+                            )
+                            ax5.legend(fontsize=6, loc="lower right")
+                        ax5.set_ylim(-1.0, 1.0)
+                        ax5.set_ylabel("margin_gap (phi_win - phi_lose)", fontsize=7, color=COLOR_MARGIN_GAP)
+                        ax5.tick_params(axis="y", labelsize=6, labelcolor=COLOR_MARGIN_GAP)
+                    else:
+                        if self._lambda_safe:
+                            ax5.plot(
+                                self._steps[:len(self._lambda_safe)],
+                                self._lambda_safe,
+                                color=COLOR_LAMBDA_SAFE, linewidth=1.0, linestyle="--",
+                                label="lambda_safe", alpha=0.85,
+                            )
+                            ax5.legend(fontsize=6, loc="lower right")
+                        ax5.set_ylim(0.0, 1.0)
+                        ax5.set_ylabel("lambda_safe", fontsize=7, color=COLOR_LAMBDA_SAFE)
+                        ax5.tick_params(axis="y", labelsize=6, labelcolor=COLOR_LAMBDA_SAFE)
 
             self._canvas.draw_idle()
 
@@ -887,6 +924,7 @@ class AddifTMonitorGraph:
         self._win_loss.clear()
         self._lose_loss.clear()
         self._lambda_safe.clear()
+        self._margin_gap.clear()
         self._global_step    = 0
         self._step_in_run    = 0
         self._total_steps    = 0
@@ -895,6 +933,7 @@ class AddifTMonitorGraph:
         self._last_win_loss  = float("nan")
         self._last_lose_loss = float("nan")
         self._last_lambda_safe = float("nan")
+        self._last_margin_gap = float("nan")
         self._es_rise_count  = 0
         self._es_prev_loss   = float("nan")
         self._es_warned      = False

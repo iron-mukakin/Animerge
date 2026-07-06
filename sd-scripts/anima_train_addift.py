@@ -304,7 +304,8 @@ def compute_addift_loss(
 ADDIFT_MODE_NONE = "none"
 ADDIFT_MODE_DPO = "dpo"
 ADDIFT_MODE_SDPO = "sdpo"
-ADDIFT_MODES_UNIMPLEMENTED = ("mapo",)
+ADDIFT_MODE_MAPO = "mapo"
+ADDIFT_MODES_UNIMPLEMENTED: tuple[str, ...] = ()
 
 
 def predict_policy_and_reference_noise(
@@ -588,6 +589,208 @@ def train_addift_dpo_step(
     )
 
 
+def predict_policy_noise(
+    accelerator,
+    dit: anima_models.Anima,
+    net_unwrapped,
+    timesteps_normalized: torch.Tensor,
+    noisy_latent: torch.Tensor,
+    embeds_tuple,
+    weight_dtype: torch.dtype,
+    device,
+    policy_multiplier: float,
+) -> torch.Tensor:
+    """policy側(LoRA有効)のみのノイズ予測を計算する (MaPO専用、reference forward省略版)。
+
+    predict_policy_and_reference_noise() と異なり multiplier=0 でのreference
+    forward passを行わない。MaPO (MaPO.txt) はreferenceモデルを必要としない設計の
+    ため、1呼び出しあたりのDiTフォワード回数をDPO/SDPO比で半分(win/lose合計で
+    4回→2回)に削減できる。
+
+    Args:
+        accelerator: Accelerate の Accelerator インスタンス。
+        dit: Anima DiT本体。
+        net_unwrapped: unwrap済みのネットワーク (multiplier制御用)。
+        timesteps_normalized: [0, 1] 正規化済みタイムステップ。
+        noisy_latent: ノイズ付加済みlatent (4D: [B, C, H, W])。
+        embeds_tuple: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)。
+        weight_dtype: 演算dtype。
+        device: 演算device。
+        policy_multiplier: policy側で適用するnetwork multiplier。
+
+    Returns:
+        torch.Tensor: policy_pred (grad追跡あり)。
+    """
+    net_unwrapped.set_multiplier(policy_multiplier)
+    with accelerator.autocast():
+        policy_pred = predict_noise_anima(
+            dit, timesteps_normalized, noisy_latent, embeds_tuple, weight_dtype, device,
+        )
+    net_unwrapped.set_multiplier(0.0)
+    return policy_pred
+
+
+def _apply_mapo_bounded_link(loss_value: torch.Tensor, mapo_beta: float) -> torch.Tensor:
+    """MaPO.txt 式(11)の有界リンク関数 phi_beta(L) を数値的に安定な形で計算する。
+
+    定義: phi_beta(L) = 1 / (1 + beta * (exp(L) - 1))
+    L(>=0, MSE)が大きい場合に exp(L) を直接計算するとオーバーフローしうるため、
+    分子分母へ exp(-L) を乗じた等価な形で計算する(MaPO.txtも安定計算への
+    注意を明記している):
+        phi_beta(L) = exp(-L) / ((1 - beta) * exp(-L) + beta)
+
+    Args:
+        loss_value: L_MSE の値 (スカラーテンソル、>=0を想定)。
+        mapo_beta: 温度パラメータ beta (>0)。値が大きいほど小さいマージンで
+            損失が最小化されるようになる (MaPO.txt 記載の通り)。
+
+    Returns:
+        torch.Tensor: phi_beta(L) in (0, 1] のスカラーテンソル。
+    """
+    exp_neg_l = torch.exp(-loss_value)
+    denom = (1.0 - mapo_beta) * exp_neg_l + mapo_beta
+    return exp_neg_l / denom
+
+
+def compute_mapo_loss(
+    mapo_beta: float,
+    mapo_bg_weight: float,
+    noise_win: torch.Tensor,
+    policy_pred_win: torch.Tensor,
+    noise_lose: torch.Tensor,
+    policy_pred_lose: torch.Tensor,
+    diff_mask: Optional[torch.Tensor],
+) -> tuple[torch.Tensor, float, float, float, float, float]:
+    """MaPO (Margin-Aware Preference Optimization) 損失を計算する (MaPO.txt 式(9)-(11)相当)。
+
+    referenceモデルを一切使用しない点がDPO/SDPOとの最大の差異。win側のL_MSEを
+    そのままSFT項として用い、win/lose双方のマスク内L_MSEを有界リンク関数
+    phi_beta に通した差分をマージン正則化項として加算する。
+
+    MaPO専用マスク仕様 (diff_maskが有効な場合のみ、本実装独自の拡張):
+        - マスク内: 通常通りL_MSEおよびマージン計算に使用する主成分。
+        - マスク外: mapo_bg_weight>0の場合のみ、win/loseそれぞれの
+          (policy_pred - noise)^2 をマスク外領域で計算し正則化として加算する。
+          DPO/SDPOのbg_weightはreference_predを基準にするが、MaPOはreference
+          自体を保持しないため、代わりに正解ノイズ(noise)を直接の基準とする。
+          この代替アンカーはMaPO.txtの数式には存在しない、マスク付きペア差分
+          学習という本プロジェクトの文脈に合わせた拡張である。
+
+    Args:
+        mapo_beta: 有界リンク関数の温度パラメータ beta (>0)。MaPO.txtに具体的な
+            推奨レンジの記載はなく、経験的に調整する前提の値である。
+        mapo_bg_weight: マスク外領域の正則化重み (0.0で無効)。
+        noise_win: winペアに付加した実ノイズ epsilon_w。
+        policy_pred_win: policyモデルのwin予測。
+        noise_lose: loseペアに付加した実ノイズ epsilon_l。
+        policy_pred_lose: policyモデルのlose予測。
+        diff_mask: 損失計算範囲を限定する差分マスク (任意)。
+
+    Returns:
+        tuple[torch.Tensor, float, float, float, float, float]:
+            (スカラー損失, loss_win_masked, loss_lose_masked, phi_win, phi_lose,
+             margin_gap = phi_win - phi_lose)。
+            loss_win_masked/loss_lose_masked はDPO/SDPOの正規化済みdeltaとは
+            異なり、reference比較を伴わない絶対MSE値である点に注意。ただし
+            「値が小さいほど良く再現できている」という符号の向き自体は
+            DPO/SDPOの正規化deltaと共通であり、win低下・lose上昇が健全という
+            観測則はモード間で変わらない。
+    """
+    win_err = torch.nn.functional.mse_loss(
+        policy_pred_win.float(), noise_win.float(), reduction="none",
+    )
+    lose_err = torch.nn.functional.mse_loss(
+        policy_pred_lose.float(), noise_lose.float(), reduction="none",
+    )
+
+    loss_win_masked = _masked_mean(win_err, diff_mask).mean()
+    loss_lose_masked = _masked_mean(lose_err, diff_mask).mean()
+
+    phi_win = _apply_mapo_bounded_link(loss_win_masked, mapo_beta)
+    phi_lose = _apply_mapo_bounded_link(loss_lose_masked, mapo_beta)
+
+    margin_loss = -torch.nn.functional.logsigmoid(phi_win - phi_lose)
+    loss = loss_win_masked + (1.0 / mapo_beta) * margin_loss
+
+    if mapo_bg_weight > 0.0 and diff_mask is not None:
+        bg_mask = 1.0 - diff_mask
+        bg_loss_win = _masked_mean(
+            torch.nn.functional.mse_loss(
+                (policy_pred_win * bg_mask).float(),
+                (noise_win * bg_mask).float(),
+                reduction="none",
+            ),
+            bg_mask,
+        )
+        bg_loss_lose = _masked_mean(
+            torch.nn.functional.mse_loss(
+                (policy_pred_lose * bg_mask).float(),
+                (noise_lose * bg_mask).float(),
+                reduction="none",
+            ),
+            bg_mask,
+        )
+        loss = loss + mapo_bg_weight * (bg_loss_win.mean() + bg_loss_lose.mean())
+
+    margin_gap_value = (phi_win - phi_lose).item()
+
+    return (
+        loss, loss_win_masked.item(), loss_lose_masked.item(),
+        phi_win.item(), phi_lose.item(), margin_gap_value,
+    )
+
+
+def train_addift_mapo_step(
+    accelerator,
+    dit: anima_models.Anima,
+    net_unwrapped,
+    args: argparse.Namespace,
+    latent_lose: torch.Tensor,
+    latent_win: torch.Tensor,
+    timesteps: torch.Tensor,
+    timesteps_normalized: torch.Tensor,
+    embeds_tuple,
+    weight_dtype: torch.dtype,
+    device,
+    policy_multiplier: float,
+    diff_mask: Optional[torch.Tensor],
+) -> tuple[torch.Tensor, float, float, float, float, float]:
+    """MaPOモード1イテレーション分の損失を計算する (reference forward省略)。
+
+    win/loseの役割は固定。win = image_b (変換後/好ましい),
+    lose = image_a (変換前/好ましくない)。DPO/SDPOと異なりreference予測を
+    一切計算しないため、DiTフォワード回数はwin/lose合計で2回のみ
+    (win policy, lose policy)。
+
+    Returns:
+        tuple[torch.Tensor, float, float, float, float, float]:
+            (スカラー損失, loss_win_masked, loss_lose_masked, phi_win, phi_lose,
+             margin_gap)。compute_mapo_loss() のdocstringも参照のこと。
+    """
+    noise_win = torch.randn_like(latent_win)
+    noise_lose = torch.randn_like(latent_lose)
+
+    noisy_win = add_rectified_flow_noise(latent_win, noise_win, timesteps)
+    noisy_lose = add_rectified_flow_noise(latent_lose, noise_lose, timesteps)
+
+    policy_pred_win = predict_policy_noise(
+        accelerator, dit, net_unwrapped, timesteps_normalized, noisy_win,
+        embeds_tuple, weight_dtype, device, policy_multiplier,
+    )
+    policy_pred_lose = predict_policy_noise(
+        accelerator, dit, net_unwrapped, timesteps_normalized, noisy_lose,
+        embeds_tuple, weight_dtype, device, policy_multiplier,
+    )
+
+    return compute_mapo_loss(
+        getattr(args, "mapo_beta", 5.0),
+        getattr(args, "mapo_bg_weight", 0.0),
+        noise_win, policy_pred_win,
+        noise_lose, policy_pred_lose,
+        diff_mask,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Save
 # ---------------------------------------------------------------------------
@@ -669,6 +872,22 @@ def setup_parser() -> argparse.ArgumentParser:
         help=(
             "SDPOモードの安全マージン係数 mu ([0.0, 1.0])。lose側勾配のスケーリング上限を制御する。"
             "論文推奨レンジ: 0.2〜0.9 / SDPO (Diffusion-SDPO) safety margin slack factor mu"
+        ),
+    )
+    parser.add_argument(
+        "--mapo_beta", type=float, default=5.0,
+        help=(
+            "MaPOモードの有界リンク関数の温度係数 beta (>0)。大きいほど小さいマージンで"
+            "損失が最小化される。MaPO.txtに具体的な推奨レンジの記載はなく経験的に調整すること。"
+            "/ MaPO bounded link function temperature (no paper-specified default; tune empirically)"
+        ),
+    )
+    parser.add_argument(
+        "--mapo_bg_weight", type=float, default=0.0,
+        help=(
+            "MaPOモード専用のマスク外領域正則化重み (0.0で無効、--diff_use_diff_mask時のみ有効)。"
+            "DPO/SDPOのmask_bg_weightと異なりreference_predではなく正解ノイズを基準にする"
+            "本実装独自の拡張 (MaPO.txtには存在しない)。推奨範囲: 0.05〜0.1"
         ),
     )
 
@@ -801,6 +1020,10 @@ def main():
         raise NotImplementedError(f"--addift_mode={args.addift_mode} は未実装です。")
     if args.addift_mode == ADDIFT_MODE_SDPO and not (0.0 <= args.sdpo_mu <= 1.0):
         raise ValueError(f"--sdpo_mu must be within [0.0, 1.0] (got {args.sdpo_mu})")
+    if args.addift_mode == ADDIFT_MODE_MAPO and args.mapo_beta <= 0.0:
+        raise ValueError(f"--mapo_beta must be > 0.0 (got {args.mapo_beta})")
+    if args.mapo_bg_weight < 0.0:
+        raise ValueError(f"--mapo_bg_weight must be >= 0.0 (got {args.mapo_bg_weight})")
     if args.compile:
         if args.torch_compile:
             raise ValueError("--compile and --torch_compile cannot be used together")
@@ -964,28 +1187,41 @@ def main():
             timesteps_normalized = (timesteps.float() / 1000.0).to(device, dtype=weight_dtype)
 
             net_unwrapped = accelerator.unwrap_model(network)
-            is_dpo_mode = args.addift_mode in (ADDIFT_MODE_DPO, ADDIFT_MODE_SDPO)
+            is_dpo_mode = args.addift_mode in (ADDIFT_MODE_DPO, ADDIFT_MODE_SDPO, ADDIFT_MODE_MAPO)
             dpo_win_delta: Optional[float] = None
             dpo_lose_delta: Optional[float] = None
             dpo_win_delta_norm: Optional[float] = None
             dpo_lose_delta_norm: Optional[float] = None
-            dpo_lambda_safe: Optional[float] = None
+            # SDPO時: lambda_safe ([0,1]) / MaPO時: margin_gap ([-1,1]) / DPO時: NaN
+            dpo_extra_metric: Optional[float] = None
 
             if is_dpo_mode:
                 # win = image_b (変換後/好ましい), lose = image_a (変換前/好ましくない)。
                 # turn反転は行わず役割を固定する。
                 turn = True
                 multiplier = base_multiplier_unit
-                (
-                    loss, dpo_win_delta, dpo_lose_delta,
-                    dpo_win_delta_norm, dpo_lose_delta_norm, dpo_lambda_safe,
-                ) = train_addift_dpo_step(
-                    accelerator, dit, net_unwrapped, args,
-                    latent_lose=latent_a, latent_win=latent_b,
-                    timesteps=timesteps, timesteps_normalized=timesteps_normalized,
-                    embeds_tuple=embeds_tuple, weight_dtype=weight_dtype, device=device,
-                    policy_multiplier=multiplier, diff_mask=diff_mask,
-                )
+                if args.addift_mode == ADDIFT_MODE_MAPO:
+                    (
+                        loss, dpo_win_delta, dpo_lose_delta,
+                        dpo_win_delta_norm, dpo_lose_delta_norm, dpo_extra_metric,
+                    ) = train_addift_mapo_step(
+                        accelerator, dit, net_unwrapped, args,
+                        latent_lose=latent_a, latent_win=latent_b,
+                        timesteps=timesteps, timesteps_normalized=timesteps_normalized,
+                        embeds_tuple=embeds_tuple, weight_dtype=weight_dtype, device=device,
+                        policy_multiplier=multiplier, diff_mask=diff_mask,
+                    )
+                else:
+                    (
+                        loss, dpo_win_delta, dpo_lose_delta,
+                        dpo_win_delta_norm, dpo_lose_delta_norm, dpo_extra_metric,
+                    ) = train_addift_dpo_step(
+                        accelerator, dit, net_unwrapped, args,
+                        latent_lose=latent_a, latent_win=latent_b,
+                        timesteps=timesteps, timesteps_normalized=timesteps_normalized,
+                        embeds_tuple=embeds_tuple, weight_dtype=weight_dtype, device=device,
+                        policy_multiplier=multiplier, diff_mask=diff_mask,
+                    )
             else:
                 noise = torch.randn_like(latent_a)
                 turn = global_step % 2 == 0
@@ -1045,18 +1281,25 @@ def main():
             postfix = {"loss": f"{logs['loss']:.4f}"}
             if dpo_win_delta is not None and dpo_lose_delta is not None:
                 # tqdm postfix (モニターグラフ/EarlyStoppingDPOが解析する値):
-                # 基準モデルのwin/lose得意・不得意差を打ち消した正規化指標を使用する。
+                # DPO/SDPO: 基準モデル比の正規化delta。MaPO: reference比較を伴わない
+                # 絶対MSE値。値の意味(スケール)はモードごとに異なるが、「win低下・
+                # lose上昇が健全」という符号の向きはいずれのモードでも共通である。
                 logs["win_loss_raw"]  = dpo_win_delta
                 logs["lose_loss_raw"] = dpo_lose_delta
                 logs["win_loss"]  = dpo_win_delta_norm
                 logs["lose_loss"] = dpo_lose_delta_norm
                 postfix["win_loss"]  = f"{dpo_win_delta_norm:.4f}"
                 postfix["lose_loss"] = f"{dpo_lose_delta_norm:.4f}"
-                if dpo_lambda_safe is not None and not math.isnan(dpo_lambda_safe):
-                    # SDPOモード専用の安全スケーリング係数 ([0,1])。
+                if dpo_extra_metric is not None and not math.isnan(dpo_extra_metric):
                     # モニターグラフでは ax_lose_loss へ twinx() で重ね描画する。
-                    logs["lambda_safe"] = dpo_lambda_safe
-                    postfix["lambda_safe"] = f"{dpo_lambda_safe:.4f}"
+                    if args.addift_mode == ADDIFT_MODE_SDPO:
+                        # SDPOモード専用の安全スケーリング係数 ([0,1])。
+                        logs["lambda_safe"] = dpo_extra_metric
+                        postfix["lambda_safe"] = f"{dpo_extra_metric:.4f}"
+                    elif args.addift_mode == ADDIFT_MODE_MAPO:
+                        # MaPOモード専用のマージン (phi_win - phi_lose、[-1,1])。
+                        logs["margin_gap"] = dpo_extra_metric
+                        postfix["margin_gap"] = f"{dpo_extra_metric:.4f}"
             accelerator.log(logs, step=global_step)
             progress_bar.set_postfix(postfix, refresh=False)
             progress_bar.update(1)
