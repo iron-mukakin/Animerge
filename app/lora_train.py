@@ -43,6 +43,8 @@ PRECISIONS = ["bf16", "fp16", "fp32"]
 TIMESTEP_SAMPLING = ["sigmoid", "sigma", "uniform", "shift", "flux_shift"]
 ATTN_MODES = ["torch", "xformers", "flash", "sdpa"]
 WEIGHTING_SCHEMES = ["none", "sigma_sqrt", "cosmap"]
+COMPILE_MODES = ["default", "reduce-overhead", "max-autotune", "max-autotune-no-cudagraphs"]
+COMPILE_DYNAMIC = ["", "true", "false", "auto"]
 
 # 階層学習 GUI定数（gui.py の MATRIX_BLOCKS / MATRIX_COMPONENTS / COMPONENT_GROUPS と同一）
 LAYER_TRAIN_MODES   = ("Matrix", "Transformer", "Component")
@@ -187,6 +189,14 @@ class _TrainState:
         self.qwen3_max_token_length = tk.IntVar(value=512)
         self.t5_max_token_length = tk.IntVar(value=512)
         self.t5_tokenizer_path = tk.StringVar(value="")
+        self.compile_enabled          = tk.BooleanVar(value=False)
+        self.compile_backend          = tk.StringVar(value="inductor")
+        self.compile_mode             = tk.StringVar(value="default")
+        self.compile_dynamic          = tk.StringVar(value="")
+        self.compile_fullgraph        = tk.BooleanVar(value=False)
+        self.compile_cache_size_limit = tk.StringVar(value="")
+        self.cuda_allow_tf32          = tk.BooleanVar(value=False)
+        self.cuda_cudnn_benchmark     = tk.BooleanVar(value=False)
         self.max_grad_norm  = tk.DoubleVar(value=1.0)
         # サンプル生成 共通設定
         self.sample_every_n_epochs  = tk.StringVar(value="1")
@@ -581,6 +591,40 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
     ttk.Checkbutton(lf2, text="qwen_image_vae_2d", variable=s.qwen_image_vae_2d).grid(
         row=1, column=1, sticky=tk.W, padx=8, pady=3)
+
+    # torch.compile (per-block, 実験的)
+    lf_compile = ttk.LabelFrame(parent, text=gettext("lora_compile_group"))
+    lf_compile.pack(fill=tk.X, pady=(0, 8))
+    ttk.Checkbutton(lf_compile, text=gettext("lora_compile_enable"),
+                    variable=s.compile_enabled).grid(
+        row=0, column=0, sticky=tk.W, padx=8, pady=3)
+    ttk.Label(lf_compile, text=gettext("lora_compile_backend"), anchor=tk.W).grid(
+        row=0, column=1, sticky=tk.W, padx=(12, 2), pady=3)
+    ttk.Entry(lf_compile, textvariable=s.compile_backend, width=12).grid(
+        row=0, column=2, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Label(lf_compile, text=gettext("lora_compile_mode"), anchor=tk.W).grid(
+        row=0, column=3, sticky=tk.W, padx=(0, 2), pady=3)
+    ttk.Combobox(lf_compile, textvariable=s.compile_mode, values=COMPILE_MODES,
+                 state="readonly", width=22).grid(
+        row=0, column=4, sticky=tk.W, padx=(0, 4), pady=3)
+    ttk.Label(lf_compile, text=gettext("lora_compile_dynamic"), anchor=tk.W).grid(
+        row=1, column=1, sticky=tk.W, padx=(12, 2), pady=3)
+    ttk.Combobox(lf_compile, textvariable=s.compile_dynamic, values=COMPILE_DYNAMIC,
+                 state="readonly", width=12).grid(
+        row=1, column=2, sticky=tk.W, padx=(0, 12), pady=3)
+    ttk.Checkbutton(lf_compile, text=gettext("lora_compile_fullgraph"),
+                    variable=s.compile_fullgraph).grid(
+        row=1, column=0, sticky=tk.W, padx=8, pady=3)
+    ttk.Label(lf_compile, text=gettext("lora_compile_cache_limit"), anchor=tk.W).grid(
+        row=1, column=3, sticky=tk.W, padx=(0, 2), pady=3)
+    ttk.Entry(lf_compile, textvariable=s.compile_cache_size_limit, width=8).grid(
+        row=1, column=4, sticky=tk.W, padx=(0, 4), pady=3)
+    ttk.Checkbutton(lf_compile, text=gettext("lora_cuda_tf32"),
+                    variable=s.cuda_allow_tf32).grid(
+        row=2, column=0, sticky=tk.W, padx=8, pady=3)
+    ttk.Checkbutton(lf_compile, text=gettext("lora_cuda_cudnn_benchmark"),
+                    variable=s.cuda_cudnn_benchmark).grid(
+        row=2, column=1, sticky=tk.W, padx=8, pady=3)
 
     # Validation / EarlyStopping
     lf4 = ttk.LabelFrame(parent, text=gettext("lora_validation_label"))
@@ -1397,6 +1441,14 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
             "qwen3_max_token_length": int(s.qwen3_max_token_length.get()),
             "t5_max_token_length": int(s.t5_max_token_length.get()),
             "t5_tokenizer_path": s.t5_tokenizer_path.get(),
+            "compile_enabled":          bool(s.compile_enabled.get()),
+            "compile_backend":          s.compile_backend.get(),
+            "compile_mode":             s.compile_mode.get(),
+            "compile_dynamic":          s.compile_dynamic.get(),
+            "compile_fullgraph":        bool(s.compile_fullgraph.get()),
+            "compile_cache_size_limit": s.compile_cache_size_limit.get(),
+            "cuda_allow_tf32":          bool(s.cuda_allow_tf32.get()),
+            "cuda_cudnn_benchmark":     bool(s.cuda_cudnn_benchmark.get()),
             "max_grad_norm":     float(s.max_grad_norm.get()),
             "sample_enabled":    bool(s.sample_enabled.get()),
             "sample_every_n_epochs": s.sample_every_n_epochs.get(),
@@ -1491,6 +1543,14 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.qwen3_max_token_length, "qwen3_max_token_length", 512)
         _s(s.t5_max_token_length, "t5_max_token_length", 512)
         _s(s.t5_tokenizer_path, "t5_tokenizer_path",  "")
+        _s(s.compile_enabled,          "compile_enabled",          False)
+        _s(s.compile_backend,          "compile_backend",          "inductor")
+        _s(s.compile_mode,             "compile_mode",             "default")
+        _s(s.compile_dynamic,          "compile_dynamic",          "")
+        _s(s.compile_fullgraph,        "compile_fullgraph",        False)
+        _s(s.compile_cache_size_limit, "compile_cache_size_limit", "")
+        _s(s.cuda_allow_tf32,          "cuda_allow_tf32",          False)
+        _s(s.cuda_cudnn_benchmark,     "cuda_cudnn_benchmark",     False)
         _s(s.max_grad_norm,     "max_grad_norm",      1.0)
         _s(s.sample_enabled,    "sample_enabled",     False)
         _s(s.sample_every_n_epochs, "sample_every_n_epochs", "1")
@@ -1851,10 +1911,25 @@ def _build_command(s: _TrainState) -> list[str]:
         (s.cpu_offload_checkpointing,   "--cpu_offload_checkpointing"),
         (s.vae_disable_cache,           "--vae_disable_cache"),
         (s.qwen_image_vae_2d,           "--qwen_image_vae_2d"),
+        (s.compile_enabled,             "--compile"),
+        (s.compile_fullgraph,           "--compile_fullgraph"),
+        (s.cuda_allow_tf32,              "--cuda_allow_tf32"),
+        (s.cuda_cudnn_benchmark,         "--cuda_cudnn_benchmark"),
     ]
     for var, flag in bool_flags:
         if var.get():
             cmd.append(flag)
+
+    # torch.compile 詳細設定 (--compile 有効時のみ意味を持つ)
+    if s.compile_enabled.get():
+        cmd += ["--compile_backend", s.compile_backend.get()]
+        cmd += ["--compile_mode", s.compile_mode.get()]
+        _compile_dynamic = s.compile_dynamic.get().strip()
+        if _compile_dynamic:
+            cmd += ["--compile_dynamic", _compile_dynamic]
+        _compile_cache_limit = s.compile_cache_size_limit.get().strip()
+        if _compile_cache_limit:
+            cmd += ["--compile_cache_size_limit", _compile_cache_limit]
 
     # バケット
     if s.enable_bucket.get():
@@ -1943,6 +2018,8 @@ def _refresh_cmd(s: _TrainState, text_widget: tk.Text) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 def _validate(s: _TrainState) -> str | None:
     """必須フィールドの簡易バリデーション。エラーメッセージを返す（正常時None）。"""
+    if s.compile_enabled.get() and s.compile_fullgraph.get() and s.split_attn.get():
+        return gettext("lora_validate_compile_fullgraph")
     if not s.model_path.get():
         return gettext("lora_validate_no_model")
     if not s.vae_path.get():

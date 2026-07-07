@@ -669,5 +669,15 @@
   "addift_monitor_es_dpo_warn": "[ES-DPO 警告] Win Loss低下・Lose Loss増加の正しい推移が {warn} step見られません ({count}/{patience})。学習方向に異常の可能性があります。",
   "addift_monitor_es_dpo_stop": "[ES-DPO 緊急停止] {patience} step連続でWin/Lose推移の異常が継続しました。学習を停止します。",
   "addift_win_aux_weight_enable": "win側補助ペナルティを有効化(DPO-Positive方式)",
-  "addift_win_aux_weight_note": "winがreferenceより悪化した場合のみ追加ペナルティを課す補助項。0で無効。"
+  "addift_win_aux_weight_note": "winがreferenceより悪化した場合のみ追加ペナルティを課す補助項。0で無効。",
+  "lora_compile_group": "torch.compile（実験的・高速化）",
+  "lora_compile_enable": "--compile を有効にする (per-block, Tritonが必要)",
+  "lora_compile_backend": "backend",
+  "lora_compile_mode": "mode",
+  "lora_compile_dynamic": "dynamic",
+  "lora_compile_fullgraph": "fullgraph (--split_attnと併用不可)",
+  "lora_compile_cache_limit": "cache_size_limit (空欄=デフォルト)",
+  "lora_cuda_tf32": "TF32を許可 (Ampere以降のGPU)",
+  "lora_cuda_cudnn_benchmark": "cuDNN benchmark",
+  "lora_validate_compile_fullgraph": "--compile_fullgraph は --split_attn と併用できません。"
 }

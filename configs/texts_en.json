@@ -667,5 +667,15 @@
   "addift_monitor_es_dpo_warn": "[ES-DPO warning] The expected Win Loss decrease / Lose Loss increase trend has not been observed for {warn} steps ({count}/{patience}). The training direction may be abnormal.",
   "addift_monitor_es_dpo_stop": "[ES-DPO emergency stop] Abnormal Win/Lose trend persisted for {patience} consecutive steps. Stopping training.",
   "addift_win_aux_weight_enable": "Enable win-side auxiliary penalty (DPO-Positive style)",
-  "addift_win_aux_weight_note": "Auxiliary penalty applied only when win degrades relative to the reference. 0 disables it."
+  "addift_win_aux_weight_note": "Auxiliary penalty applied only when win degrades relative to the reference. 0 disables it.",
+  "lora_compile_group": "torch.compile (experimental speed-up)",
+  "lora_compile_enable": "Enable --compile (per-block, requires Triton)",
+  "lora_compile_backend": "backend",
+  "lora_compile_mode": "mode",
+  "lora_compile_dynamic": "dynamic",
+  "lora_compile_fullgraph": "fullgraph (cannot combine with --split_attn)",
+  "lora_compile_cache_limit": "cache_size_limit (empty=default)",
+  "lora_cuda_tf32": "Allow TF32 (Ampere or newer GPUs)",
+  "lora_cuda_cudnn_benchmark": "cuDNN benchmark",
+  "lora_validate_compile_fullgraph": "--compile_fullgraph cannot be used together with --split_attn."
 }
