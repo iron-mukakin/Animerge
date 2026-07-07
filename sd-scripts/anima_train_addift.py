@@ -696,11 +696,27 @@ def compute_mapo_loss(
             DPO/SDPOの正規化deltaと共通であり、win低下・lose上昇が健全という
             観測則はモード間で変わらない。
     """
+    if diff_mask is not None:
+        # _masked_mean() は「マスク外画素は事前に0埋めされている」ことを
+        # 前提とする関数のため、MSE計算前にここでマスクを乗算する
+        # (DPO/SDPOのcompute_dpo_loss()と同一パターン)。これを怠ると
+        # 分子(画像全体の誤差)と分母(マスク画素数のみ)が不整合になり、
+        # (全画素数/マスク画素数)倍にスケールがインフレーションする。
+        noise_win_m = noise_win * diff_mask
+        policy_pred_win_m = policy_pred_win * diff_mask
+        noise_lose_m = noise_lose * diff_mask
+        policy_pred_lose_m = policy_pred_lose * diff_mask
+    else:
+        noise_win_m = noise_win
+        policy_pred_win_m = policy_pred_win
+        noise_lose_m = noise_lose
+        policy_pred_lose_m = policy_pred_lose
+
     win_err = torch.nn.functional.mse_loss(
-        policy_pred_win.float(), noise_win.float(), reduction="none",
+        policy_pred_win_m.float(), noise_win_m.float(), reduction="none",
     )
     lose_err = torch.nn.functional.mse_loss(
-        policy_pred_lose.float(), noise_lose.float(), reduction="none",
+        policy_pred_lose_m.float(), noise_lose_m.float(), reduction="none",
     )
 
     loss_win_masked = _masked_mean(win_err, diff_mask).mean()

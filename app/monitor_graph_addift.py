@@ -163,6 +163,7 @@ class AddifTMonitorGraph:
 
         # グラフレイアウト・パネル表示の状態追跡 (不要な再構築/再パックを防止)
         self._graph_layout_is_dpo: Optional[bool] = None
+        self._graph_layout_mode: Optional[str] = None
         self._es_dpo_frame_visible = False
 
         # 時間計測
@@ -377,8 +378,14 @@ class AddifTMonitorGraph:
                 self._es_dpo_frame.pack_forget()
             self._es_dpo_frame_visible = is_dpo
 
-        # グラフ段数の切替 (1行2列 ⇔ 2行2列) は状態変化時のみ再構築する。
-        if self._mpl_ok and is_dpo != self._graph_layout_is_dpo:
+        # グラフ段数の切替 (1行2列 ⇔ 2行2列) およびモード別専用表示
+        # (タイトル・Y軸範囲) は、有効/無効の遷移だけでなく、モード選択
+        # ドロップダウンでのDPO/SDPO/MaPO間切替(学習未開始でも即時)にも
+        # 反応させるため、両方の変化を検知する。
+        current_mode = self._state.addift_mode_name.get() if is_dpo else None
+        if self._mpl_ok and (
+            is_dpo != self._graph_layout_is_dpo or current_mode != self._graph_layout_mode
+        ):
             self._rebuild_graph_layout(is_dpo)
 
     def _rebuild_graph_layout(self, is_dpo: bool) -> None:
@@ -423,14 +430,42 @@ class AddifTMonitorGraph:
         self._ax_loss.set_title("Train Loss", fontsize=10)
         self._ax_lr.set_title("Learning Rate", fontsize=9)
         if is_dpo:
-            self._ax_win_loss.set_title("Win Loss", fontsize=9)
-            self._ax_lose_loss.set_title("Lose Loss", fontsize=9)
+            is_mapo = self._state.addift_mode_name.get() == "mapo"
+            if is_mapo:
+                self._ax_win_loss.set_title("phi(win) — bounded reward", fontsize=9)
+                self._ax_win_loss.set_ylabel(
+                    "phi_beta(MSE) [0,1] (higher = better win fit)", fontsize=7,
+                )
+                self._ax_win_loss.set_ylim(0.0, 1.0)
+                self._ax_lose_loss.set_title("phi(lose) — bounded reward", fontsize=9)
+                self._ax_lose_loss.set_ylabel(
+                    "phi_beta(MSE) [0,1] (lower = worse lose fit, desired)", fontsize=7,
+                )
+                self._ax_lose_loss.set_ylim(0.0, 1.0)
+                self._ax_lambda_safe.set_ylim(-1.0, 1.0)
+                self._ax_lambda_safe.set_ylabel(
+                    "margin_gap (phi_win - phi_lose)", fontsize=7, color=COLOR_MARGIN_GAP,
+                )
+            else:
+                self._ax_win_loss.set_title("Win Loss", fontsize=9)
+                self._ax_win_loss.set_ylabel(
+                    "(loss_win - ref_loss_win) / ref_loss_win", fontsize=7,
+                )
+                self._ax_lose_loss.set_title("Lose Loss", fontsize=9)
+                self._ax_lose_loss.set_ylabel(
+                    "(loss_lose - ref_loss_lose) / ref_loss_lose", fontsize=7,
+                )
+                self._ax_lambda_safe.set_ylim(0.0, 1.0)
+                self._ax_lambda_safe.set_ylabel(
+                    "lambda_safe", fontsize=7, color=COLOR_LAMBDA_SAFE,
+                )
 
         for ax in axes:
             ax.grid(True)
             ax.set_xlabel("step", fontsize=8)
 
         self._graph_layout_is_dpo = is_dpo
+        self._graph_layout_mode = self._state.addift_mode_name.get() if is_dpo else None
         self._canvas.draw_idle()
 
     # ─────────────────────────────────────────────────────────────────
@@ -633,14 +668,18 @@ class AddifTMonitorGraph:
     def _check_es_dpo(self, win_loss: float, lose_loss: float) -> None:
         """Win Loss/Lose Lossのトレンド(傾き)を監視して警告/緊急停止を行う。
 
-        受け取るwin_loss/lose_lossは、referenceモデルのwin/lose各々に対する
-        ベースライン誤差(ref_loss_win, ref_loss_lose)で正規化済みの相対指標
-        ((loss_win-ref_loss_win)/ref_loss_win 等)。
+        受け取るwin_loss/lose_lossの意味はモードにより異なる:
+            DPO/SDPO: referenceモデルのwin/lose各々に対するベースライン誤差で
+                正規化済みの相対指標 ((loss_win-ref_loss_win)/ref_loss_win 等)。
+                値が小さいほど良い(win改善・lose悪化で乖離が大きくなるほど健全)。
+            MaPO: 有界リンク関数 phi_beta(MSE) の値 ([0,1])。値が大きいほど
+                当該ブランチの再現が良い。DPO/SDPOとは符号の向きが逆になる。
 
         判定方式(傾き判定):
             直近 es_dpo_patience step分の win_loss/lose_loss 系列に対して
             最小二乗法で傾き(slope)を算出し、
-                healthy = (win_loss の傾き < 0) かつ (lose_loss の傾き > 0)
+                DPO/SDPO: healthy = (win_loss の傾き < 0) かつ (lose_loss の傾き > 0)
+                MaPO    : healthy = (win_loss の傾き > 0) かつ (lose_loss の傾き < 0)
             で健全性を判定する。単一step間の単純比較(ノイズに弱い)ではなく
             ウィンドウ全体のトレンドで判定することで、step単位の揺らぎを吸収する。
 
@@ -695,7 +734,12 @@ class AddifTMonitorGraph:
 
         win_slope  = _linear_regression_slope(self._win_loss[-window:])
         lose_slope = _linear_regression_slope(self._lose_loss[-window:])
-        is_healthy = win_slope < 0.0 and lose_slope > 0.0
+        if self._state.addift_mode_name.get() == "mapo":
+            # MaPOのwin_loss/lose_lossはphi_beta値(大きいほど良い)であり、
+            # DPO/SDPOの正規化delta(小さいほど良い)とは符号が逆転する。
+            is_healthy = win_slope > 0.0 and lose_slope < 0.0
+        else:
+            is_healthy = win_slope < 0.0 and lose_slope > 0.0
 
         if is_healthy:
             if self._es_dpo_count > 0:
@@ -844,35 +888,39 @@ class AddifTMonitorGraph:
                 ax4 = self._ax_lose_loss
                 ax3.cla()
                 ax4.cla()
+                is_mapo = self._state.addift_mode_name.get() == "mapo"
                 if self._win_loss:
                     ax3.plot(
                         self._steps[:len(self._win_loss)],
                         self._win_loss,
-                        color=COLOR_WIN_LOSS, linewidth=1.2, label="Win Loss", alpha=0.9,
+                        color=COLOR_WIN_LOSS, linewidth=1.2,
+                        label="phi(win)" if is_mapo else "Win Loss", alpha=0.9,
                     )
-                ax3.set_title("Win Loss", fontsize=9, color="#CBD5E1")
+                if is_mapo:
+                    ax3.set_title("phi(win) — bounded reward", fontsize=9, color="#CBD5E1")
+                    ax3.set_ylabel("phi_beta(MSE) [0,1] (higher = better win fit)", fontsize=7)
+                    ax3.set_ylim(0.0, 1.0)
+                else:
+                    ax3.set_title("Win Loss", fontsize=9, color="#CBD5E1")
+                    ax3.set_ylabel("(loss_win - ref_loss_win) / ref_loss_win", fontsize=7)
                 ax3.set_xlabel("step", fontsize=8)
-                is_mapo = self._state.addift_mode_name.get() == "mapo"
-                ax3.set_ylabel(
-                    "MSE(policy, noise) [masked, absolute]" if is_mapo
-                    else "(loss_win - ref_loss_win) / ref_loss_win",
-                    fontsize=7,
-                )
                 ax3.grid(True)
 
                 if self._lose_loss:
                     ax4.plot(
                         self._steps[:len(self._lose_loss)],
                         self._lose_loss,
-                        color=COLOR_LOSE_LOSS, linewidth=1.2, label="Lose Loss", alpha=0.9,
+                        color=COLOR_LOSE_LOSS, linewidth=1.2,
+                        label="phi(lose)" if is_mapo else "Lose Loss", alpha=0.9,
                     )
-                ax4.set_title("Lose Loss", fontsize=9, color="#CBD5E1")
+                if is_mapo:
+                    ax4.set_title("phi(lose) — bounded reward", fontsize=9, color="#CBD5E1")
+                    ax4.set_ylabel("phi_beta(MSE) [0,1] (lower = worse lose fit, desired)", fontsize=7)
+                    ax4.set_ylim(0.0, 1.0)
+                else:
+                    ax4.set_title("Lose Loss", fontsize=9, color="#CBD5E1")
+                    ax4.set_ylabel("(loss_lose - ref_loss_lose) / ref_loss_lose", fontsize=7)
                 ax4.set_xlabel("step", fontsize=8)
-                ax4.set_ylabel(
-                    "MSE(policy, noise) [masked, absolute]" if is_mapo
-                    else "(loss_lose - ref_loss_lose) / ref_loss_lose",
-                    fontsize=7,
-                )
                 ax4.grid(True)
 
                 # SDPO: lambda_safe([0,1]) / MaPO: margin_gap([-1,1]) を

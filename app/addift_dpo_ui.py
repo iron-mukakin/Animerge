@@ -191,11 +191,18 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
             for widget, grid_kwargs in row:
                 widget.grid(row=row_index, **grid_kwargs)
 
-    def _reflect_dpo_mode_state(_event: object = None) -> None:
-        selected_key = mode_key_by_label.get(mode_display.get())
-        if selected_key is not None:
-            state.addift_mode_name.set(selected_key)
+    def _render_dpo_mode_widgets() -> None:
+        """現在の state.addift_mode_enabled / state.addift_mode_name に基づき、
+        コンボボックスの活性状態・モード別オプションの表示/非表示・データセット
+        ラベル・EarlyStoppingDPOパネルの可視性をまとめて描画する。
 
+        表示(mode_display)とstate(addift_mode_name)の同期はこの関数の責務外。
+        呼び出し元(_reflect_dpo_mode_state / _sync_mode_controls_from_state)が
+        同期方向をそれぞれ確定させてから呼び出すこと。
+
+        Returns:
+            None
+        """
         enabled = state.addift_mode_enabled.get()
         mode_combobox.configure(state="readonly" if enabled else tk.DISABLED)
 
@@ -217,6 +224,25 @@ def build_dpo_mode_controls(parent: ttk.Frame, state: object) -> ttk.LabelFrame:
 
         _refresh_dataset_labels(state)
         getattr(state, "_dpo_adv_visibility_cb", lambda: None)()
+
+    def _reflect_dpo_mode_state(_event: object = None) -> None:
+        """ウィジェット操作(コンボボックス選択・チェック操作)を受けて、
+        表示中の値をstateへ反映してから描画する (表示→state方向)。
+        """
+        selected_key = mode_key_by_label.get(mode_display.get())
+        if selected_key is not None:
+            state.addift_mode_name.set(selected_key)
+        _render_dpo_mode_widgets()
+
+    def _sync_mode_controls_from_state() -> None:
+        """プリセット読込など、外部からstateが変更された場合に表示側を同期する
+        (state→表示方向)。_reflect_dpo_mode_state()とは同期方向が逆である点に注意。
+        """
+        current_key = state.addift_mode_name.get()
+        mode_display.set(mode_label_by_key.get(current_key, mode_label_by_key[ADDIFT_MODE_DPO]))
+        _render_dpo_mode_widgets()
+
+    state._dpo_mode_sync_cb = _sync_mode_controls_from_state
 
     win_aux_check.configure(command=_reflect_dpo_mode_state)
     mapo_bg_check.configure(command=_reflect_dpo_mode_state)
@@ -422,5 +448,7 @@ def apply_dpo_mode_preset(state: object, data: dict) -> None:
     _restore(state.es_dpo_enabled,         "es_dpo_enabled",         False)
     _restore(state.es_dpo_patience,        "es_dpo_patience",        _DEFAULT_ES_DPO_PATIENCE)
     _restore(state.es_dpo_warmup_ratio,    "es_dpo_warmup_ratio",    _DEFAULT_ES_DPO_WARMUP_RATIO)
-    _refresh_dataset_labels(state)
-    getattr(state, "_dpo_adv_visibility_cb", lambda: None)()
+    # コンボボックス表示・モード別オプションの表示/非表示をstateへ同期する。
+    # (_refresh_dataset_labels/_dpo_adv_visibility_cbは_sync_mode_controls_from_state
+    #  内の_render_dpo_mode_widgets()が呼び出すため、個別の呼び出しは不要になった)
+    getattr(state, "_dpo_mode_sync_cb", lambda: None)()
