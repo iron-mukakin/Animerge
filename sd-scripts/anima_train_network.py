@@ -47,7 +47,22 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             logger.warning("fp8_base and fp8_base_unet are not supported. / fp8_baseとfp8_base_unetはサポートされていません。")
             args.fp8_base = False
             args.fp8_base_unet = False
-        args.fp8_scaled = False  # Anima DiT does not support fp8_scaled
+
+        # 2026-07-18: fp8_scaled(Layer1重み量子化)の強制無効化を撤去。
+        # 単体検証(cosine_similarity>=0.999, relative_error<3%)により、
+        # nn.Linearベースのself_attn/cross_attn/mlp/adaln_modulation層に対する
+        # 数値的整合性を確認済み。ただしBlock Swap(custom_offloading_utils.ModelOffloader)は
+        # scale_weightバッファをスワップ対象に含めないため、fp8_scaledとblocks_to_swapは
+        # 併用禁止(排他)とする。
+        args.fp8_scaled = getattr(args, "fp8_scaled", False)
+        if args.fp8_scaled and args.blocks_to_swap is not None and args.blocks_to_swap > 0:
+            raise ValueError(
+                "fp8_scaled and blocks_to_swap cannot be used together (ModelOffloader does not "
+                "swap the scale_weight buffer, which would corrupt dequantization). "
+                "/ fp8_scaledとblocks_to_swapは併用できません"
+                "(ModelOffloaderはscale_weightバッファをスワップ対象に含めないため、"
+                "逆量子化が破綻します)。"
+            )
 
         if args.cache_text_encoder_outputs_to_disk and not args.cache_text_encoder_outputs:
             logger.warning("cache_text_encoder_outputs_to_disk is enabled, so cache_text_encoder_outputs is also enabled")
@@ -94,21 +109,40 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
     def load_target_model(self, args, weight_dtype, accelerator):
         self.is_swapping_blocks = args.blocks_to_swap is not None and args.blocks_to_swap > 0
 
+        # Anima 3.8B: --progressive_adapter_path 指定時は --qwen35 が必須
+        # (Progressive Cross AdapterはQwen3.5 4Bの隠れ状態を必要とするため)
+        self.use_progressive_adapter = getattr(args, "progressive_adapter_path", None) is not None
+        if self.use_progressive_adapter and not getattr(args, "qwen35", None):
+            raise ValueError(
+                "--progressive_adapter_path を指定する場合は --qwen35 も指定してください。"
+                " / --qwen35 is required when --progressive_adapter_path is set."
+            )
+
         # Load Qwen3 text encoder (tokenizers already loaded in get_tokenize_strategy)
         logger.info("Loading Qwen3 text encoder...")
         qwen3_text_encoder, _ = anima_utils.load_qwen3_text_encoder(args.qwen3, dtype=weight_dtype, device="cpu")
         qwen3_text_encoder.eval()
 
+        text_encoders: list[nn.Module] = [qwen3_text_encoder]
+
+        # Anima 3.8B: Qwen3.5-4B text encoder (semantic branch)
+        if getattr(args, "qwen35", None):
+            logger.info("Loading Qwen3.5 text encoder...")
+            qwen35_text_encoder, _ = anima_utils.load_qwen35_text_encoder(args.qwen35, dtype=weight_dtype, device="cpu")
+            qwen35_text_encoder.eval()
+            text_encoders.append(qwen35_text_encoder)
+
         # Load VAE
+        # 既存バグ修正: qwen_image_autoencoder_kl.load_vae()を直接呼ぶと
+        # --qwen_image_vae_2d が一切参照されず常に3D実装がロードされてしまうため、
+        # 2D/3Dを振り分けるanima_train_utils.load_qwen_image_vae()を経由させる。
         logger.info("Loading Anima VAE...")
-        vae = qwen_image_autoencoder_kl.load_vae(
-            args.vae, device="cpu", disable_mmap=True, spatial_chunk_size=args.vae_chunk_size, disable_cache=args.vae_disable_cache
-        )
+        vae = anima_train_utils.load_qwen_image_vae(args, device="cpu", disable_mmap=True)
         vae.to(weight_dtype)
         vae.eval()
 
         # Return format: (model_type, text_encoders, vae, unet)
-        return "anima", [qwen3_text_encoder], vae, None  # unet loaded lazily
+        return "anima", text_encoders, vae, None  # unet loaded lazily
 
     def load_unet_lazily(self, args, weight_dtype, accelerator, text_encoders) -> tuple[nn.Module, list[nn.Module]]:
         loading_dtype = None if args.fp8_scaled else weight_dtype
@@ -130,6 +164,8 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             loading_device,
             loading_dtype,
             args.fp8_scaled,
+            num_blocks_override=getattr(args, "num_blocks_override", None),
+            progressive_adapter_path=getattr(args, "progressive_adapter_path", None),
         )
 
         # Store unsloth preference so that when the base NetworkTrainer calls
@@ -143,7 +179,27 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             logger.info(f"enable block swap: blocks_to_swap={args.blocks_to_swap}")
             model.enable_block_swap(args.blocks_to_swap, accelerator.device)
 
+        if args.fp8_scaled:
+            # 診断ログ: fp8ストレージが後段(cast_unet等)で上書きされていないか確認するための目印。
+            sample_weight = model.blocks[0].self_attn.q_proj.weight
+            logger.info(
+                f"[fp8_scaled diag] blocks.0.self_attn.q_proj.weight dtype after load: "
+                f"{sample_weight.dtype} (expect torch.float8_e4m3fn here)"
+            )
+
         return model, text_encoders
+
+    def cast_unet(self, args):
+        # 2026-07-19: fp8_scaled使用時、基底クラスのデフォルト実装(常にTrueを返す)のままだと
+        # train_network.train() 内の `unet.to(dtype=unet_weight_dtype)` がfp8常駐重みを
+        # bf16へ無条件で上書きし、Layer1量子化によるVRAM削減効果を丸ごと相殺してしまう。
+        # fp8_scaled使用時はこの再キャストをスキップし、fp8ストレージを維持する。
+        result = not getattr(args, "fp8_scaled", False)
+        logger.info(
+            f"[fp8_scaled diag] cast_unet() called: args.fp8_scaled="
+            f"{getattr(args, 'fp8_scaled', '<attr not set>')!r}, returning {result}"
+        )
+        return result
 
     def get_tokenize_strategy(self, args):
         # Load tokenizers from paths (called before load_target_model, so self.qwen3_tokenizer isn't set yet)
@@ -152,6 +208,8 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             t5_tokenizer_path=args.t5_tokenizer_path,
             qwen3_max_length=args.qwen3_max_token_length,
             t5_max_length=args.t5_max_token_length,
+            qwen35_path=getattr(args, "qwen35", None),
+            qwen35_max_length=getattr(args, "qwen35_max_token_length", 512),
         )
         return tokenize_strategy
 
@@ -161,8 +219,22 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
     def get_latents_caching_strategy(self, args):
         return strategy_anima.AnimaLatentsCachingStrategy(args.cache_latents_to_disk, args.vae_batch_size, args.skip_cache_check)
 
+    def _resolve_qwen35_layer_indices(self, args) -> Optional[list]:
+        """Anima 3.8B: progressive_adapter_pathからQwen3.5のlayer_indicesを検出する(結果はキャッシュする)。
+
+        --progressive_adapter_path が未指定の場合はNoneを返し、semantic branchは無効化される
+        (既存の2.9B/3.8B-without-adapter動作を維持)。
+        """
+        adapter_path = getattr(args, "progressive_adapter_path", None)
+        if not adapter_path:
+            return None
+        if not hasattr(self, "_qwen35_layer_indices_cache"):
+            _, layer_indices = anima_utils.detect_progressive_adapter_architecture(adapter_path)
+            self._qwen35_layer_indices_cache = layer_indices
+        return self._qwen35_layer_indices_cache
+
     def get_text_encoding_strategy(self, args):
-        return strategy_anima.AnimaTextEncodingStrategy()
+        return strategy_anima.AnimaTextEncodingStrategy(layer_indices=self._resolve_qwen35_layer_indices(args))
 
     def post_process_network(self, args, accelerator, network, text_encoders, unet):
         pass
@@ -175,13 +247,19 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
     def get_text_encoder_outputs_caching_strategy(self, args):
         if args.cache_text_encoder_outputs:
             return strategy_anima.AnimaTextEncoderOutputsCachingStrategy(
-                args.cache_text_encoder_outputs_to_disk, args.text_encoder_batch_size, args.skip_cache_check, False
+                args.cache_text_encoder_outputs_to_disk,
+                args.text_encoder_batch_size,
+                args.skip_cache_check,
+                False,
+                layer_indices=self._resolve_qwen35_layer_indices(args),
             )
         return None
 
     def cache_text_encoder_outputs_if_needed(
         self, args, accelerator: Accelerator, unet, vae, text_encoders, dataset: train_util.DatasetGroup, weight_dtype
     ):
+        # Anima 3.8B: text_encoders は [qwen3] または [qwen3, qwen35] のいずれか。
+        # 実装計画.txtのVRAM効率化方針: エンコード完了後はQwen3.5もGPUから解放する。
         if args.cache_text_encoder_outputs:
             if not args.lowram:
                 # We cannot move DiT to CPU because of block swap, so only move VAE
@@ -190,8 +268,9 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
                 vae.to("cpu")
                 clean_memory_on_device(accelerator.device)
 
-            logger.info("move text encoder to gpu")
-            text_encoders[0].to(accelerator.device)
+            logger.info("move text encoder(s) to gpu")
+            for text_encoder in text_encoders:
+                text_encoder.to(accelerator.device)
 
             with accelerator.autocast():
                 dataset.new_cache_text_encoder_outputs(text_encoders, accelerator)
@@ -199,9 +278,10 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             # sample_prompts_te_outputs は anima_sample_gen が毎回エンコードするため不要
             accelerator.wait_for_everyone()
 
-            # move text encoder back to cpu
-            logger.info("move text encoder back to cpu")
-            text_encoders[0].to("cpu")
+            # move text encoder(s) back to cpu
+            logger.info("move text encoder(s) back to cpu")
+            for text_encoder in text_encoders:
+                text_encoder.to("cpu")
 
             if not args.lowram:
                 logger.info("move vae back to original device")
@@ -209,12 +289,48 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
 
             clean_memory_on_device(accelerator.device)
         else:
-            # move text encoder to device for encoding during training/validation
-            text_encoders[0].to(accelerator.device)
+            # move text encoder(s) to device for encoding during training/validation
+            for text_encoder in text_encoders:
+                text_encoder.to(accelerator.device)
+
+    def _is_sample_generation_configured(self, args) -> bool:
+        """apply_fix_020: サンプル生成が実際に有効化されているかを判定する。
+
+        is_text_encoder_not_needed_for_training() が text_encoder を削除して
+        よいかどうかの判定と、sample_images() 自体の間引きゲート(apply_fix_019)
+        の両方から共通で参照し、判定条件を一箇所にまとめる。
+        """
+        if not getattr(args, "sample_prompts", None):
+            return False
+        if not getattr(args, "sample_save_dir", None):
+            return False
+        return bool(
+            getattr(args, "sample_at_first", False)
+            or getattr(args, "sample_every_n_steps", None)
+            or getattr(args, "sample_every_n_epochs", None)
+        )
 
     def sample_images(self, accelerator, args, epoch, global_step, device, vae, tokenizer, text_encoder, unet):
         if not accelerator.is_main_process:
             return
+
+        # apply_fix_019: train_util.sample_images_common() と同一のゲート。
+        # これが無いと sample_prompts / sample_every_n_steps / sample_every_n_epochs を
+        # 何も指定していなくても毎ステップtext_encoder解決処理まで進んでしまい、
+        # cache_text_encoder_outputs使用時は無駄な警告ログが出続ける(学習結果への影響はない)。
+        if global_step == 0:
+            if not args.sample_at_first:
+                return
+        else:
+            if args.sample_every_n_steps is None and args.sample_every_n_epochs is None:
+                return
+            if args.sample_every_n_epochs is not None:
+                # sample_every_n_steps は無視する
+                if epoch is None or epoch % args.sample_every_n_epochs != 0:
+                    return
+            else:
+                if global_step % args.sample_every_n_steps != 0 or epoch is not None:
+                    return
 
         text_encoders = text_encoder if isinstance(text_encoder, list) else [text_encoder]
         te = self.get_models_for_text_encoding(args, accelerator, text_encoders)
@@ -222,11 +338,29 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
 
         # cache_text_encoder_outputs=True の場合 te=None になる。
         # サンプル生成にはTEが必要なので text_encoders[0] を直接使う。
-        if qwen3_te is None and text_encoders:
+        # ただし is_text_encoder_not_needed_for_training() が True の場合、
+        # 基底クラス(train_network.py)側で text_encoder 自体が None に
+        # 置き換えられて削除されているケースがある(apply_fix_016)。
+        # text_encoders[0] が None のまま accelerator.unwrap_model() に渡すと
+        # 'NoneType' object has no attribute '_modules' でクラッシュするため、
+        # None 判定を追加し、次のガードで安全にスキップさせる。
+        if qwen3_te is None and text_encoders and text_encoders[0] is not None:
             qwen3_te = accelerator.unwrap_model(text_encoders[0])
         if qwen3_te is None:
             logger.warning("[SampleGen] text_encoder が None のためスキップします")
             return
+
+        # apply_fix_020: Anima 3.8B (semantic branch) 対応。
+        # text_encoders[1] が存在すれば Qwen3.5(semantic branch)であり、
+        # サンプル生成でも semantic_hidden_states の橋渡しに必要
+        # (実処理は anima_sample_gen.py 側、apply_fix_021 で対応)。
+        # is_text_encoder_not_needed_for_training() 側でサンプル生成設定時は
+        # 削除を抑制しているため通常 None にはならない想定だが、
+        # 念のため qwen3_te と同様に None ガードのみ行う。
+        qwen35_te = None
+        layer_indices = self._resolve_qwen35_layer_indices(args)
+        if layer_indices is not None and len(text_encoders) > 1 and text_encoders[1] is not None:
+            qwen35_te = accelerator.unwrap_model(text_encoders[1])
 
         text_encoding_strategy = strategy_base.TextEncodingStrategy.get_strategy()
         tokenize_strategy = strategy_base.TokenizeStrategy.get_strategy()
@@ -237,6 +371,8 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
             dit=dit,
             vae=vae,
             text_encoder=qwen3_te,
+            semantic_text_encoder=qwen35_te,
+            layer_indices=layer_indices,
             tokenize_strategy=tokenize_strategy,
             text_encoding_strategy=text_encoding_strategy,
             accelerator=accelerator,
@@ -290,15 +426,37 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
                     t.requires_grad_(True)
 
         # Unpack text encoder conditions
-        prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = text_encoder_conds[
-            :4
-        ]  # ignore caption_dropout_rate which is not needed for training step
+        # Anima 3.8B: semantic branch有効時はtext_encoder_conds末尾にsemantic_hidden_states/
+        # semantic_attn_maskが追加される(caption_dropout_rateは既にprocess_batch側で除去済み)。
+        use_semantic_branch = len(text_encoder_conds) >= 6
+        if use_semantic_branch:
+            prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask, semantic_hidden_states, semantic_attn_mask = (
+                text_encoder_conds[:6]
+            )
+        else:
+            prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = text_encoder_conds[
+                :4
+            ]  # ignore caption_dropout_rate which is not needed for training step
+            semantic_hidden_states = None
+            semantic_attn_mask = None
 
         # Move to device
         prompt_embeds = prompt_embeds.to(accelerator.device, dtype=weight_dtype)
         attn_mask = attn_mask.to(accelerator.device)
         t5_input_ids = t5_input_ids.to(accelerator.device, dtype=torch.long)
         t5_attn_mask = t5_attn_mask.to(accelerator.device)
+
+        semantic_hidden_states_list = None
+        if use_semantic_branch:
+            semantic_hidden_states = semantic_hidden_states.to(accelerator.device, dtype=weight_dtype)
+            semantic_attn_mask = semantic_attn_mask.to(accelerator.device)
+            # apply_fix_017: --cache_text_encoder_outputs 使用時、train_util.py の
+            # none_or_stack_elements() がバッチ軸を先頭(dim=0)に挿入するため、
+            # semantic_hidden_states は (B, num_layers, L, D) になる
+            # (ライブエンコード時は (num_layers, B, L, D) のまま dim=0 が層)。
+            # 由来に応じて層方向の軸を切り替えてからunbindする。
+            semantic_layer_axis = 1 if args.cache_text_encoder_outputs else 0
+            semantic_hidden_states_list = list(semantic_hidden_states.unbind(dim=semantic_layer_axis))
 
         # Create padding mask
         bs = latents.shape[0]
@@ -317,6 +475,8 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
                 target_input_ids=t5_input_ids,
                 target_attention_mask=t5_attn_mask,
                 source_attention_mask=attn_mask,
+                semantic_hidden_states=semantic_hidden_states_list,
+                semantic_attention_mask=semantic_attn_mask if use_semantic_branch else None,
             )
         model_pred = model_pred.squeeze(2)  # 5D to 4D, [B, C, 1, H, W] -> [B, C, H, W]
 
@@ -396,6 +556,14 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
         metadata["ss_discrete_flow_shift"] = args.discrete_flow_shift
 
     def is_text_encoder_not_needed_for_training(self, args):
+        # apply_fix_020: サンプル生成が設定されている場合、
+        # cache_text_encoder_outputs使用時もtext_encoderを削除しない。
+        # anima_sample_gen はキャッシュされた埋め込みではなく毎回ライブエンコードで
+        # サンプルを生成する設計のため(cache_text_encoder_outputs_if_needed()の
+        # コメント「sample_prompts_te_outputs は anima_sample_gen が毎回エンコード
+        # するため不要」参照)、text_encoder実体が必要。
+        if self._is_sample_generation_configured(args):
+            return False
         return args.cache_text_encoder_outputs and not self.is_train_text_encoder(args)
 
     def prepare_text_encoder_grad_ckpt_workaround(self, index, text_encoder):
@@ -437,7 +605,14 @@ def setup_parser() -> argparse.ArgumentParser:
     parser = train_network.setup_parser()
     train_util.add_dit_training_arguments(parser)
     anima_train_utils.add_anima_training_arguments(parser)
-    # parser.add_argument("--fp8_scaled", action="store_true", help="Use scaled fp8 for DiT / DiTにスケーリングされたfp8を使う")
+    parser.add_argument(
+        "--fp8_scaled",
+        action="store_true",
+        help="[EXPERIMENTAL] Use scaled (block-quantized) fp8 weights for the Anima DiT. "
+        "Cannot be used together with --blocks_to_swap. "
+        "/ [実験的機能] Anima DiTの重みをスケーリングされたfp8(ブロック量子化)にする。"
+        "--blocks_to_swapとは併用できません。",
+    )
     parser.add_argument(
         "--unsloth_offload_checkpointing",
         action="store_true",

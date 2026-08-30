@@ -44,6 +44,37 @@ def add_anima_training_arguments(parser: argparse.ArgumentParser):
         help="Path to Qwen3-0.6B model (safetensors file or directory)",
     )
     parser.add_argument(
+        "--qwen35",
+        type=str,
+        default=None,
+        help="Path to Qwen3.5-4B model (safetensors file or directory). "
+        "If specified together with --progressive_adapter_path, Anima 3.8B's semantic cross-attention branch is enabled."
+        " / Qwen3.5-4Bモデルへのパス。--progressive_adapter_pathと同時指定でAnima 3.8Bのsemantic cross-attentionブランチを有効化します。",
+    )
+    parser.add_argument(
+        "--qwen35_max_token_length",
+        type=int,
+        default=512,
+        help="Maximum token length for Qwen3.5 tokenizer (default: 512)"
+        " / Qwen3.5トークナイザの最大トークン長(デフォルト: 512)",
+    )
+    parser.add_argument(
+        "--progressive_adapter_path",
+        type=str,
+        default=None,
+        help="Path to Progressive Cross Adapter checkpoint (Anima 3.8B). "
+        "When set, the DiT's native LLMAdapter is wrapped with ProgressiveQwen35CrossAdapter and --qwen35 becomes required."
+        " / Progressive Cross Adapterのcheckpointへのパス(Anima 3.8B用)。"
+        "指定するとDiTのnative LLMAdapterがProgressiveQwen35CrossAdapterでラップされ、--qwen35の指定が必須になります。",
+    )
+    parser.add_argument(
+        "--num_blocks_override",
+        type=int,
+        default=None,
+        help="Override the auto-detected DiT block count. Normally left unset (auto-detected from checkpoint)."
+        " / DiTブロック数の自動検出結果を上書きします。通常は指定不要です(checkpointから自動検出されます)。",
+    )
+    parser.add_argument(
         "--llm_adapter_path",
         type=str,
         default=None,

@@ -2,7 +2,7 @@
 # Original code: NVIDIA CORPORATION & AFFILIATES, licensed under Apache-2.0
 
 import math
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -1301,6 +1301,8 @@ class Anima(nn.Module):
         source_attention_mask: Optional[torch.Tensor] = None,
         t5_input_ids: Optional[torch.Tensor] = None,
         t5_attn_mask: Optional[torch.Tensor] = None,
+        semantic_hidden_states: Optional[Sequence[torch.Tensor]] = None,
+        semantic_attention_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
         Args:
@@ -1312,15 +1314,28 @@ class Anima(nn.Module):
             source_attention_mask: Optional attention mask for Qwen3 embeddings (used with LLM adapter)
             t5_input_ids: Optional T5 token IDs (triggers LLM adapter when provided)
             t5_attn_mask: Optional T5 attention mask
+            semantic_hidden_states: Anima 3.8B用。Qwen3.5 4Bの隠れ状態のリスト
+                (self.llm_adapterがProgressiveQwen35CrossAdapterの場合のみ使用される)
+            semantic_attention_mask: semantic_hidden_states用のattentionマスク
         """
         # Run LLM adapter inside forward for correct DDP gradient synchronization
         if t5_input_ids is not None and self.use_llm_adapter and hasattr(self, "llm_adapter"):
-            crossattn_emb = self.llm_adapter(
-                source_hidden_states=crossattn_emb,
-                target_input_ids=t5_input_ids,
-                target_attention_mask=t5_attn_mask,
-                source_attention_mask=source_attention_mask,
-            )
+            if isinstance(self.llm_adapter, ProgressiveQwen35CrossAdapter):
+                crossattn_emb = self.llm_adapter(
+                    native_source_hidden_states=crossattn_emb,
+                    target_input_ids=t5_input_ids,
+                    semantic_hidden_states=semantic_hidden_states,
+                    target_attention_mask=t5_attn_mask,
+                    native_source_mask=source_attention_mask,
+                    semantic_source_mask=semantic_attention_mask,
+                )
+            else:
+                crossattn_emb = self.llm_adapter(
+                    source_hidden_states=crossattn_emb,
+                    target_input_ids=t5_input_ids,
+                    target_attention_mask=t5_attn_mask,
+                    source_attention_mask=source_attention_mask,
+                )
             if t5_attn_mask is not None:
                 crossattn_emb[~t5_attn_mask.bool()] = 0
 
@@ -1369,21 +1384,46 @@ class Anima(nn.Module):
         target_input_ids: Optional[torch.Tensor] = None,
         target_attention_mask: Optional[torch.Tensor] = None,
         source_attention_mask: Optional[torch.Tensor] = None,
+        semantic_hidden_states: Optional[Sequence[torch.Tensor]] = None,
+        semantic_attention_mask: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> torch.Tensor:
-        context = self._preprocess_text_embeds(context, target_input_ids, target_attention_mask, source_attention_mask)
+        context = self._preprocess_text_embeds(
+            context,
+            target_input_ids,
+            target_attention_mask,
+            source_attention_mask,
+            semantic_hidden_states=semantic_hidden_states,
+            semantic_attention_mask=semantic_attention_mask,
+        )
         return self.forward_mini_train_dit(x, timesteps, context, fps=fps, padding_mask=padding_mask, **kwargs)
 
     def _preprocess_text_embeds(
-        self, source_hidden_states, target_input_ids, target_attention_mask=None, source_attention_mask=None
+        self,
+        source_hidden_states,
+        target_input_ids,
+        target_attention_mask=None,
+        source_attention_mask=None,
+        semantic_hidden_states: Optional[Sequence[torch.Tensor]] = None,
+        semantic_attention_mask: Optional[torch.Tensor] = None,
     ):
         if target_input_ids is not None:
-            context = self.llm_adapter(
-                source_hidden_states,
-                target_input_ids,
-                target_attention_mask=target_attention_mask,
-                source_attention_mask=source_attention_mask,
-            )
+            if isinstance(self.llm_adapter, ProgressiveQwen35CrossAdapter):
+                context = self.llm_adapter(
+                    native_source_hidden_states=source_hidden_states,
+                    target_input_ids=target_input_ids,
+                    semantic_hidden_states=semantic_hidden_states,
+                    target_attention_mask=target_attention_mask,
+                    native_source_mask=source_attention_mask,
+                    semantic_source_mask=semantic_attention_mask,
+                )
+            else:
+                context = self.llm_adapter(
+                    source_hidden_states,
+                    target_input_ids,
+                    target_attention_mask=target_attention_mask,
+                    source_attention_mask=source_attention_mask,
+                )
             context[~target_attention_mask.bool()] = 0  # zero out padding tokens
             return context
         else:
@@ -1614,6 +1654,256 @@ class LLMAdapter(nn.Module):
                 position_embeddings_context=position_embeddings_context,
             )
         return self.norm(self.out_proj(x))
+
+
+_ADAPTER_NORM_EPS = 1e-6  # LLMAdapterRMSNorm系で使う既定のepsilon(マジックナンバー回避)
+
+
+class ProgressiveQwen35CrossAdapter(nn.Module):
+    """LLaMA-Pro方式でLLMAdapterをQwen3.5 4B対応に拡張するアダプタ。
+
+    既存の6ブロックLLMAdapter(Qwen3 0.6B用、native_adapter)を完全凍結し、
+    各ブロックの直後にQwen3.5 4Bの中間層へのクロスアテンション残差を新規に
+    挿入する。新規パラメータ(semantic_attentions等)のみが学習対象となる。
+    """
+
+    architecture = "anima_progressive_qwen35_cross_adapter_v1"
+
+    def __init__(
+        self,
+        native_adapter: "LLMAdapter",
+        semantic_source_dim: int,
+        layer_indices: Sequence[int],
+    ) -> None:
+        """アダプタを構築する。
+
+        Args:
+            native_adapter: 凍結対象となる既存のLLMAdapter(Qwen3 0.6B用)。
+            semantic_source_dim: Qwen3.5 4Bの隠れ層次元(例: 2560)。
+            layer_indices: Qwen3.5 4Bから抽出する隠れ状態の層index列。
+                (例: [7, 15, 23, 31]。native_adapterのブロック数と同数である必要はない)
+        """
+        super().__init__()
+        self.native_adapter = native_adapter
+        self.layer_indices = tuple(int(index) for index in layer_indices)
+
+        model_dim = native_adapter.embed.weight.shape[1]
+        num_heads = native_adapter.blocks[0].self_attn.n_heads
+        head_dim = model_dim // num_heads
+
+        self.query_norms = nn.ModuleList(
+            [LLMAdapterRMSNorm(model_dim, eps=_ADAPTER_NORM_EPS) for _ in native_adapter.blocks]
+        )
+        self.source_norms = nn.ModuleList(
+            [LLMAdapterRMSNorm(semantic_source_dim, eps=_ADAPTER_NORM_EPS) for _ in native_adapter.blocks]
+        )
+        self.semantic_attentions = nn.ModuleList(
+            [
+                LLMAdapterAttention(
+                    query_dim=model_dim,
+                    context_dim=semantic_source_dim,
+                    n_heads=num_heads,
+                    head_dim=head_dim,
+                )
+                for _ in native_adapter.blocks
+            ]
+        )
+        self.layer_mix_logits = nn.Parameter(
+            torch.zeros(len(native_adapter.blocks), len(self.layer_indices))
+        )
+
+        if not self._has_unmaterialized_parameters():
+            self._copy_native_weights_into_adapter()
+        self.set_trainability()
+
+    def _has_unmaterialized_parameters(self) -> bool:
+        """init_empty_weights配下等でパラメータが未実体化(meta device)かどうかを判定する。"""
+        return any(
+            hasattr(module, "weight") and module.weight is not None and module.weight.is_meta
+            for module in self.modules()
+        )
+
+    @torch.no_grad()
+    def _copy_native_weights_into_adapter(self) -> None:
+        """native_adapterの各ブロックのcross_attn重みを新規semantic_attentionsへ複製する。
+
+        q_proj / q_norm / k_norm はnative側からの複製、k_proj / v_proj はxavier初期化、
+        output_proj(o_proj)はゼロ初期化とし、学習開始時点でnative出力に対する残差が
+        ゼロになるようにする(元実装のzero_residual_outputs方針に準拠)。
+        """
+        for native_block, query_norm, source_norm, semantic_attention in zip(
+            self.native_adapter.blocks, self.query_norms, self.source_norms, self.semantic_attentions
+        ):
+            query_norm.weight.copy_(native_block.norm_cross_attn.weight)
+            semantic_attention.q_proj.weight.copy_(native_block.cross_attn.q_proj.weight)
+            semantic_attention.q_norm.weight.copy_(native_block.cross_attn.q_norm.weight)
+            semantic_attention.k_norm.weight.copy_(native_block.cross_attn.k_norm.weight)
+            nn.init.xavier_uniform_(semantic_attention.k_proj.weight)
+            nn.init.xavier_uniform_(semantic_attention.v_proj.weight)
+            semantic_attention.o_proj.weight.zero_()
+            source_norm.weight.fill_(1.0)
+
+        if self.layer_mix_logits.shape[1] > 1:
+            spread = torch.linspace(
+                -0.5,
+                0.5,
+                self.layer_mix_logits.shape[1],
+                device=self.layer_mix_logits.device,
+                dtype=self.layer_mix_logits.dtype,
+            )
+            self.layer_mix_logits.copy_(spread.repeat(self.layer_mix_logits.shape[0], 1))
+
+    def set_trainability(self) -> None:
+        """native_adapterを凍結し、新規追加パラメータのみを学習可能にする。"""
+        self.native_adapter.requires_grad_(False)
+        for name, parameter in self.named_parameters():
+            parameter.requires_grad_(not name.startswith("native_adapter."))
+
+    @staticmethod
+    def _normalize_attention_mask(mask: Optional[torch.Tensor]) -> Optional[torch.Tensor]:
+        """2次元のbool/0-1マスクをattentionが要求する4次元形状へ整形する。"""
+        if mask is None:
+            return None
+        mask = mask.to(torch.bool)
+        return mask.unsqueeze(1).unsqueeze(1) if mask.ndim == 2 else mask
+
+    @staticmethod
+    def _mix_semantic_sources(
+        hidden_states: Sequence[torch.Tensor], mix_weights: torch.Tensor, block_index: int
+    ) -> torch.Tensor:
+        """複数のQwen3.5隠れ状態を、学習済み混合重み(softmax後)で加重和する。"""
+        return sum(
+            hidden * mix_weights[block_index, layer_index]
+            for layer_index, hidden in enumerate(hidden_states)
+        )
+
+    def forward(
+        self,
+        native_source_hidden_states: torch.Tensor,
+        target_input_ids: torch.Tensor,
+        semantic_hidden_states: Sequence[torch.Tensor],
+        target_attention_mask: Optional[torch.Tensor] = None,
+        native_source_mask: Optional[torch.Tensor] = None,
+        semantic_source_mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """Qwen3 0.6B由来とQwen3.5 4B由来の両方を条件付けに使い、T5互換空間へ出力する。
+
+        Args:
+            native_source_hidden_states: Qwen3 0.6Bの隠れ状態(既存LLMAdapterのsource)。
+            target_input_ids: T5トークンID列(既存LLMAdapterと同じ使い方)。
+            semantic_hidden_states: Qwen3.5 4Bから抽出した隠れ状態のリスト。
+                長さは`self.layer_indices`と一致していなければならない。
+            target_attention_mask: target側(T5トークン)のattentionマスク。
+            native_source_mask: Qwen3 0.6B側のattentionマスク。
+            semantic_source_mask: Qwen3.5 4B側のattentionマスク。
+
+        Returns:
+            既存LLMAdapterと同一shapeのT5互換空間conditioning。
+
+        Raises:
+            ValueError: semantic_hidden_statesの長さがlayer_indicesと一致しない場合。
+        """
+        if len(semantic_hidden_states) != len(self.layer_indices):
+            raise ValueError(
+                f"semantic_hidden_statesは{len(self.layer_indices)}層分が必要ですが、"
+                f"{len(semantic_hidden_states)}層が渡されました。"
+            )
+
+        target_attention_mask = self._normalize_attention_mask(target_attention_mask)
+        native_source_mask = self._normalize_attention_mask(native_source_mask)
+        semantic_source_mask = self._normalize_attention_mask(semantic_source_mask)
+
+        x = self.native_adapter.in_proj(self.native_adapter.embed(target_input_ids))
+
+        query_positions = torch.arange(x.shape[1], device=x.device).unsqueeze(0)
+        native_positions = torch.arange(native_source_hidden_states.shape[1], device=x.device).unsqueeze(0)
+        semantic_positions = torch.arange(semantic_hidden_states[0].shape[1], device=x.device).unsqueeze(0)
+
+        query_rope = self.native_adapter.rotary_emb(x, query_positions)
+        native_rope = self.native_adapter.rotary_emb(x, native_positions)
+        semantic_rope = self.native_adapter.rotary_emb(x, semantic_positions)
+
+        mix_weights = self.layer_mix_logits.float().softmax(dim=-1).to(dtype=x.dtype)
+
+        for block_index, native_block in enumerate(self.native_adapter.blocks):
+            x = native_block(
+                x,
+                native_source_hidden_states,
+                target_attention_mask=target_attention_mask,
+                source_attention_mask=native_source_mask,
+                position_embeddings=query_rope,
+                position_embeddings_context=native_rope,
+            )
+
+            mixed_semantic_source = self.source_norms[block_index](
+                self._mix_semantic_sources(semantic_hidden_states, mix_weights, block_index)
+            )
+            x = x + self.semantic_attentions[block_index](
+                self.query_norms[block_index](x),
+                mask=semantic_source_mask,
+                context=mixed_semantic_source,
+                position_embeddings=query_rope,
+                position_embeddings_context=semantic_rope,
+            )
+
+        return self.native_adapter.norm(self.native_adapter.out_proj(x))
+
+    def collect_trainable_state_dict(self) -> Dict[str, torch.Tensor]:
+        """native_adapter以外(新規追加分のみ)のstate_dictをCPU上に複製して返す。
+
+        差分チェックポイント保存(Anima-3.8B-expanded_adapter.safetensors方式)に使う。
+        """
+        return {
+            name: value.detach().cpu()
+            for name, value in self.state_dict().items()
+            if not name.startswith("native_adapter.")
+        }
+
+    def assign_trainable_state_dict(self, state_dict: Dict[str, torch.Tensor]) -> None:
+        """差分チェックポイントを新規追加分のパラメータへ割り当てる。
+
+        Args:
+            state_dict: `collect_trainable_state_dict`と同じキー体系のstate_dict。
+
+        Raises:
+            RuntimeError: 想定キーとの間にmissing/unexpectedが生じた場合。
+        """
+        if self._has_unmaterialized_parameters():
+            incompatible = self.load_state_dict(state_dict, strict=False)
+            missing = sorted(
+                name for name in incompatible.missing_keys if not name.startswith("native_adapter.")
+            )
+            unexpected = sorted(incompatible.unexpected_keys)
+        else:
+            current_state_dict = self.state_dict()
+            expected_keys = {name for name in current_state_dict if not name.startswith("native_adapter.")}
+            missing = sorted(expected_keys - set(state_dict))
+            unexpected = sorted(set(state_dict) - expected_keys)
+            if not missing and not unexpected:
+                current_state_dict.update(state_dict)
+                self.load_state_dict(current_state_dict, strict=True)
+
+        if missing or unexpected:
+            raise RuntimeError(
+                f"Cross adapter checkpointのキーが一致しません: missing={missing}, unexpected={unexpected}"
+            )
+        self.set_trainability()
+
+    def summarize_parameters(self) -> Dict[str, int]:
+        """凍結/学習対象パラメータ数の内訳を返す(ログ出力用)。"""
+        frozen = sum(parameter.numel() for parameter in self.native_adapter.parameters())
+        trainable = sum(parameter.numel() for parameter in self.parameters() if parameter.requires_grad)
+        return {
+            "frozen_native": frozen,
+            "trainable_cross_attentions": sum(
+                parameter.numel() for parameter in self.semantic_attentions.parameters()
+            ),
+            "trainable_norms": sum(parameter.numel() for parameter in self.query_norms.parameters())
+            + sum(parameter.numel() for parameter in self.source_norms.parameters()),
+            "trainable_routing": self.layer_mix_logits.numel(),
+            "total_trainable": trainable,
+            "total_parameters": sum(parameter.numel() for parameter in self.parameters()),
+        }
 
 
 # Not used currently, but kept for reference

@@ -24,9 +24,60 @@ RE_UPDOWN = re.compile(r"(up|down)_blocks_(\d+)_(resnets|upsamplers|downsamplers
 # Anima DiT: lora_unet_blocks_N_ 形式のキー名からブロックインデックスを抽出する
 RE_ANIMA_BLOCK = re.compile(r"lora_unet_blocks_(\d+)_")
 
-# blocks.N → Block カテゴリ（Input/Middle/Output）
-# blocks.0-8=Input, blocks.9-18=Middle, blocks.19-27=Output
-_ANIMA_BLOCK_CAT: List[str] = ["Input"] * 9 + ["Middle"] * 10 + ["Output"] * 9
+
+def detect_anima_num_blocks(unet) -> Optional[int]:
+    """ロード済みunet(Anima本体)から実際のDiTブロック総数を自動検出する。
+
+    Anima Base 1.0(2B)/2.9B preview/3.8Bなど、系統によってブロック数
+    (28/40/52など)が異なるため、決め打ちせずロード済みモデルの実構造から
+    数える。これにより、どの系統のcheckpointをロードしてもper-block LR
+    機能が正しいブロック数で動作する。
+
+    Args:
+        unet: ロード済みのDiTモデル(Anima本体)。SDXL等の場合は"Block"クラスの
+            モジュールが存在しないため None を返す。
+
+    Returns:
+        検出されたブロック総数。Animaモデルでない場合はNone。
+    """
+    if unet is None:
+        return None
+    count = sum(1 for module in unet.modules() if type(module).__name__ == "Block")
+    return count if count > 0 else None
+
+
+def generate_anima_block_categories(num_blocks: int) -> List[str]:
+    """ブロック総数からInput/Middle/Outputカテゴリ列を生成する(Matrix mode用)。
+
+    Anima Base 1.0(28 blocks)では厳密に9/10/9分割(オリジナル実装と完全一致)。
+    それ以外のブロック数(2.9B preview=40, 3.8B=52等)では、LLaMA-Pro拡張により
+    挿入されたブロックの正確な深度対応は個々のcheckpoint metadataでしか分から
+    ないため、均等3分割(前半=Input, 中央=Middle, 後半=Output、余りはMiddleに
+    加算)で近似する。9/10/9というオリジナル比率(約32%/36%/32%)にも意図的に
+    近い配分にしている。
+
+    Args:
+        num_blocks: DiTの総ブロック数。
+
+    Returns:
+        長さnum_blocksの"Input"/"Middle"/"Output"カテゴリ列。
+
+    Raises:
+        ValueError: num_blocksが1未満の場合。
+    """
+    if num_blocks < 1:
+        raise ValueError(f"num_blocks must be >= 1, got {num_blocks}")
+
+    if num_blocks == 28:
+        # オリジナル実装(9/10/9)とビット単位で一致させる
+        return ["Input"] * 9 + ["Middle"] * 10 + ["Output"] * 9
+
+    third = num_blocks // 3
+    remainder = num_blocks - third * 3
+    input_count = third
+    output_count = third
+    middle_count = third + remainder  # 余りはMiddleに寄せる(オリジナルの9/10/9踏襲)
+    return ["Input"] * input_count + ["Middle"] * middle_count + ["Output"] * output_count
 
 
 def _component_from_lora_name(lora_name: str) -> str:
@@ -49,47 +100,65 @@ def _component_from_lora_name(lora_name: str) -> str:
     return "Other"
 
 
-def get_block_index_anima(lora_name: str) -> int:
+def get_block_index_anima(lora_name: str, num_blocks: Optional[int] = None) -> int:
     """Anima形式のLoRAキー名からブロックインデックスを返す。
 
-    lora_unet_blocks_N_* → N (0..27)
-    マッチしない場合は -1 を返す（block_lr_weight[-1] = fallback 1.0 を参照）。
+    lora_unet_blocks_N_* → N
+    num_blocks指定時は 0 <= N < num_blocks の範囲外を-1(fallback)とする。
+    num_blocks未指定(None)の場合は範囲チェックをせず、マッチした整数をそのまま返す
+    (呼び出し側でブロック総数が未知の場合の安全側フォールバック)。
+
+    Args:
+        lora_name: LoRAモジュール名。
+        num_blocks: 実際にロードされているDiTのブロック総数(detect_anima_num_blocksで検出)。
+
+    Returns:
+        ブロックインデックス。マッチしない、または範囲外の場合は-1。
     """
     m = RE_ANIMA_BLOCK.search(lora_name)
-    if m:
-        n = int(m.group(1))
-        if 0 <= n < 28:  # ANIMA_NUM_BLOCKS
-            return n
-    return -1
+    if not m:
+        return -1
+    n = int(m.group(1))
+    if num_blocks is not None and not (0 <= n < num_blocks):
+        return -1
+    return n
 
 
-def parse_anima_block_lr_weight(weight_str: str, zero_threshold: float = 0.0) -> List[float]:
-    """anima_block_lr_weight=w0,w1,...,w27 を解析し長さ29のリストを返す。
+def parse_anima_block_lr_weight(weight_str: str, num_blocks: int, zero_threshold: float = 0.0) -> List[float]:
+    """anima_block_lr_weight=w0,w1,...,w{num_blocks-1} を解析し長さnum_blocks+1のリストを返す。
 
-    インデックス 0-27: blocks.0～blocks.27 の学習率スケール
-    インデックス 28 (末尾): fallback = 1.0（非Animaキー用）
+    インデックス 0..num_blocks-1: blocks.0～blocks.{num_blocks-1} の学習率スケール
+    インデックス num_blocks (末尾): fallback = 1.0（非Animaキー用）
+
+    Args:
+        weight_str: カンマ区切りの学習率スケール文字列。
+        num_blocks: 実際にロードされているDiTのブロック総数。
+        zero_threshold: この値以下のスケールは0として扱う。
+
+    Returns:
+        長さ num_blocks + 1 のリスト。
     """
     values = [float(s) if s.strip() else 1.0 for s in weight_str.split(",")]
-    if len(values) < 28:
+    if len(values) < num_blocks:
         logger.warning(
-            f"anima_block_lr_weight: {len(values)} values given, expected 28. "
+            f"anima_block_lr_weight: {len(values)} values given, expected {num_blocks}. "
             "Missing blocks are filled with 1.0."
         )
-        values = values + [1.0] * (28 - len(values))
-    elif len(values) > 28:
+        values = values + [1.0] * (num_blocks - len(values))
+    elif len(values) > num_blocks:
         logger.warning(
-            f"anima_block_lr_weight: {len(values)} values given, expected 28. "
+            f"anima_block_lr_weight: {len(values)} values given, expected {num_blocks}. "
             "Extra values are ignored."
         )
-        values = values[:28]
+        values = values[:num_blocks]
 
     # zero_threshold 適用
     values = [w if w > zero_threshold else 0.0 for w in values]
-    logger.info(f"anima_block_lr_weight (blocks.0->blocks.27): {values}")
+    logger.info(f"anima_block_lr_weight (blocks.0->blocks.{num_blocks - 1}): {values}")
 
-    # index 28: fallback for unmatched keys (text encoder etc.)
+    # index num_blocks: fallback for unmatched keys (text encoder etc.)
     values.append(1.0)
-    return values  # len == 29
+    return values  # len == num_blocks + 1
 
 
 class LoRAModule(torch.nn.Module):
@@ -153,13 +222,25 @@ class LoRAModule(torch.nn.Module):
         self.module_dropout = module_dropout
 
     def apply_to(self):
-        self.org_forward = self.org_module.forward
+        # 2026-07-19: self.to()がorg_moduleにも再帰してfp8常駐を破壊する不具合を修正。
+        # org_moduleをローカル変数に退避し、self._modulesから切り離してから
+        # self.to()を呼ぶことで、再帰対象からorg_moduleを確実に除外する。
+        org_module = self.org_module
+        self.org_forward = org_module.forward
         # align LoRA dtype/device to org_module
-        target_dtype = next(self.org_module.parameters()).dtype
-        target_device = next(self.org_module.parameters()).device
+        # 2026-07-18: fp8_scaled対応。org_moduleがfp8量子化済み(weightが1byte型)の場合、
+        # weight.dtypeをそのまま採用するとLoRA(学習対象パラメータ)までfp8化されてしまい、
+        # fp8勾配に対するforeach_norm等が未実装のためクラッシュする。
+        # その場合はscale_weight.dtype(逆量子化後の計算dtype、通常bf16/fp16)を採用する。
+        org_weight = org_module.weight
+        if org_weight.dtype.itemsize == 1 and hasattr(org_module, "scale_weight"):
+            target_dtype = org_module.scale_weight.dtype
+        else:
+            target_dtype = next(org_module.parameters()).dtype
+        target_device = next(org_module.parameters()).device
+        del self.org_module  # self.to()の再帰対象から外すため、to()より前に切り離す
         self.to(dtype=target_dtype, device=target_device)
-        self.org_module.forward = self.forward
-        del self.org_module
+        org_module.forward = self.forward
 
     def forward(self, x):
         org_forwarded = self.org_forward(x)
@@ -460,19 +541,31 @@ class LoRAInfModule(LoRAModule):
         return out
 
 
-def parse_block_lr_kwargs(is_sdxl: bool, nw_kwargs: Dict) -> Optional[List[float]]:
+def parse_block_lr_kwargs(is_sdxl: bool, nw_kwargs: Dict, num_blocks: Optional[int] = None) -> Optional[List[float]]:
     # anima_matrix_scales が指定されている場合: LR 計算は get_lr_weight_for_lora() が担う
     # block_lr_weight リストは不要なため None を返し block_dims バイパスも維持する
-    # ただし block_lr=True にするため番兵として長さ29のダミーリストを返す
+    # ただし block_lr=True にするため番兵として長さ(num_blocks+1)のダミーリストを返す
     if nw_kwargs.get("anima_matrix_scales", None) is not None:
+        if num_blocks is None:
+            raise ValueError(
+                "anima_matrix_scales が指定されましたが、ロードされたモデルがAnima DiTとして"
+                "認識できませんでした(ブロック数を自動検出できません)。Anima以外のモデルで"
+                "この引数は使用できません。"
+            )
         logger.info("anima_matrix_scales detected: using per-module LR via get_lr_weight_for_lora")
-        return [1.0] * 28 + [1.0]  # 長さ29: is_anima 判定を通す / 値は使わない
+        return [1.0] * num_blocks + [1.0]  # 長さnum_blocks+1: is_anima 判定を通す / 値は使わない
 
     # Anima 専用パス: anima_block_lr_weight が指定されている場合は優先
     anima_weight_str = nw_kwargs.get("anima_block_lr_weight", None)
     if anima_weight_str is not None:
+        if num_blocks is None:
+            raise ValueError(
+                "anima_block_lr_weight が指定されましたが、ロードされたモデルがAnima DiTとして"
+                "認識できませんでした(ブロック数を自動検出できません)。Anima以外のモデルで"
+                "この引数は使用できません。"
+            )
         zero_threshold = float(nw_kwargs.get("block_lr_zero_threshold", 0.0))
-        return parse_anima_block_lr_weight(anima_weight_str, zero_threshold)
+        return parse_anima_block_lr_weight(anima_weight_str, num_blocks, zero_threshold)
 
     down_lr_weight = nw_kwargs.get("down_lr_weight", None)
     mid_lr_weight = nw_kwargs.get("mid_lr_weight", None)
@@ -529,14 +622,19 @@ def create_network(
             conv_alpha = float(conv_alpha)
 
     # block dim/alpha/lr
+    # Anima: ロード済みunetから実際のブロック総数を自動検出(28/40/52等、系統ごとに異なる)
+    _anima_num_blocks = detect_anima_num_blocks(unet)
+
     block_dims = kwargs.get("block_dims", None)
-    block_lr_weight = parse_block_lr_kwargs(is_sdxl, kwargs)
+    block_lr_weight = parse_block_lr_kwargs(is_sdxl, kwargs, num_blocks=_anima_num_blocks)
 
     # anima_block_lr_weight 指定時: block_dims 生成フローをバイパスする
     # (get_block_dims_and_alphas は SD1.x 前提で 25 要素を生成するため
-    #  Anima の 29 要素 block_lr_weight と不整合になり IndexError が発生する)
+    #  Anima の block_lr_weight(num_blocks+1要素)と不整合になり IndexError が発生する)
     _is_anima_block_lr = (
-        block_lr_weight is not None and len(block_lr_weight) == 29
+        block_lr_weight is not None
+        and _anima_num_blocks is not None
+        and len(block_lr_weight) == _anima_num_blocks + 1
     )
 
     # 以上のいずれかに指定があればblockごとのdim(rank)を有効にする
@@ -586,6 +684,7 @@ def create_network(
         varbose=True,
         is_sdxl=is_sdxl,
     )
+    network.set_anima_num_blocks(_anima_num_blocks)
 
     loraplus_lr_ratio = kwargs.get("loraplus_lr_ratio", None)
     loraplus_unet_lr_ratio = kwargs.get("loraplus_unet_lr_ratio", None)
@@ -944,6 +1043,8 @@ def create_network_from_weights(multiplier, file, vae, text_encoder, unet, weigh
 
     module_class = LoRAInfModule if for_inference else LoRAModule
 
+    _anima_num_blocks = detect_anima_num_blocks(unet)
+
     network = LoRANetwork(
         text_encoder,
         unet,
@@ -953,9 +1054,10 @@ def create_network_from_weights(multiplier, file, vae, text_encoder, unet, weigh
         module_class=module_class,
         is_sdxl=is_sdxl,
     )
+    network.set_anima_num_blocks(_anima_num_blocks)
 
     # block lr
-    block_lr_weight = parse_block_lr_kwargs(is_sdxl, kwargs)
+    block_lr_weight = parse_block_lr_kwargs(is_sdxl, kwargs, num_blocks=_anima_num_blocks)
     if block_lr_weight is not None:
         network.set_block_lr_weight(block_lr_weight)
 
@@ -1157,6 +1259,7 @@ class LoRANetwork(torch.nn.Module):
         self.block_lr_weight = None
         self.block_lr = False
         self.anima_matrix_scales: Optional[dict] = None  # Matrix モード用 {"Input_Attention": 0.8, ...}
+        self.anima_num_blocks: Optional[int] = None  # 実際にロードされたDiTのブロック総数(自動検出値)
 
         # assertion
         names = set()
@@ -1236,6 +1339,16 @@ class LoRANetwork(torch.nn.Module):
         self.block_lr = True
         self.block_lr_weight = block_lr_weight
 
+    def set_anima_num_blocks(self, num_blocks: Optional[int]) -> None:
+        """実際にロードされたAnima DiTのブロック総数を設定する(自動検出値)。
+
+        create_network() / create_network_from_weights() から、ロード済みunetを
+        detect_anima_num_blocks()で調べた結果が渡される。Base 1.0(2B)/2.9B
+        preview/3.8Bのどれをロードしても、以降のper-block LR処理が正しい
+        ブロック数で動作するようになる。非Animaモデルの場合はNone。
+        """
+        self.anima_num_blocks = num_blocks
+
     def get_lr_weight(self, block_idx: int) -> float:
         if not self.block_lr or self.block_lr_weight is None:
             return 1.0
@@ -1258,15 +1371,22 @@ class LoRANetwork(torch.nn.Module):
             マッチしない場合は 1.0。
         未設定の場合:
             既存の get_lr_weight(get_block_index_anima(lora_name)) に委譲。
+
+        ブロックカテゴリ(Input/Middle/Output)は self.anima_num_blocks から
+        動的に生成する(generate_anima_block_categories)。Base 1.0/2.9B/3.8Bの
+        どれでも正しいブロック数に追従する。
         """
         if self.anima_matrix_scales:
-            b_idx = get_block_index_anima(lora_name)
-            cat = _ANIMA_BLOCK_CAT[b_idx] if 0 <= b_idx < 28 else "Other"
+            b_idx = get_block_index_anima(lora_name, self.anima_num_blocks)
+            if self.anima_num_blocks is not None and 0 <= b_idx < self.anima_num_blocks:
+                cat = generate_anima_block_categories(self.anima_num_blocks)[b_idx]
+            else:
+                cat = "Other"
             comp = _component_from_lora_name(lora_name)
             key = f"{cat}_{comp}"
             return float(self.anima_matrix_scales.get(key, 1.0))
         # フォールバック: block 単位の LR
-        b_idx = get_block_index_anima(lora_name)
+        b_idx = get_block_index_anima(lora_name, self.anima_num_blocks)
         return self.get_lr_weight(b_idx)
 
     def set_loraplus_lr_ratio(self, loraplus_lr_ratio, loraplus_unet_lr_ratio, loraplus_text_encoder_lr_ratio):
@@ -1337,10 +1457,12 @@ class LoRANetwork(torch.nn.Module):
 
         if self.unet_loras:
             if self.block_lr:
-                # Anima キー判定: block_lr_weight の長さが 29 == Anima パス
+                # Anima キー判定: block_lr_weight の長さが (anima_num_blocks + 1) == Anima パス
+                # anima_num_blocksは実際にロードされたモデル(Base1.0/2.9B/3.8B等)から自動検出済み。
                 is_anima = (
                     self.block_lr_weight is not None
-                    and len(self.block_lr_weight) == 29  # 28 blocks + 1 fallback
+                    and self.anima_num_blocks is not None
+                    and len(self.block_lr_weight) == self.anima_num_blocks + 1
                 )
 
                 if is_anima:
@@ -1348,9 +1470,10 @@ class LoRANetwork(torch.nn.Module):
                     # anima_matrix_scales が設定されている場合は (block_idx, comp) でグループ化
                     # それ以外は block_idx 単位（従来動作）
                     if self.anima_matrix_scales:
+                        anima_categories = generate_anima_block_categories(self.anima_num_blocks)
                         group_to_lora: dict = {}
                         for lora in self.unet_loras:
-                            b_idx = get_block_index_anima(lora.lora_name)
+                            b_idx = get_block_index_anima(lora.lora_name, self.anima_num_blocks)
                             comp  = _component_from_lora_name(lora.lora_name)
                             key = (b_idx, comp)
                             group_to_lora.setdefault(key, []).append(lora)
@@ -1358,7 +1481,7 @@ class LoRANetwork(torch.nn.Module):
                         for (b_idx, comp), group_loras in group_to_lora.items():
                             scale = self.get_lr_weight_for_lora(group_loras[0].lora_name)
                             base_lr = unet_lr if unet_lr is not None else default_lr
-                            cat = _ANIMA_BLOCK_CAT[b_idx] if 0 <= b_idx < 28 else "Other"
+                            cat = anima_categories[b_idx] if 0 <= b_idx < self.anima_num_blocks else "Other"
                             label = f"anima_{cat}_{comp}" if b_idx >= 0 else f"anima_other_{comp}"
                             params, descriptions = assemble_params(
                                 group_loras,
@@ -1373,7 +1496,7 @@ class LoRANetwork(torch.nn.Module):
                         # block 単位グループ化（Transformer モード / anima_block_lr_weight）
                         block_idx_to_lora: dict = {}
                         for lora in self.unet_loras:
-                            idx = get_block_index_anima(lora.lora_name)
+                            idx = get_block_index_anima(lora.lora_name, self.anima_num_blocks)
                             block_idx_to_lora.setdefault(idx, []).append(lora)
 
                         for idx, block_loras in block_idx_to_lora.items():

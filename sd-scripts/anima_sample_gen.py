@@ -22,7 +22,7 @@ import gc
 import os
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Sequence
 
 import numpy as np
 import torch
@@ -52,6 +52,8 @@ def encode_prompt_for_sample(
     dit: anima_models.Anima,
     device: torch.device,
     dtype: torch.dtype,
+    semantic_text_encoder: Optional[torch.nn.Module] = None,
+    layer_indices: Optional[Sequence[int]] = None,
 ):
     """プロンプトをエンコードし _preprocess_text_embeds を適用して返す。
 
@@ -59,12 +61,26 @@ def encode_prompt_for_sample(
     -------
     crossattn_emb : torch.Tensor  shape (1, N, D)  前処理済みテンソル
     """
+    # apply_fix_021: Anima 3.8B (semantic branch) 対応。
+    # semantic_text_encoder / layer_indices が両方揃っている場合のみ
+    # Qwen3.5を含めた2モデル構成でencode_tokens()を呼ぶ
+    # (encode_tokens内部のuse_semantic_branch判定はlen(models)>1に依存するため、
+    # ここで渡すmodelsの要素数がそのままsemantic branch有効・無効を決める)。
+    use_semantic_branch = semantic_text_encoder is not None and layer_indices is not None
+    models = [text_encoder, semantic_text_encoder] if use_semantic_branch else [text_encoder]
+
     tokens = tokenize_strategy.tokenize(prompt)
     # encode_tokens returns [prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask]
+    # (use_semantic_branch時は末尾に[semantic_hidden_states, semantic_attn_mask]が続く)
     with torch.no_grad():
-        embed = text_encoding_strategy.encode_tokens(tokenize_strategy, [text_encoder], tokens)
+        embed = text_encoding_strategy.encode_tokens(tokenize_strategy, models, tokens)
 
-    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = embed
+    if use_semantic_branch:
+        prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask, semantic_hidden_states, semantic_attn_mask = embed
+    else:
+        prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = embed
+        semantic_hidden_states = None
+        semantic_attn_mask = None
 
     # numpy -> tensor (キャッシュから来た場合)
     if isinstance(prompt_embeds, np.ndarray):
@@ -75,6 +91,11 @@ def encode_prompt_for_sample(
         t5_input_ids = torch.from_numpy(t5_input_ids)
     if isinstance(t5_attn_mask, np.ndarray):
         t5_attn_mask = torch.from_numpy(t5_attn_mask)
+    if use_semantic_branch:
+        if isinstance(semantic_hidden_states, np.ndarray):
+            semantic_hidden_states = torch.from_numpy(semantic_hidden_states)
+        if isinstance(semantic_attn_mask, np.ndarray):
+            semantic_attn_mask = torch.from_numpy(semantic_attn_mask)
 
     # batch dim 付与（tokenize が単文字列の場合バッチ次元がない場合がある）
     if prompt_embeds.ndim == 2:
@@ -82,11 +103,21 @@ def encode_prompt_for_sample(
         attn_mask     = attn_mask.unsqueeze(0)
         t5_input_ids  = t5_input_ids.unsqueeze(0)
         t5_attn_mask  = t5_attn_mask.unsqueeze(0)
+        if use_semantic_branch:
+            # semantic_hidden_states: (num_layers, L, D) -> (num_layers, 1, L, D)
+            semantic_hidden_states = semantic_hidden_states.unsqueeze(1)
+            semantic_attn_mask = semantic_attn_mask.unsqueeze(0)
 
     prompt_embeds = prompt_embeds.to(device, dtype=dtype)
     attn_mask     = attn_mask.to(device)
     t5_input_ids  = t5_input_ids.to(device)
     t5_attn_mask  = t5_attn_mask.to(device)
+    semantic_hidden_states_list = None
+    if use_semantic_branch:
+        semantic_hidden_states = semantic_hidden_states.to(device, dtype=dtype)
+        semantic_attn_mask = semantic_attn_mask.to(device)
+        # このモジュールは常にライブエンコードのため、軸は (num_layers, B, L, D) のまま dim=0
+        semantic_hidden_states_list = list(semantic_hidden_states.unbind(dim=0))
 
     # --- 診断ログ2: adapter 通過前 Qwen3 raw output ---
     qwen3_norm     = float(prompt_embeds.norm().item())
@@ -110,6 +141,8 @@ def encode_prompt_for_sample(
             target_input_ids=t5_input_ids,
             target_attention_mask=t5_attn_mask,
             source_attention_mask=attn_mask,
+            semantic_hidden_states=semantic_hidden_states_list,
+            semantic_attention_mask=semantic_attn_mask if use_semantic_branch else None,
         )
         # T5 attn mask でパディング位置をゼロ埋め（anima_minimal_inference.py と同一処理）
         crossattn_emb[~t5_attn_mask.bool()] = 0
@@ -263,6 +296,8 @@ def generate_sample(
     text_encoding_strategy,
     device: torch.device,
     dtype: torch.dtype,
+    semantic_text_encoder: Optional[torch.nn.Module] = None,
+    layer_indices: Optional[Sequence[int]] = None,
 ) -> Image.Image:
     """1プロンプトのサンプル画像を生成して返す。
 
@@ -281,19 +316,29 @@ def generate_sample(
     # テキストエンコード（TEをデバイスへ）
     org_te_device = text_encoder.device
     text_encoder.to(device, dtype=dtype)
+    # apply_fix_021: Anima 3.8B (semantic branch) 対応。Qwen3.5も同様に一時的にGPUへ。
+    org_semantic_te_device = semantic_text_encoder.device if semantic_text_encoder is not None else None
+    if semantic_text_encoder is not None:
+        semantic_text_encoder.to(device, dtype=dtype)
     try:
         crossattn_emb = encode_prompt_for_sample(
             prompt, tokenize_strategy, text_encoding_strategy,
             text_encoder, dit, device, dtype,
+            semantic_text_encoder=semantic_text_encoder,
+            layer_indices=layer_indices,
         )
         neg_crossattn_emb = None
         if guidance_scale != 1.0 and negative_prompt:
             neg_crossattn_emb = encode_prompt_for_sample(
                 negative_prompt, tokenize_strategy, text_encoding_strategy,
                 text_encoder, dit, device, dtype,
+                semantic_text_encoder=semantic_text_encoder,
+                layer_indices=layer_indices,
             )
     finally:
         text_encoder.to(org_te_device)
+        if semantic_text_encoder is not None:
+            semantic_text_encoder.to(org_semantic_te_device)
     clean_memory_on_device(device)
 
     # デノイズ
@@ -407,6 +452,8 @@ def sample_images_from_prompts(
     dit: anima_models.Anima,
     vae: Optional[qwen_image_autoencoder_kl.AutoencoderKLQwenImage] = None,
     text_encoder: torch.nn.Module,
+    semantic_text_encoder: Optional[torch.nn.Module] = None,
+    layer_indices: Optional[Sequence[int]] = None,
     tokenize_strategy,
     text_encoding_strategy,
     accelerator,
@@ -539,6 +586,8 @@ def sample_images_from_prompts(
                         dit=dit,
                         vae=active_vae,
                         text_encoder=text_encoder,
+                        semantic_text_encoder=semantic_text_encoder,
+                        layer_indices=layer_indices,
                         tokenize_strategy=tokenize_strategy,
                         text_encoding_strategy=text_encoding_strategy,
                         device=device,

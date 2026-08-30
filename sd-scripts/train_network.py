@@ -803,6 +803,12 @@ class NetworkTrainer:
             )
         if network is None:
             return
+
+        if getattr(args, "fp8_scaled", False) and hasattr(unet, "blocks") and hasattr(unet.blocks[0], "self_attn"):
+            logger.info(
+                f"[fp8_scaled diag] (A) blocks.0.self_attn.q_proj.weight dtype after create_network: "
+                f"{unet.blocks[0].self_attn.q_proj.weight.dtype}"
+            )
         network_has_multiplier = hasattr(network, "set_multiplier")
 
         # TODO remove `hasattr` by setting up methods if not defined in the network like below  (hacky but will work):
@@ -823,6 +829,12 @@ class NetworkTrainer:
         train_unet = not args.network_train_text_encoder_only
         train_text_encoder = self.is_train_text_encoder(args)
         network.apply_to(text_encoder, unet, train_text_encoder, train_unet)
+
+        if getattr(args, "fp8_scaled", False) and hasattr(unet, "blocks") and hasattr(unet.blocks[0], "self_attn"):
+            logger.info(
+                f"[fp8_scaled diag] (B) blocks.0.self_attn.q_proj.weight dtype after network.apply_to: "
+                f"{unet.blocks[0].self_attn.q_proj.weight.dtype}"
+            )
 
         if args.network_weights is not None:
             # FIXME consider alpha of weights: this assumes that the alpha is not changed
@@ -965,6 +977,29 @@ class NetworkTrainer:
         unet.requires_grad_(False)
         if self.cast_unet(args):
             unet.to(dtype=unet_weight_dtype)
+
+        if getattr(args, "fp8_scaled", False):
+            # 診断ログ: cast_unet()を経てもfp8常駐が維持されているかを確認する。
+            # ロード時診断(anima_train_network.py)と同一対象(blocks[0])を明示的に見る。
+            # named_modules()の先頭一致(llm_adapter等の小規模サブネット)に
+            # 引きずられないようにするため。
+            if hasattr(unet, "blocks") and hasattr(unet.blocks[0], "self_attn"):
+                _diag_weight = unet.blocks[0].self_attn.q_proj.weight
+                logger.info(
+                    f"[fp8_scaled diag] blocks.0.self_attn.q_proj.weight dtype after cast_unet: "
+                    f"{_diag_weight.dtype} "
+                    f"(expect torch.float8_e4m3fn here if fp8 residency survived cast_unet)"
+                )
+            for _diag_name, _diag_module in unet.named_modules():
+                if hasattr(_diag_module, "scale_weight"):
+                    logger.info(
+                        f"[fp8_scaled diag] (参考/最初に見つかったモジュール) "
+                        f"{_diag_name}.weight dtype after cast_unet: "
+                        f"{_diag_module.weight.dtype} "
+                        f"(expect torch.float8_e4m3fn here if fp8 residency survived cast_unet)"
+                    )
+                    break
+
         for i, t_enc in enumerate(text_encoders):
             t_enc.requires_grad_(False)
 

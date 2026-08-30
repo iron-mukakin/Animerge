@@ -15,7 +15,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 import json
 import re
-from typing import Callable
+from typing import Callable, Optional
 
 try:
     from .i18n import gettext, load_language
@@ -181,6 +181,7 @@ class _TrainState:
         self.attn_mode      = tk.StringVar(value="torch")
         self.split_attn     = tk.BooleanVar(value=False)
         self.blocks_to_swap = tk.IntVar(value=0)
+        self.fp8_scaled     = tk.BooleanVar(value=False)  # 実験的機能: blocks_to_swapと排他
         self.unsloth_offload_checkpointing = tk.BooleanVar(value=False)
         self.cpu_offload_checkpointing = tk.BooleanVar(value=False)
         self.vae_chunk_size = tk.StringVar(value="")
@@ -220,6 +221,20 @@ class _TrainState:
         self.layer_train_enabled = tk.BooleanVar(value=False)
         self.layer_display_mode  = tk.StringVar(value="Matrix")
         self.layer_parameter_vars: dict[str, tk.DoubleVar] = {}
+
+        # Anima 3.8B対応: 検出済みDiTブロック数(「モデルを検出」ボタンで更新)。
+        # 未検出(初期状態)はNone、明示的に非Animaと判定された場合はdetected_is_non_anima=True。
+        self.detected_num_blocks: Optional[int] = None
+        self.detected_is_non_anima: bool = False
+        self.detected_model_label = tk.StringVar(value="")
+
+        # VAEが2D専用版か(--qwen_image_vae_2dの要否)。「モデルを検出」ボタンで自動判定する。
+        # True=2D専用(要フラグ) / False=3D対応(不要) / None=未検出・判定不能
+        self.detected_vae_is_2d: Optional[bool] = None
+
+        # Anima 3.8B: Qwen3.5 4B / Progressive Cross Adapter (未指定なら2.9B系のまま動作)
+        self.qwen35_path = tk.StringVar()
+        self.progressive_adapter_path = tk.StringVar()
         # 階層学習スライダーウィジェット参照（プリセット読み込み時に _refresh_layer_controls へ渡す）
         self.layer_canvas: "tk.Canvas | None" = None
         self.layer_inner:  "ttk.Frame | None" = None
@@ -270,6 +285,176 @@ def _browse_dir(var: tk.StringVar, title: str | None = None):
         var.set(path)
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Anima DiTブロック数の検出(GUI用、safetensorsヘッダのみ読み取り)
+# ──────────────────────────────────────────────────────────────────────────────
+_KNOWN_DIT_KEY_PREFIXES = (
+    "model.diffusion_model.",
+    "diffusion_model.",
+    "model.model.",
+    "model.",
+    "module.",
+    "state_dict.",
+    "net.",
+)
+_RE_BLOCK_KEY = re.compile(r"(?:^|\.)blocks\.(\d+)\.")
+
+
+def _strip_known_dit_prefix(key: str) -> str:
+    """DiT checkpointの既知プレフィックス(net.等)を除去する(anima_utils.canonical_dit_keyと同等)。"""
+    changed = True
+    while changed:
+        changed = False
+        for prefix in _KNOWN_DIT_KEY_PREFIXES:
+            if key.startswith(prefix):
+                key = key[len(prefix):]
+                changed = True
+                break
+    return key
+
+
+def _read_safetensors_num_blocks(path: str) -> Optional[int]:
+    """safetensorsのヘッダのみを読み取り、'blocks.N.'パターンからブロック総数を検出する。
+
+    テンソル本体は読み込まないため、DiTが数GBあっても高速・低メモリで動作する。
+    Animaモデルでない場合(該当パターンが皆無)はNoneを返す。
+
+    Raises:
+        RuntimeError: safetensorsパッケージが無い、またはファイルが読めない場合。
+    """
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+
+    max_index: Optional[int] = None
+    with safe_open(path, framework="pt") as handle:
+        for key in handle.keys():
+            m = _RE_BLOCK_KEY.search(_strip_known_dit_prefix(key))
+            if m:
+                n = int(m.group(1))
+                max_index = n if max_index is None else max(max_index, n)
+    return None if max_index is None else max_index + 1
+
+
+def _read_safetensors_metadata(path: str) -> dict:
+    """safetensorsのmetadataのみを読み取る(Progressive Adapter checkpointの整合性チェック用)。"""
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+    with safe_open(path, framework="pt") as handle:
+        return dict(handle.metadata() or {})
+
+
+def _anima_block_categories(num_blocks: int) -> list[str]:
+    """ブロック総数からInput/Middle/Outputカテゴリ列を生成する。
+
+    lora.py の generate_anima_block_categories() と同じ規則(28ブロックは
+    オリジナルの9/10/9分割と完全一致、それ以外は均等3分割で近似)。
+    GUI側はsd-scripts側のPythonパッケージを直接importしない構成のため、
+    ここに同等ロジックを複製している。
+    """
+    if num_blocks == 28:
+        return ["Input"] * 9 + ["Middle"] * 10 + ["Output"] * 9
+    third = num_blocks // 3
+    remainder = num_blocks - third * 3
+    return ["Input"] * third + ["Middle"] * (third + remainder) + ["Output"] * third
+
+
+def _detect_vae_is_2d(path: str) -> Optional[bool]:
+    """VAE checkpointのconv系レイヤーの次元数から2D専用版/3D対応版を判定する。
+
+    Qwen-Image VAEには2D専用実装(2D convのみ、4次元テンソル)と3D対応実装
+    (3D conv、5次元テンソル)があり、ファイル名だけでは判別できない。
+    実際の重みのshapeを見て、4次元なら2D版、5次元なら3D版と判定する。
+    ヘッダのみ読み取るためテンソル本体はロードしない(高速・低メモリ)。
+
+    Args:
+        path: VAE checkpoint(.safetensors)へのパス。
+
+    Returns:
+        True: 2D専用版(--qwen_image_vae_2dが必要)
+        False: 3D対応版(--qwen_image_vae_2dは不要)
+        None: 判定できなかった場合(convキーが見つからない等)
+
+    Raises:
+        RuntimeError: safetensorsパッケージが無い、またはファイルが読めない場合。
+    """
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+
+    with safe_open(path, framework="pt") as handle:
+        for key in handle.keys():
+            if "conv" in key.lower() and key.endswith(".weight"):
+                shape = handle.get_slice(key).get_shape()
+                if len(shape) == 5:
+                    return False
+                if len(shape) == 4:
+                    return True
+    return None
+
+
+def _on_detect_model_clicked(s: "_TrainState") -> None:
+    """「モデルを検出」ボタン: DiTのブロック数を再検出しレイヤー学習UIへ反映する。
+
+    検出は明示的なボタン押下時にのみ行う(モデルパス変更に自動追従させると、
+    パス入力途中の不完全な状態で誤検出が走るなど「検出タイミングのズレ」の
+    原因になるため)。
+    """
+    dit_path = s.model_path.get().strip()
+    if not dit_path or not Path(dit_path).is_file():
+        messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_no_file"))
+        return
+
+    try:
+        num_blocks = _read_safetensors_num_blocks(dit_path)
+    except Exception as exc:
+        messagebox.showerror(gettext("lora_detect_error_title"), str(exc))
+        return
+
+    if num_blocks is None:
+        s.detected_num_blocks = None
+        s.detected_is_non_anima = True
+        s.detected_model_label.set(gettext("lora_detect_not_anima"))
+        messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_not_anima"))
+    else:
+        s.detected_num_blocks = num_blocks
+        s.detected_is_non_anima = False
+        s.detected_model_label.set(gettext("lora_detect_result", n=num_blocks))
+        s.log_fn(f"[Detect] DiT blocks = {num_blocks}")
+
+    # VAEの2D/3D自動判定(--qwen_image_vae_2dを手動スイッチなしで自動付与するため)
+    vae_path = s.vae_path.get().strip()
+    if vae_path and Path(vae_path).is_file():
+        try:
+            is_2d = _detect_vae_is_2d(vae_path)
+        except Exception as exc:
+            s.detected_vae_is_2d = None
+            s.log_fn(f"[Detect] VAE type detection failed: {exc}")
+        else:
+            s.detected_vae_is_2d = is_2d
+            if is_2d is True:
+                s.log_fn("[Detect] VAE = 2D-only (--qwen_image_vae_2d will be added automatically)")
+            elif is_2d is False:
+                s.log_fn("[Detect] VAE = 3D-capable (--qwen_image_vae_2d not needed)")
+            else:
+                s.log_fn("[Detect] VAE type could not be determined (no conv weight key found)")
+    else:
+        s.detected_vae_is_2d = None
+
+    if hasattr(s, "layer_canvas") and hasattr(s, "layer_inner"):
+        _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
+
+
 def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
                       is_dir=False, filetypes=None):
     """エントリ + Browse ボタンを1行に配置する。"""
@@ -297,11 +482,27 @@ def _build_model_tab(parent: ttk.Frame, s: _TrainState) -> None:
 
     _entry_browse_row(lf, 0, gettext("lora_dit_label"), s.model_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 1, gettext("lora_vae_label"), s.vae_path,
+
+    # Anima 3.8B対応: 検出ボタン + 検出結果表示(モデルタブ、DiT行の直下)
+    detect_row = ttk.Frame(lf)
+    detect_row.grid(row=1, column=0, columnspan=3, sticky=tk.W, padx=(4, 2), pady=(0, 3))
+    ttk.Button(
+        detect_row, text=gettext("lora_detect_button"),
+        command=lambda: _on_detect_model_clicked(s),
+    ).pack(side=tk.LEFT)
+    ttk.Label(detect_row, textvariable=s.detected_model_label, foreground="#334155").pack(
+        side=tk.LEFT, padx=(8, 0)
+    )
+
+    _entry_browse_row(lf, 2, gettext("lora_vae_label"), s.vae_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 2, gettext("lora_qwen3_label"), s.qwen3_path,
+    _entry_browse_row(lf, 3, gettext("lora_qwen3_label"), s.qwen3_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 3, gettext("lora_llm_adapter_label"), s.llm_adapter_path,
+    _entry_browse_row(lf, 4, gettext("lora_llm_adapter_label"), s.llm_adapter_path,
+                      filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
+    _entry_browse_row(lf, 5, gettext("lora_qwen35_label"), s.qwen35_path,
+                      filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
+    _entry_browse_row(lf, 6, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
     lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
@@ -591,6 +792,8 @@ def _build_adv_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=1, column=0, sticky=tk.W, padx=8, pady=3)
     ttk.Checkbutton(lf2, text="qwen_image_vae_2d", variable=s.qwen_image_vae_2d).grid(
         row=1, column=1, sticky=tk.W, padx=8, pady=3)
+    ttk.Checkbutton(lf2, text=gettext("lora_fp8_scaled_checkbox"), variable=s.fp8_scaled).grid(
+        row=1, column=2, sticky=tk.W, padx=8, pady=3)
 
     # torch.compile (per-block, 実験的)
     lf_compile = ttk.LabelFrame(parent, text=gettext("lora_compile_group"))
@@ -735,14 +938,25 @@ def _build_layer_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
     _refresh_layer_controls(s, ctrl_canvas, ctrl_inner)
 
 
-def _layer_group_names(mode: str) -> list[str]:
-    """モードに応じたグループ名リストを返す（gui.py の _group_names_for_mode Matrix相当）。"""
+def _layer_group_names(mode: str, s: "_TrainState") -> list[str]:
+    """モードに応じたグループ名リストを返す（gui.py の _group_names_for_mode Matrix相当）。
+
+    重要: Matrix/Componentモードはブロック総数に一切依存しない設計である。
+    Matrixは(Input/Middle/Output)×(Attention/MLP/Norm/ResNet/Timestep)の
+    カテゴリ名のみで構成され、Componentはコンポーネント名のみで構成されるため、
+    実際にロードされたDiTが28/40/52ブロックのどれであっても無改修で動作する
+    (lora.py側でブロック数に応じてカテゴリ→実ブロックの対応が自動解決される)。
+    ブロック数に依存するのは Transformer モード(blocks.N を1つずつ表示)のみ。
+    このコメントを削除・変更する場合は、上記の設計意図を壊さないよう注意すること。
+    """
     if mode == "Matrix":
         return [f"{b}_{c}" for b in MATRIX_BLOCKS for c in MATRIX_COMPONENTS]
     if mode == "Component":
         return list(COMPONENT_GROUPS)
-    # Transformer: blocks.0 ～ blocks.27 の28ブロック
-    return [f"blocks.{i}" for i in range(28)]
+    # Transformer: 検出済みブロック数に追従。未検出時は空リスト(呼び出し側でエラー/ヒント表示)。
+    if s.detected_num_blocks is None:
+        return []
+    return [f"blocks.{i}" for i in range(s.detected_num_blocks)]
 
 
 def _refresh_layer_controls(
@@ -763,7 +977,25 @@ def _refresh_layer_controls(
         return
 
     mode = s.layer_display_mode.get()
-    groups = _layer_group_names(mode)
+
+    # Transformer モードはブロック数の検出が必須。未検出/非Animaならエラー表示して終了する。
+    if mode == "Transformer" and s.detected_num_blocks is None:
+        for child in inner.winfo_children():
+            child.destroy()
+        if s.detected_is_non_anima:
+            msg = gettext("lora_layer_error_not_anima")
+            color = "red"
+        else:
+            msg = gettext("lora_layer_hint_detect_needed")
+            color = "#334155"
+        tk.Label(inner, text=msg, foreground=color, justify=tk.LEFT, wraplength=600).grid(
+            row=0, column=0, padx=8, pady=8, sticky=tk.W
+        )
+        canvas.configure(scrollregion=canvas.bbox("all"))
+        s._layer_status_var.set(gettext("lora_layer_status_disabled"))
+        return
+
+    groups = _layer_group_names(mode, s)
     old = {k: v.get() for k, v in s.layer_parameter_vars.items()}
     s.layer_parameter_vars = {}
 
@@ -1023,7 +1255,7 @@ def _build_monitor_layer_tab(parent: ttk.Frame, s: _TrainState) -> None:
     """階層学習の実効LRモニターを埋め込む。"""
     try:
         from .monitor_layer import MonitorLayerGraph
-        s._monitor_layer_graph = MonitorLayerGraph(parent, s, _layer_group_names)
+        s._monitor_layer_graph = MonitorLayerGraph(parent, s, lambda mode: _layer_group_names(mode, s))
     except Exception as exc:
         ttk.Label(
             parent,
@@ -1391,6 +1623,8 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
             "vae_path":          s.vae_path.get(),
             "qwen3_path":        s.qwen3_path.get(),
             "llm_adapter_path":  s.llm_adapter_path.get(),
+            "qwen35_path":       s.qwen35_path.get(),
+            "progressive_adapter_path": s.progressive_adapter_path.get(),
             "output_dir":        s.output_dir.get(),
             "output_name":       s.output_name.get(),
             "precision":         s.precision.get(),
@@ -1433,6 +1667,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
             "attn_mode":         s.attn_mode.get(),
             "split_attn":        bool(s.split_attn.get()),
             "blocks_to_swap":    int(s.blocks_to_swap.get()),
+            "fp8_scaled":        bool(s.fp8_scaled.get()),
             "unsloth_offload_checkpointing": bool(s.unsloth_offload_checkpointing.get()),
             "cpu_offload_checkpointing": bool(s.cpu_offload_checkpointing.get()),
             "vae_chunk_size":    s.vae_chunk_size.get(),
@@ -1493,6 +1728,8 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.vae_path,          "vae_path",           "")
         _s(s.qwen3_path,        "qwen3_path",         "")
         _s(s.llm_adapter_path,  "llm_adapter_path",   "")
+        _s(s.qwen35_path,       "qwen35_path",        "")
+        _s(s.progressive_adapter_path, "progressive_adapter_path", "")
         _s(s.output_dir,        "output_dir",         "")
         _s(s.output_name,       "output_name",        "lora_output")
         _s(s.precision,         "precision",          "bf16")
@@ -1535,6 +1772,7 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.attn_mode,         "attn_mode",          "torch")
         _s(s.split_attn,        "split_attn",         False)
         _s(s.blocks_to_swap,    "blocks_to_swap",     0)
+        _s(s.fp8_scaled,        "fp8_scaled",         False)
         _s(s.unsloth_offload_checkpointing, "unsloth_offload_checkpointing", False)
         _s(s.cpu_offload_checkpointing, "cpu_offload_checkpointing", False)
         _s(s.vae_chunk_size,    "vae_chunk_size",     "")
@@ -1780,8 +2018,12 @@ _BLOCK_CAT: list[str] = (
 def _layer_scales_to_block_weights(
     mode: str,
     scales: dict[str, float],
+    num_blocks: int,
 ) -> list[float]:
-    """GUI のスケール値を 28 要素の anima_block_lr_weight リストに変換する。
+    """GUI のスケール値を num_blocks 要素の anima_block_lr_weight リストに変換する。
+
+    num_blocksは「モデルを検出」ボタンで検出された実際のDiTブロック総数
+    (s.detected_num_blocks)を呼び出し側から渡すこと。28/40/52いずれにも対応する。
 
     Transformer モード
         GUI グループ名が 'blocks.N' → そのまま N 番目の値として使用。
@@ -1791,6 +2033,10 @@ def _layer_scales_to_block_weights(
         blocks.N のスケール = そのブロックの Block カテゴリに属する
         全 Component スケールの平均値。
         （lora.py は 1 ブロック = 1 スケールしか受け取れないため）
+        注: _build_command() では Matrix モード時はこの関数を経由せず
+        anima_matrix_scales を直接JSON化して渡す(精度損失なし・ブロック数
+        に依存しない)ため、ここのMatrix分岐は現状呼び出されない
+        (将来的な直接利用や後方互換のために維持している)。
 
     Component モード
         GUI グループ名は 'MLP' / 'Norm' 等のコンポーネント名。
@@ -1801,13 +2047,14 @@ def _layer_scales_to_block_weights(
 
     if mode == "Transformer":
         # 'blocks.N' → インデックス N へ直接マッピング
-        for i in range(28):
+        for i in range(num_blocks):
             weights.append(float(scales.get(f"blocks.{i}", 1.0)))
 
     elif mode == "Matrix":
         # Block ごとに所属する全 Component の平均を取る
-        for i in range(28):
-            cat = _BLOCK_CAT[i]  # 'Input' / 'Middle' / 'Output'
+        cats = _anima_block_categories(num_blocks)
+        for i in range(num_blocks):
+            cat = cats[i]  # 'Input' / 'Middle' / 'Output'
             comp_vals = [
                 scales.get(f"{cat}_{c}", 1.0)
                 for c in MATRIX_COMPONENTS
@@ -1819,7 +2066,7 @@ def _layer_scales_to_block_weights(
         # COMPONENT_GROUPS は Attention を含む（#1で追加済み）
         all_vals = [scales.get(c, 1.0) for c in COMPONENT_GROUPS]
         avg = sum(all_vals) / len(all_vals)
-        weights = [avg] * 28
+        weights = [avg] * num_blocks
 
     return weights
 
@@ -1888,6 +2135,12 @@ def _build_command(s: _TrainState) -> list[str]:
         cmd += ["--seed", s.seed.get()]
     if s.llm_adapter_path.get():
         cmd += ["--llm_adapter_path", s.llm_adapter_path.get()]
+    if s.qwen35_path.get():
+        cmd += ["--qwen35", s.qwen35_path.get()]
+    if s.progressive_adapter_path.get():
+        cmd += ["--progressive_adapter_path", s.progressive_adapter_path.get()]
+    if s.detected_vae_is_2d is True:
+        cmd += ["--qwen_image_vae_2d"]
     if s.network_weights.get():
         cmd += ["--network_weights", s.network_weights.get()]
     if s.optimizer_args.get():
@@ -1911,6 +2164,7 @@ def _build_command(s: _TrainState) -> list[str]:
         (s.cpu_offload_checkpointing,   "--cpu_offload_checkpointing"),
         (s.vae_disable_cache,           "--vae_disable_cache"),
         (s.qwen_image_vae_2d,           "--qwen_image_vae_2d"),
+        (s.fp8_scaled,                  "--fp8_scaled"),
         (s.compile_enabled,             "--compile"),
         (s.compile_fullgraph,           "--compile_fullgraph"),
         (s.cuda_allow_tf32,              "--cuda_allow_tf32"),
@@ -1964,8 +2218,9 @@ def _build_command(s: _TrainState) -> list[str]:
             s.log_fn(f"[LayerLR] mode=Matrix  anima_matrix_scales={_scales_json}")
 
         else:
-            # Transformer / Component モード: 28 要素の block_lr_weight を渡す
-            _weights = _layer_scales_to_block_weights(_mode, _scales)
+            # Transformer / Component モード: 検出済みブロック数分の block_lr_weight を渡す
+            # (_validate() で s.detected_num_blocks is not None であることを保証済み)
+            _weights = _layer_scales_to_block_weights(_mode, _scales, s.detected_num_blocks)
             weight_str = ",".join(f"{w:.4f}" for w in _weights)
             cmd += ["--network_args", f"anima_block_lr_weight={weight_str}"]
             s.log_fn(
@@ -2020,12 +2275,38 @@ def _validate(s: _TrainState) -> str | None:
     """必須フィールドの簡易バリデーション。エラーメッセージを返す（正常時None）。"""
     if s.compile_enabled.get() and s.compile_fullgraph.get() and s.split_attn.get():
         return gettext("lora_validate_compile_fullgraph")
+    if s.fp8_scaled.get() and s.blocks_to_swap.get() > 0:
+        return gettext("lora_validate_fp8_scaled_blocks_to_swap")
     if not s.model_path.get():
         return gettext("lora_validate_no_model")
     if not s.vae_path.get():
         return gettext("lora_validate_no_vae")
     if not s.qwen3_path.get():
         return gettext("lora_validate_no_qwen3")
+
+    # Anima 3.8B: progressive_adapter_path指定時はqwen35_pathが必須
+    if s.progressive_adapter_path.get() and not s.qwen35_path.get():
+        return gettext("lora_validate_adapter_needs_qwen35")
+
+    # Anima 3.8B: adapter checkpointが前提とするブロック数と、検出済みDiTブロック数の整合性チェック
+    if s.progressive_adapter_path.get() and s.detected_num_blocks is not None:
+        try:
+            metadata = _read_safetensors_metadata(s.progressive_adapter_path.get())
+        except Exception as exc:
+            return gettext("lora_validate_adapter_read_error", error=str(exc))
+        expected = metadata.get("new_block_count")
+        if expected is not None and int(expected) != s.detected_num_blocks:
+            return gettext(
+                "lora_validate_adapter_block_mismatch",
+                dit=s.detected_num_blocks,
+                adapter=expected,
+            )
+
+    # 階層学習(Transformer/Component)はブロック数の検出が前提
+    if s.layer_train_enabled.get() and s.layer_display_mode.get() in ("Transformer", "Component"):
+        if s.detected_num_blocks is None:
+            return gettext("lora_validate_layer_needs_detect")
+
     if not s.train_data_dir.get():
         return gettext("lora_validate_no_data")
     if s.sample_enabled.get() and not s.sample_prompt.get().strip():
@@ -2039,6 +2320,25 @@ def _validate(s: _TrainState) -> str | None:
         except ValueError:
             return gettext("lora_validate_sample_interval_int")
     return None
+
+
+def _terminate_process_tree(pid: int) -> None:
+    """指定PIDとその子孫プロセスをまとめて強制終了する(Windows専用フォールバック)。
+
+    accelerate launchはさらに孫プロセス(実際の学習プロセス)を生成するため、
+    CTRL_BREAK_EVENTが子プロセスにしか伝播せず孫プロセスが生き残るケースがある。
+    taskkill /T は指定PIDとその子孫プロセスツリー全体を対象にできるため、
+    シグナル伝播の成否に依存しない確実な後始末として使う。
+    既に終了しているPIDに対して呼んでも無害(エラー・タイムアウトは握りつぶす)。
+    """
+    try:
+        subprocess.run(
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            capture_output=True,
+            timeout=10,
+        )
+    except Exception:
+        pass
 
 
 def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
@@ -2104,6 +2404,9 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
                     lf.flush()
             proc.wait()
             rc = proc.returncode
+            # 直接の子プロセスが終了しても孫プロセス(実際の学習プロセス)が
+            # 生き残っている場合があるため、正常終了時も後始末として一掃する。
+            _terminate_process_tree(proc.pid)
             msg = gettext("lora_done", rc=rc)
             s._log_queue.put(msg)
             s.log_fn(msg)
@@ -2128,9 +2431,23 @@ def _stop_training(s: _TrainState) -> None:
         s.log_fn(gettext("lora_stop_no_proc"))
         return
     import os, signal
+    proc = s._proc
+    pid = proc.pid
     try:
-        os.kill(s._proc.pid, signal.CTRL_BREAK_EVENT)
+        os.kill(pid, signal.CTRL_BREAK_EVENT)
     except Exception:
-        s._proc.terminate()
+        proc.terminate()
     s.status_var.set(gettext("status_stop_requested"))
     s.log_fn(gettext("lora_stop_sent"))
+
+    def _sweep_after_grace_period() -> None:
+        # CTRL_BREAK_EVENTは直接の子プロセス(accelerate launch)にしか届かず、
+        # その孫プロセス(実際にVRAMを使う学習プロセス)が生き残ることがある。
+        # 猶予時間を与えたうえで、生き残っているプロセスツリーを強制終了する。
+        try:
+            proc.wait(timeout=8)
+        except subprocess.TimeoutExpired:
+            s.log_fn(gettext("lora_stop_force_kill"))
+        _terminate_process_tree(pid)
+
+    threading.Thread(target=_sweep_after_grace_period, daemon=True).start()
