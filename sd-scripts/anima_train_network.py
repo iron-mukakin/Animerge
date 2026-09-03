@@ -109,13 +109,19 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
     def load_target_model(self, args, weight_dtype, accelerator):
         self.is_swapping_blocks = args.blocks_to_swap is not None and args.blocks_to_swap > 0
 
-        # Anima 3.8B: --progressive_adapter_path 指定時は --qwen35 が必須
-        # (Progressive Cross AdapterはQwen3.5 4Bの隠れ状態を必要とするため)
+        # Anima 3.8B: --progressive_adapter_path 指定時、またはDiT checkpoint自体が
+        # v1.1(Semantic Connector v2内蔵)の場合は --qwen35 が必須
+        # (どちらもQwen3.5 4Bの隠れ状態を必要とするため)
         self.use_progressive_adapter = getattr(args, "progressive_adapter_path", None) is not None
-        if self.use_progressive_adapter and not getattr(args, "qwen35", None):
+        self.is_semantic_connector_v2 = anima_utils.detect_semantic_connector_v2_architecture(
+            args.pretrained_model_name_or_path
+        )
+        if (self.use_progressive_adapter or self.is_semantic_connector_v2) and not getattr(args, "qwen35", None):
             raise ValueError(
-                "--progressive_adapter_path を指定する場合は --qwen35 も指定してください。"
-                " / --qwen35 is required when --progressive_adapter_path is set."
+                "--progressive_adapter_path、またはv1.1(Semantic Connector v2内蔵)の"
+                "DiT checkpointを指定する場合は --qwen35 も指定してください。"
+                " / --qwen35 is required when --progressive_adapter_path is set, "
+                "or when the DiT checkpoint bundles Semantic Connector v2 (Anima 3.8B v1.1)."
             )
 
         # Load Qwen3 text encoder (tokenizers already loaded in get_tokenize_strategy)
@@ -220,17 +226,26 @@ class AnimaNetworkTrainer(train_network.NetworkTrainer):
         return strategy_anima.AnimaLatentsCachingStrategy(args.cache_latents_to_disk, args.vae_batch_size, args.skip_cache_check)
 
     def _resolve_qwen35_layer_indices(self, args) -> Optional[list]:
-        """Anima 3.8B: progressive_adapter_pathからQwen3.5のlayer_indicesを検出する(結果はキャッシュする)。
+        """Anima 3.8B: Qwen3.5のlayer_indicesを検出する(結果はキャッシュする)。
 
-        --progressive_adapter_path が未指定の場合はNoneを返し、semantic branchは無効化される
+        検出元は次の優先順位: (1) --progressive_adapter_path(v1.0、外部adapter)、
+        (2) DiT checkpoint自体がv1.1(Semantic Connector v2内蔵)の場合はそちらのmetadata。
+        どちらでもない場合はNoneを返し、semantic branchは無効化される
         (既存の2.9B/3.8B-without-adapter動作を維持)。
         """
+        if hasattr(self, "_qwen35_layer_indices_cache"):
+            return self._qwen35_layer_indices_cache
+
         adapter_path = getattr(args, "progressive_adapter_path", None)
-        if not adapter_path:
-            return None
-        if not hasattr(self, "_qwen35_layer_indices_cache"):
+        if adapter_path:
             _, layer_indices = anima_utils.detect_progressive_adapter_architecture(adapter_path)
-            self._qwen35_layer_indices_cache = layer_indices
+        elif anima_utils.detect_semantic_connector_v2_architecture(args.pretrained_model_name_or_path):
+            config = anima_utils.detect_anima_v2_connector_config(args.pretrained_model_name_or_path)
+            layer_indices = config["layer_indices"]
+        else:
+            layer_indices = None
+
+        self._qwen35_layer_indices_cache = layer_indices
         return self._qwen35_layer_indices_cache
 
     def get_text_encoding_strategy(self, args):

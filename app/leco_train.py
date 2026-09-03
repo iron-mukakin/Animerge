@@ -186,9 +186,17 @@ class _LecoTrainState:
 
         # ── モデル ──────────────────────────────────────────────
         self.model_path       = tk.StringVar()
+        # apply_fix_026: 「モデルを検出」ボタンの検出結果(lora_train.pyと同一仕様)。
+        self.detected_num_blocks: "int | None" = None
+        self.detected_is_non_anima: bool = False
+        self.detected_model_label = tk.StringVar(value="")
+        self.detected_vae_is_2d: "bool | None" = None
         self.vae_path         = tk.StringVar()
         self.qwen3_path       = tk.StringVar()
-        self.llm_adapter_path = tk.StringVar()
+        # apply_fix_024: llm_adapter_path は削除済み(死んだ引数、GUIからも撤去)。
+        # Anima 3.8B (Qwen3.5 / Progressive Cross Adapter) 対応。
+        self.qwen35_path              = tk.StringVar()
+        self.progressive_adapter_path = tk.StringVar()
         self.output_dir       = tk.StringVar(value=str(paths.lora))
         self.output_name      = tk.StringVar(value="leco_output")
         self.precision        = tk.StringVar(value="bf16")
@@ -315,6 +323,140 @@ def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
 # ──────────────────────────────────────────────────────────────────────────────
 # タブ1: モデル
 # ──────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────
+# apply_fix_026: Anima DiTブロック数 / VAE 2D-3D自動検出
+# (lora_train.pyの_read_safetensors_num_blocks / _detect_vae_is_2d /
+#  _on_detect_model_clickedと同一仕様。GUI側はsd-scripts側のPythonパッケージを
+#  直接importしない構成のため、ロジックをここに複製している)
+# ──────────────────────────────────────────────────────────────────────────────
+_KNOWN_DIT_KEY_PREFIXES = (
+    "model.diffusion_model.",
+    "diffusion_model.",
+    "model.model.",
+    "model.",
+    "module.",
+    "state_dict.",
+    "net.",
+)
+_RE_BLOCK_KEY = re.compile(r"(?:^|\.)blocks\.(\d+)\.")
+
+
+def _strip_known_dit_prefix(key: str) -> str:
+    """DiT checkpointの既知プレフィックス(net.等)を除去する。"""
+    changed = True
+    while changed:
+        changed = False
+        for prefix in _KNOWN_DIT_KEY_PREFIXES:
+            if key.startswith(prefix):
+                key = key[len(prefix):]
+                changed = True
+                break
+    return key
+
+
+def _read_safetensors_metadata(path: str) -> dict:
+    """safetensorsのmetadataのみを読み取る(Progressive Adapter checkpointの整合性チェック用)。
+
+    apply_fix_028: lora_train.pyの_read_safetensors_metadata()と同一仕様。
+    """
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+    with safe_open(path, framework="pt") as handle:
+        return dict(handle.metadata() or {})
+
+
+def _read_safetensors_num_blocks(path: str) -> "int | None":
+    """safetensorsのヘッダのみを読み取り、'blocks.N.'パターンからブロック総数を検出する。"""
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+
+    max_index = None
+    with safe_open(path, framework="pt") as handle:
+        for key in handle.keys():
+            m = _RE_BLOCK_KEY.search(_strip_known_dit_prefix(key))
+            if m:
+                n = int(m.group(1))
+                max_index = n if max_index is None else max(max_index, n)
+    return None if max_index is None else max_index + 1
+
+
+def _detect_vae_is_2d(path: str) -> "bool | None":
+    """VAE checkpointのconv系レイヤーの次元数から2D専用版/3D対応版を判定する。"""
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+
+    with safe_open(path, framework="pt") as handle:
+        for key in handle.keys():
+            if "conv" in key.lower() and key.endswith(".weight"):
+                shape = handle.get_slice(key).get_shape()
+                if len(shape) == 5:
+                    return False
+                if len(shape) == 4:
+                    return True
+    return None
+
+
+def _on_detect_model_clicked(s: "_LecoTrainState") -> None:
+    """「モデルを検出」ボタン: DiTのブロック数を再検出しレイヤー学習UIへ反映する。
+
+    apply_fix_026: lora_train.pyの_on_detect_model_clicked()と同一仕様。
+    """
+    dit_path = s.model_path.get().strip()
+    if not dit_path or not Path(dit_path).is_file():
+        messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_no_file"))
+        return
+
+    try:
+        num_blocks = _read_safetensors_num_blocks(dit_path)
+    except Exception as exc:
+        messagebox.showerror(gettext("lora_detect_error_title"), str(exc))
+        return
+
+    if num_blocks is None:
+        s.detected_num_blocks = None
+        s.detected_is_non_anima = True
+        s.detected_model_label.set(gettext("lora_detect_not_anima"))
+        messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_not_anima"))
+    else:
+        s.detected_num_blocks = num_blocks
+        s.detected_is_non_anima = False
+        s.detected_model_label.set(gettext("lora_detect_result", n=num_blocks))
+        s.log_fn(f"[Detect] DiT blocks = {num_blocks}")
+
+    vae_path = s.vae_path.get().strip()
+    if vae_path and Path(vae_path).is_file():
+        try:
+            is_2d = _detect_vae_is_2d(vae_path)
+        except Exception as exc:
+            s.detected_vae_is_2d = None
+            s.log_fn(f"[Detect] VAE type detection failed: {exc}")
+        else:
+            s.detected_vae_is_2d = is_2d
+            if is_2d is True:
+                s.log_fn("[Detect] VAE = 2D-only (--qwen_image_vae_2d will be added automatically)")
+            elif is_2d is False:
+                s.log_fn("[Detect] VAE = 3D-capable (--qwen_image_vae_2d not needed)")
+            else:
+                s.log_fn("[Detect] VAE type could not be determined (no conv weight key found)")
+    else:
+        s.detected_vae_is_2d = None
+
+    if s.layer_canvas is not None and s.layer_inner is not None:
+        _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
+
+
 def _build_model_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     parent.columnconfigure(1, weight=1)
 
@@ -324,11 +466,28 @@ def _build_model_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
 
     _entry_browse_row(lf, 0, gettext("lora_dit_label"), s.model_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 1, gettext("lora_vae_label"), s.vae_path,
+
+    # apply_fix_026: 検出ボタン + 検出結果表示(DiT行の直下)。
+    detect_row = ttk.Frame(lf)
+    detect_row.grid(row=1, column=0, columnspan=3, sticky=tk.W, padx=(4, 2), pady=(0, 3))
+    ttk.Button(
+        detect_row, text=gettext("lora_detect_button"),
+        command=lambda: _on_detect_model_clicked(s),
+    ).pack(side=tk.LEFT)
+    ttk.Label(detect_row, textvariable=s.detected_model_label, foreground="#334155").pack(
+        side=tk.LEFT, padx=(8, 0)
+    )
+
+    # apply_fix_026: 検出ボタン行(row=1)の追加により、以降の行番号を1つずつ繰り下げる。
+    _entry_browse_row(lf, 2, gettext("lora_vae_label"), s.vae_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 2, gettext("lora_qwen3_label"), s.qwen3_path,
+    _entry_browse_row(lf, 3, gettext("lora_qwen3_label"), s.qwen3_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 3, gettext("lora_llm_adapter_label"), s.llm_adapter_path,
+    # apply_fix_024: 「LLM adapter(任意)」欄は削除済み。
+    # Anima 3.8B (Qwen3.5 / Progressive Cross Adapter) 対応。
+    _entry_browse_row(lf, 4, gettext("lora_qwen35_label"), s.qwen35_path,
+                      filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
+    _entry_browse_row(lf, 5, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
     lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
@@ -784,8 +943,11 @@ def _build_command(s: _LecoTrainState) -> list[str]:
 
     if s.seed.get():
         cmd += ["--seed", s.seed.get()]
-    if s.llm_adapter_path.get():
-        cmd += ["--llm_adapter_path", s.llm_adapter_path.get()]
+    # apply_fix_024: --llm_adapter_path は削除済み(死んだ引数)。
+    if s.qwen35_path.get():
+        cmd += ["--qwen35", s.qwen35_path.get()]
+    if s.progressive_adapter_path.get():
+        cmd += ["--progressive_adapter_path", s.progressive_adapter_path.get()]
     if s.network_weights.get():
         cmd += ["--network_weights", s.network_weights.get()]
     if s.optimizer_args.get():
@@ -813,6 +975,10 @@ def _build_command(s: _LecoTrainState) -> list[str]:
         (s.cuda_allow_tf32,                     "--cuda_allow_tf32"),
         (s.cuda_cudnn_benchmark,                "--cuda_cudnn_benchmark"),
     ]
+    # apply_fix_026: VAE 2D/3D自動判定結果による自動付与(手動チェックボックスと併存)。
+    if s.detected_vae_is_2d is True:
+        cmd.append("--qwen_image_vae_2d")
+
     for var, flag in bool_flags:
         if var.get():
             cmd.append(flag)
@@ -881,6 +1047,31 @@ def _validate(s: _LecoTrainState) -> str | None:
         return gettext("lora_validate_no_vae")
     if not s.qwen3_path.get():
         return gettext("lora_validate_no_qwen3")
+
+    # apply_fix_028: Anima 3.8B対応(lora_train.pyと同一チェック)。
+    # progressive_adapter_path指定時はqwen35_pathが必須。
+    if s.progressive_adapter_path.get() and not s.qwen35_path.get():
+        return gettext("lora_validate_adapter_needs_qwen35")
+
+    # adapter checkpointが前提とするブロック数と、検出済みDiTブロック数の整合性チェック。
+    if s.progressive_adapter_path.get() and s.detected_num_blocks is not None:
+        try:
+            metadata = _read_safetensors_metadata(s.progressive_adapter_path.get())
+        except Exception as exc:
+            return gettext("lora_validate_adapter_read_error", error=str(exc))
+        expected = metadata.get("new_block_count")
+        if expected is not None and int(expected) != s.detected_num_blocks:
+            return gettext(
+                "lora_validate_adapter_block_mismatch",
+                dit=s.detected_num_blocks,
+                adapter=expected,
+            )
+
+    # 階層学習(Transformer/Component)はブロック数の検出が前提。
+    if s.layer_train_enabled.get() and s.layer_display_mode.get() in ("Transformer", "Component"):
+        if s.detected_num_blocks is None:
+            return gettext("lora_validate_layer_needs_detect")
+
     if not s.prompts_file.get():
         return gettext("leco_validate_no_prompts")
     if not Path(s.prompts_file.get()).exists():
@@ -1062,12 +1253,20 @@ def _build_layer_train_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
     _refresh_layer_controls(s, ctrl_canvas, ctrl_inner)
 
 
-def _layer_group_names(mode: str) -> list[str]:
+def _layer_group_names(mode: str, s: "_LecoTrainState") -> list[str]:
+    """モードに応じたグループ名リストを返す。
+
+    apply_fix_026: Matrix/Componentモードはブロック総数に一切依存しない設計
+    (lora_train.pyと同一)。Transformerモードのみ s.detected_num_blocks に
+    追従する(未検出時は空リスト)。旧実装の range(28) 固定を撤去した。
+    """
     if mode == "Matrix":
         return [f"{b}_{c}" for b in MATRIX_BLOCKS for c in MATRIX_COMPONENTS]
     if mode == "Component":
         return list(COMPONENT_GROUPS)
-    return [f"blocks.{i}" for i in range(28)]
+    if s.detected_num_blocks is None:
+        return []
+    return [f"blocks.{i}" for i in range(s.detected_num_blocks)]
 
 
 def _refresh_layer_controls(
@@ -1087,7 +1286,7 @@ def _refresh_layer_controls(
         return
 
     mode = s.layer_display_mode.get()
-    groups = _layer_group_names(mode)
+    groups = _layer_group_names(mode, s)  # apply_fix_026
     old = {k: v.get() for k, v in s.layer_parameter_vars.items()}
     s.layer_parameter_vars = {}
 
@@ -1436,7 +1635,8 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
             "model_path":        s.model_path.get(),
             "vae_path":          s.vae_path.get(),
             "qwen3_path":        s.qwen3_path.get(),
-            "llm_adapter_path":  s.llm_adapter_path.get(),
+            "qwen35_path":       s.qwen35_path.get(),
+            "progressive_adapter_path": s.progressive_adapter_path.get(),
             "output_dir":        s.output_dir.get(),
             "output_name":       s.output_name.get(),
             "precision":         s.precision.get(),
@@ -1529,7 +1729,8 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         _s(s.model_path,        "model_path",        "")
         _s(s.vae_path,          "vae_path",           "")
         _s(s.qwen3_path,        "qwen3_path",         "")
-        _s(s.llm_adapter_path,  "llm_adapter_path",   "")
+        _s(s.qwen35_path,       "qwen35_path",        "")
+        _s(s.progressive_adapter_path, "progressive_adapter_path", "")
         _s(s.output_dir,        "output_dir",         "")
         _s(s.output_name,       "output_name",        "leco_output")
         _s(s.precision,         "precision",          "bf16")

@@ -74,12 +74,9 @@ def add_anima_training_arguments(parser: argparse.ArgumentParser):
         help="Override the auto-detected DiT block count. Normally left unset (auto-detected from checkpoint)."
         " / DiTブロック数の自動検出結果を上書きします。通常は指定不要です(checkpointから自動検出されます)。",
     )
-    parser.add_argument(
-        "--llm_adapter_path",
-        type=str,
-        default=None,
-        help="Path to separate LLM adapter weights. If None, adapter is loaded from DiT file if present",
-    )
+    # apply_fix_022: --llm_adapter_path は削除済み。
+    # コードのどこからも消費されていない死んだ引数で、--progressive_adapter_path
+    # と名前が紛らわしくユーザーが混同する原因になっていたため撤去した。
     parser.add_argument(
         "--llm_adapter_lr",
         type=float,

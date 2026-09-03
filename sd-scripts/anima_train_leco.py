@@ -81,13 +81,31 @@ def encode_prompt_anima(
     text_encoding_strategy: strategy_anima.AnimaTextEncodingStrategy,
     text_encoder,
     prompt: str,
+    semantic_text_encoder=None,
+    layer_indices=None,
 ):
-    """Encode a single prompt using Anima's tokenize + text encoding pipeline."""
+    """Encode a single prompt using Anima's tokenize + text encoding pipeline.
+
+    apply_fix_025: Anima 3.8B (semantic branch) 対応。
+    semantic_text_encoder / layer_indices が両方揃っている場合のみ
+    Qwen3.5を含めた2モデル構成でencode_tokens()を呼ぶ。
+    戻り値は常に6要素のタプルとし、semantic branch非使用時は
+    末尾2要素をNoneにする(呼び出し元の分岐を単純化するため)。
+    """
+    use_semantic_branch = semantic_text_encoder is not None and layer_indices is not None
+    models = [text_encoder, semantic_text_encoder] if use_semantic_branch else [text_encoder]
+
     tokens = tokenize_strategy.tokenize(prompt)
     with torch.no_grad():
-        outputs = text_encoding_strategy.encode_tokens(tokenize_strategy, [text_encoder], tokens)
+        outputs = text_encoding_strategy.encode_tokens(tokenize_strategy, models, tokens)
+
+    if use_semantic_branch:
+        # outputs: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask,
+        #           semantic_hidden_states, semantic_attn_mask)
+        return tuple(outputs)
     # outputs: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)
-    return outputs
+    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = outputs
+    return (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask, None, None)
 
 
 def _anima_forward(
@@ -100,6 +118,8 @@ def _anima_forward(
     t5_attn_mask: torch.Tensor,
     weight_dtype,
     device,
+    semantic_hidden_states=None,
+    semantic_attention_mask=None,
 ) -> torch.Tensor:
     """Single forward pass through the Anima DiT model."""
     bs = noisy_latents.shape[0]
@@ -110,6 +130,17 @@ def _anima_forward(
     # Anima expects 5D input: [B, C, 1, H, W]
     inp = noisy_latents.unsqueeze(2)
 
+    # apply_fix_025: Anima 3.8B (semantic branch) 対応。
+    # Anima.forward() は semantic_hidden_states を Sequence[Tensor] (層ごとの
+    # リスト、各shape (B, L, D)) として受け取るため、(num_layers, B, L, D) の
+    # スタック済みテンソルをここで初めてunbindする。
+    semantic_kwargs = {}
+    if semantic_hidden_states is not None:
+        semantic_kwargs["semantic_hidden_states"] = list(
+            semantic_hidden_states.to(device, dtype=weight_dtype).unbind(dim=0)
+        )
+        semantic_kwargs["semantic_attention_mask"] = semantic_attention_mask.to(device)
+
     pred = model(
         inp,
         timesteps_normalized,
@@ -118,6 +149,7 @@ def _anima_forward(
         target_input_ids=t5_input_ids.to(device, dtype=torch.long),
         target_attention_mask=t5_attn_mask.to(device),
         source_attention_mask=attn_mask.to(device),
+        **semantic_kwargs,
     )
     # Back to 4D: [B, C, H, W]
     return pred.squeeze(2)
@@ -139,7 +171,8 @@ def diffusion_anima(
     and Rectified Flow timestep convention (normalized to [0, 1]).
     Classifier-free guidance is applied when guidance_scale > 1.0.
     """
-    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = embeds_tuple
+    # apply_fix_025: Anima 3.8B (semantic branch) 対応。6要素タプルに拡張。
+    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask, semantic_hidden_states, semantic_attn_mask = embeds_tuple
 
     for i, t in enumerate(noise_scheduler.timesteps[:total_timesteps]):
         # Rectified Flow: timestep normalized to [0, 1]
@@ -154,6 +187,8 @@ def diffusion_anima(
                 model, latents_input, t_input,
                 prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask,
                 weight_dtype, device,
+                semantic_hidden_states=semantic_hidden_states,
+                semantic_attention_mask=semantic_attn_mask,
             )
             noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
             noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_cond - noise_pred_uncond)
@@ -162,6 +197,8 @@ def diffusion_anima(
                 model, latents, t_batch,
                 prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask,
                 weight_dtype, device,
+                semantic_hidden_states=semantic_hidden_states,
+                semantic_attention_mask=semantic_attn_mask,
             )
 
         latents = noise_scheduler.step(noise_pred, t, latents).prev_sample
@@ -183,7 +220,8 @@ def predict_noise_anima(
     Replicates leco_train_util.predict_noise() for Anima.
     guidance_scale is always 1.0 for this phase (no CFG).
     """
-    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = embeds_tuple
+    # apply_fix_025: Anima 3.8B (semantic branch) 対応。6要素タプルに拡張。
+    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask, semantic_hidden_states, semantic_attn_mask = embeds_tuple
     t_norm = (timestep.float() / 1000.0).to(device, dtype=weight_dtype)
     t_batch = t_norm.expand(latents.shape[0])
 
@@ -191,37 +229,68 @@ def predict_noise_anima(
         model, latents, t_batch,
         prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask,
         weight_dtype, device,
+        semantic_hidden_states=semantic_hidden_states,
+        semantic_attention_mask=semantic_attn_mask,
     )
 
 
 def concat_embeds_anima(uncond_embeds, cond_embeds, batch_size: int):
     """Concatenate unconditional and conditional embeddings for CFG (Anima variant).
 
-    Returns a tuple of (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)
-    where unconditional is first and conditional is second along batch dim.
+    Returns a tuple of (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask,
+    semantic_hidden_states, semantic_attn_mask) where unconditional is first
+    and conditional is second along batch dim.
+
+    apply_fix_025: Anima 3.8B (semantic branch) 対応。
+    semantic_hidden_states は (num_layers, B, L, D) でバッチ軸がdim=1のため、
+    他の4テンソル(dim=0がバッチ)とは異なる軸でrepeat/catする。
     """
-    pe_u, am_u, t5_u, t5am_u = uncond_embeds
-    pe_c, am_c, t5_c, t5am_c = cond_embeds
+    pe_u, am_u, t5_u, t5am_u, sh_u, sam_u = uncond_embeds
+    pe_c, am_c, t5_c, t5am_c, sh_c, sam_c = cond_embeds
 
     def _repeat(x):
         return x.repeat(batch_size, *([1] * (x.dim() - 1))) if x.shape[0] == 1 else x
 
-    return (
+    result = (
         torch.cat([_repeat(pe_u), _repeat(pe_c)], dim=0),
         torch.cat([_repeat(am_u), _repeat(am_c)], dim=0),
         torch.cat([_repeat(t5_u), _repeat(t5_c)], dim=0),
         torch.cat([_repeat(t5am_u), _repeat(t5am_c)], dim=0),
     )
 
+    if sh_u is None or sh_c is None:
+        return result + (None, None)
+
+    def _repeat_semantic(x):
+        # (num_layers, B, L, D): バッチ軸はdim=1
+        return x.repeat(1, batch_size, *([1] * (x.dim() - 2))) if x.shape[1] == 1 else x
+
+    semantic_hidden_states = torch.cat([_repeat_semantic(sh_u), _repeat_semantic(sh_c)], dim=1)
+    semantic_attn_mask = torch.cat([_repeat(sam_u), _repeat(sam_c)], dim=0)
+    return result + (semantic_hidden_states, semantic_attn_mask)
+
 
 def repeat_embeds_anima(embeds, batch_size: int):
-    """Repeat single-prompt embeddings to batch_size (for non-CFG prediction)."""
-    pe, am, t5, t5am = embeds
+    """Repeat single-prompt embeddings to batch_size (for non-CFG prediction).
+
+    apply_fix_025: Anima 3.8B (semantic branch) 対応。
+    semantic_hidden_states は (num_layers, B, L, D) でバッチ軸がdim=1のため、
+    他の4テンソル(dim=0がバッチ)とは異なる軸でrepeatする。
+    """
+    pe, am, t5, t5am, sh, sam = embeds
 
     def _repeat(x):
         return x.repeat(batch_size, *([1] * (x.dim() - 1))) if x.shape[0] == 1 else x
 
-    return (_repeat(pe), _repeat(am), _repeat(t5), _repeat(t5am))
+    result = (_repeat(pe), _repeat(am), _repeat(t5), _repeat(t5am))
+
+    if sh is None:
+        return result + (None, None)
+
+    def _repeat_semantic(x):
+        return x.repeat(1, batch_size, *([1] * (x.dim() - 2))) if x.shape[1] == 1 else x
+
+    return result + (_repeat_semantic(sh), _repeat(sam))
 
 
 def get_initial_latents_anima(
@@ -352,6 +421,23 @@ def main():
     qwen3_text_encoder.eval()
     qwen3_text_encoder.requires_grad_(False)
 
+    # apply_fix_025: Anima 3.8B (semantic branch) 対応。
+    # --progressive_adapter_path が指定されている場合のみQwen3.5をロードし、
+    # layer_indicesを検出する。未指定の場合は従来通りsemantic branch無効。
+    qwen35_text_encoder = None
+    layer_indices = None
+    progressive_adapter_path = getattr(args, "progressive_adapter_path", None)
+    if progressive_adapter_path:
+        if not getattr(args, "qwen35", None):
+            raise ValueError("--progressive_adapter_path requires --qwen35 to be set.")
+        logger.info("Loading Qwen3.5 text encoder...")
+        qwen35_text_encoder, _ = anima_utils.load_qwen35_text_encoder(
+            args.qwen35, dtype=weight_dtype, device="cpu"
+        )
+        qwen35_text_encoder.eval()
+        qwen35_text_encoder.requires_grad_(False)
+        _, layer_indices = anima_utils.detect_progressive_adapter_architecture(progressive_adapter_path)
+
     logger.info("Loading Anima VAE...")
     vae = anima_train_utils.load_qwen_image_vae(args, device="cpu", disable_mmap=True)
     vae.to(weight_dtype)
@@ -380,6 +466,8 @@ def main():
         "cpu",
         weight_dtype,
         False,  # fp8_scaled not supported for LECO
+        # apply_fix_025: Anima 3.8B (semantic branch) 対応。
+        progressive_adapter_path=progressive_adapter_path,
     )
     dit.requires_grad_(False)
     dit.to(device, dtype=weight_dtype)
@@ -391,10 +479,17 @@ def main():
         t5_tokenizer_path=getattr(args, "t5_tokenizer_path", None) or None,
         qwen3_max_length=getattr(args, "qwen3_max_token_length", 512),
         t5_max_length=getattr(args, "t5_max_token_length", 512),
+        # apply_fix_025: Anima 3.8B (semantic branch) 対応。
+        qwen35_path=getattr(args, "qwen35", None),
     )
-    text_encoding_strategy = strategy_anima.AnimaTextEncodingStrategy()
+    text_encoding_strategy = strategy_anima.AnimaTextEncodingStrategy(layer_indices=layer_indices)
 
     qwen3_text_encoder.to(device, dtype=weight_dtype)
+    # apply_fix_025: Anima 3.8B (semantic branch) 対応。
+    # Qwen3.5もプロンプト事前計算の間だけGPUへ載せ、完了後CPUへ退避する
+    # (LECOの既存設計:起動時に一度だけロード→事前計算→CPUへ退避、を踏襲)。
+    if qwen35_text_encoder is not None:
+        qwen35_text_encoder.to(device, dtype=weight_dtype)
     prompt_cache = PromptEmbedsCache()
     unique_prompts = sorted({
         prompt
@@ -404,9 +499,13 @@ def main():
     with torch.no_grad():
         for prompt in unique_prompts:
             prompt_cache[prompt] = encode_prompt_anima(
-                tokenize_strategy, text_encoding_strategy, qwen3_text_encoder, prompt
+                tokenize_strategy, text_encoding_strategy, qwen3_text_encoder, prompt,
+                semantic_text_encoder=qwen35_text_encoder,
+                layer_indices=layer_indices,
             )
     qwen3_text_encoder.to("cpu")
+    if qwen35_text_encoder is not None:
+        qwen35_text_encoder.to("cpu")
     clean_memory_on_device(device)
 
     # ── Noise scheduler (Rectified Flow) ───────────────────────────────────
@@ -621,6 +720,9 @@ def main():
                         dit=dit_unwrapped,
                         vae_for_sample=_vae_for_sample,
                         text_encoder=qwen3_text_encoder,
+                        # apply_fix_025: Anima 3.8B (semantic branch) 対応。
+                        semantic_text_encoder=qwen35_text_encoder,
+                        layer_indices=layer_indices,
                         tokenize_strategy=tokenize_strategy,
                         text_encoding_strategy=text_encoding_strategy,
                         accelerator=accelerator,

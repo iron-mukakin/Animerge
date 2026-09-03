@@ -193,6 +193,176 @@ def wrap_llm_adapter_with_progressive_cross_adapter(
     progressive_adapter.assign_trainable_state_dict(diff_state_dict)
     return progressive_adapter.to(device)
 
+# --- Anima 3.8B v1.1対応: Semantic Connector v2の検出・構築 -----------------
+# v1.0はDiT本体と外部Progressive Cross Adapter(差分checkpoint)が別ファイルだが、
+# v1.1ではDiT・llm_adapter・Semantic Connector v2が同一checkpointにbundleされる。
+# 参照: Anima_3_8B_v1_0_v1_1_対応改修指示書.txt 第20節(判定優先順位)・第22節(依存ファイル)。
+
+_ANIMA_V2_CONNECTOR_ARCHITECTURE_METADATA_VALUE = "anima_qwen35_quality_anchored_semantic_connector_v2"
+
+
+def detect_semantic_connector_v2_architecture(dit_path: str) -> bool:
+    """DiT checkpointがAnima 3.8B v1.1(Semantic Connector v2内蔵)かどうかを判定する。
+
+    判定優先順位: (1) safetensors metadataの'anima_v2_adapter_architecture'、
+    (2) tensor key namespace('anima_v2_connector.'の有無)。ファイル名では判定しない。
+
+    Args:
+        dit_path: DiT checkpoint(.safetensors)へのパス。
+
+    Returns:
+        v1.1(Semantic Connector v2内蔵)であればTrue。
+
+    Raises:
+        FileNotFoundError: dit_pathが存在しない場合。
+    """
+    path = Path(dit_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"DiT checkpointが見つかりません: {dit_path}")
+
+    with safe_open(str(path), framework="pt") as handle:
+        metadata = handle.metadata() or {}
+        architecture = metadata.get("anima_v2_adapter_architecture")
+        if architecture is not None:
+            return architecture == _ANIMA_V2_CONNECTOR_ARCHITECTURE_METADATA_VALUE
+
+        for key in handle.keys():
+            if "anima_v2_connector." in canonical_dit_key(key):
+                return True
+    return False
+
+
+def detect_anima_v2_connector_config(dit_path: str) -> Dict[str, object]:
+    """Semantic Connector v2(Anima 3.8B v1.1)の構築に必要な設定値を、
+    checkpointのヘッダ(metadata + tensor shape)からのみ検出する
+    (推測・ハードコードを避けるため、値は必ず実チェックポイントから読む)。
+
+    Args:
+        dit_path: DiT checkpoint(.safetensors)へのパス。Semantic Connector v2が
+            bundleされている必要がある(`detect_semantic_connector_v2_architecture`
+            がTrueを返すもの)。
+
+    Returns:
+        以下のキーを持つ辞書: semantic_source_dim, layer_indices, resampler_dim,
+        num_query_tokens, mlp_hidden_dim, num_resampler_blocks, num_resampler_heads。
+
+    Raises:
+        FileNotFoundError: dit_pathが存在しない場合。
+        RuntimeError: 必要なtensor keyまたはmetadataが見つからない場合。
+    """
+    path = Path(dit_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"DiT checkpointが見つかりません: {dit_path}")
+
+    semantic_source_dim: Optional[int] = None
+    resampler_dim: Optional[int] = None
+    num_query_tokens: Optional[int] = None
+    mlp_hidden_dim: Optional[int] = None
+    resampler_block_indices: set = set()
+
+    with safe_open(str(path), framework="pt") as handle:
+        metadata = handle.metadata() or {}
+        for key in handle.keys():
+            normalized_key = canonical_dit_key(key)
+            if normalized_key.endswith("anima_v2_connector.quality_anchor.semantic_attentions.0.k_proj.weight"):
+                semantic_source_dim = handle.get_slice(key).get_shape()[1]
+            elif normalized_key.endswith("anima_v2_connector.semantic_resampler.query_tokens"):
+                shape = handle.get_slice(key).get_shape()
+                num_query_tokens, resampler_dim = shape[1], shape[2]
+            elif normalized_key.endswith("anima_v2_connector.semantic_resampler.blocks.0.mlp_out.weight"):
+                mlp_hidden_dim = handle.get_slice(key).get_shape()[1]
+            block_match = re.search(r"anima_v2_connector\.semantic_resampler\.blocks\.(\d+)\.", normalized_key)
+            if block_match:
+                resampler_block_indices.add(int(block_match.group(1)))
+
+    missing = [
+        name
+        for name, value in (
+            ("semantic_source_dim", semantic_source_dim),
+            ("resampler_dim", resampler_dim),
+            ("num_query_tokens", num_query_tokens),
+            ("mlp_hidden_dim", mlp_hidden_dim),
+        )
+        if value is None
+    ]
+    if not resampler_block_indices:
+        missing.append("semantic_resampler.blocks")
+    if missing:
+        raise RuntimeError(
+            f"Semantic Connector v2に必要なtensor keyが見つかりませんでした: {dit_path}. "
+            f"不足項目: {missing}"
+        )
+
+    layer_indices_raw = metadata.get("anima_v2_adapter_layer_indices")
+    if layer_indices_raw is None:
+        raise RuntimeError(f"checkpointのmetadataに'anima_v2_adapter_layer_indices'がありません: {dit_path}.")
+    layer_indices = [int(index) for index in json.loads(layer_indices_raw)]
+
+    num_resampler_heads_raw = metadata.get("anima_v2_adapter_semantic_resampler_heads")
+    if num_resampler_heads_raw is None:
+        raise RuntimeError(
+            f"checkpointのmetadataに'anima_v2_adapter_semantic_resampler_heads'がありません: {dit_path}."
+        )
+
+    return {
+        "semantic_source_dim": int(semantic_source_dim),
+        "layer_indices": layer_indices,
+        "resampler_dim": int(resampler_dim),
+        "num_query_tokens": int(num_query_tokens),
+        "mlp_hidden_dim": int(mlp_hidden_dim),
+        "num_resampler_blocks": len(resampler_block_indices),
+        "num_resampler_heads": int(num_resampler_heads_raw),
+    }
+
+
+def attach_semantic_connector_v2(model: anima_models.Anima, dit_path: str) -> None:
+    """`model`にAnima 3.8B v1.1のSemantic Connector v2(空の重み)を追加する。
+
+    `model.anima_v2_connector`属性として追加する。実際の重みはこの関数の後で
+    呼び出し元がcheckpointのstate_dictをロードすることで割り当てられる想定であり、
+    `init_empty_weights()`配下(load_anima_model内)での呼び出しを前提とする。
+
+    Args:
+        model: 空のAnima DiT(llm_adapterを持つこと)。
+        dit_path: Semantic Connector v2の構成検出に使うDiT checkpointへのパス。
+
+    Raises:
+        RuntimeError: modelがllm_adapterを持たない場合。
+    """
+    if not hasattr(model, "llm_adapter"):
+        raise RuntimeError("Semantic Connector v2を追加するにはmodelがllm_adapterを持っている必要があります。")
+
+    config = detect_anima_v2_connector_config(dit_path)
+    model_dim = model.llm_adapter.embed.weight.shape[1]
+    num_native_blocks = len(model.llm_adapter.blocks)
+    num_heads = model.llm_adapter.blocks[0].self_attn.n_heads
+
+    logger.info(
+        f"Attaching Semantic Connector v2 (Anima 3.8B v1.1): "
+        f"layer_indices={config['layer_indices']}, resampler_dim={config['resampler_dim']}, "
+        f"num_query_tokens={config['num_query_tokens']}, num_resampler_blocks={config['num_resampler_blocks']}"
+    )
+
+    semantic_resampler = anima_models.AnimaSemanticResampler(
+        source_dim=config["semantic_source_dim"],
+        resampler_dim=config["resampler_dim"],
+        output_dim=model_dim,
+        num_query_tokens=config["num_query_tokens"],
+        num_heads=config["num_resampler_heads"],
+        mlp_hidden_dim=config["mlp_hidden_dim"],
+        num_blocks=config["num_resampler_blocks"],
+        layer_indices=config["layer_indices"],
+    )
+    model.anima_v2_connector = anima_models.AnimaQualitySemanticConnectorV2(
+        model_dim=model_dim,
+        semantic_source_dim=config["semantic_source_dim"],
+        num_native_blocks=num_native_blocks,
+        num_heads=num_heads,
+        layer_indices=config["layer_indices"],
+        semantic_resampler=semantic_resampler,
+    )
+
+
 # --- 2026-05-24: キー名称正規化 (canonical_dit_key) を追加 ---
 # Prefixes stripped when normalizing DiT checkpoint keys.
 # Mirrors KEY_PREFIXES in merge.py to handle various checkpoint formats
@@ -331,6 +501,20 @@ def load_anima_model(
         model = anima_models.Anima(**dit_config)
         if dit_weight_dtype is not None:
             model.to(dit_weight_dtype)
+
+        # Anima 3.8B v1.1: Semantic Connector v2がdit_pathにbundleされている場合、
+        # ここで空の重みとしてmodel.anima_v2_connectorを追加しておく
+        # (この後のload_state_dictで実際の重みが割り当てられる)。
+        is_semantic_connector_v2 = detect_semantic_connector_v2_architecture(dit_path)
+        if is_semantic_connector_v2:
+            if progressive_adapter_path is not None:
+                raise RuntimeError(
+                    "v1.1(Semantic Connector v2内蔵)のDiT checkpointに対して "
+                    "progressive_adapter_pathが同時に指定されました。v1.1では外部の "
+                    "v1.0 Progressive Cross Adapterを併用できません。"
+                    "--progressive_adapter_pathの指定を外してください。"
+                )
+            attach_semantic_connector_v2(model, dit_path)
 
     # load model weights with dynamic fp8 optimization and LoRA merging if needed
     logger.info(f"Loading DiT model from {dit_path}, device={loading_device}")

@@ -1,0 +1,17 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_leco_wrapper.py --pretrained_model_name_or_path E:/Animerge/checkpoints/Anima-3.8B.safetensors --vae E:/Animerge/checkpoints/Qwen2D-Anime-dense_epoch_1.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --prompts_file E:/Animerge/preset/leco_train/leco_test.toml --output_dir E:\Animerge\lora --output_name leco_output --network_module networks.lora --network_dim 4 --network_alpha 1.0 --learning_rate 1e-4 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --max_train_steps 500 --save_every_n_steps 100 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --max_denoising_steps 20 --leco_denoise_guidance_scale 3.0 --attn_mode torch --discrete_flow_shift 1.0 --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --qwen35 E:/Animerge/checkpoints/qwen35_4b.safetensors --progressive_adapter_path E:/Animerge/checkpoints/Anima-3.8B-expanded_adapter.safetensors --gradient_checkpointing --network_args anima_block_lr_weight=1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
+
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFADF46605D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFAE04ECCB7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFAE210CAEC  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFADF46605D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFAE04ECCB7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFAE210CAEC  Unknown               Unknown  Unknown

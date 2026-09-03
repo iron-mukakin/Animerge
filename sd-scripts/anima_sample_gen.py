@@ -29,7 +29,7 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 
-from library import anima_models, qwen_image_autoencoder_kl, train_util
+from library import anima_models, anima_train_utils, qwen_image_autoencoder_kl, train_util
 from library.device_utils import clean_memory_on_device, synchronize_device
 
 from library.utils import setup_logging
@@ -44,6 +44,39 @@ logger = logging.getLogger(__name__)
 # テキストエンコード + _preprocess_text_embeds
 # ---------------------------------------------------------------------------
 
+class AnimaTextConditioning:
+    """テキスト条件付けの計算結果を保持するラッパー。
+
+    v1.0(またはadapterなし)ではllm_adapter/quality_anchorがtimestepに依存しないため、
+    prompt encode時に`_preprocess_text_embeds`を1回だけ実行しcrossattn_embを
+    全denoising stepで使い回せる(既存動作、変更なし)。
+
+    一方Anima 3.8B v1.1(Semantic Connector v2)はsemantic_resamplerがtimestep-awareで
+    あり、改修指示書の禁止事項3「Semantic Connectorをprompt encode時に1回だけ実行するのは
+    禁止」により、denoising step毎に現在のtimestepで`_preprocess_text_embeds`を
+    再実行する必要がある。このクラスはどちらの経路かを`resolve()`で吸収する。
+    """
+
+    def __init__(
+        self,
+        precomputed_crossattn_emb: Optional[torch.Tensor] = None,
+        deferred_kwargs: Optional[dict] = None,
+        t5_attention_mask: Optional[torch.Tensor] = None,
+    ) -> None:
+        self.precomputed_crossattn_emb = precomputed_crossattn_emb
+        self.deferred_kwargs = deferred_kwargs
+        self.t5_attention_mask = t5_attention_mask
+
+    def resolve(self, dit: anima_models.Anima, timesteps: torch.Tensor) -> torch.Tensor:
+        """現在のtimestepでcrossattn_embを得る(v1.0系は事前計算値をそのまま返す)。"""
+        if self.deferred_kwargs is None:
+            return self.precomputed_crossattn_emb
+        with torch.no_grad():
+            crossattn_emb = dit._preprocess_text_embeds(timesteps=timesteps, **self.deferred_kwargs)
+            crossattn_emb[~self.t5_attention_mask.bool()] = 0
+        return crossattn_emb
+
+
 def encode_prompt_for_sample(
     prompt: str,
     tokenize_strategy,
@@ -55,11 +88,13 @@ def encode_prompt_for_sample(
     semantic_text_encoder: Optional[torch.nn.Module] = None,
     layer_indices: Optional[Sequence[int]] = None,
 ):
-    """プロンプトをエンコードし _preprocess_text_embeds を適用して返す。
+    """プロンプトをエンコードし、テキスト条件付けを返す。
 
     Returns
     -------
-    crossattn_emb : torch.Tensor  shape (1, N, D)  前処理済みテンソル
+    conditioning : AnimaTextConditioning
+        v1.0系: 前処理済みcrossattn_emb(1, N, D)を保持。
+        v1.1(Semantic Connector v2): denoising step毎の再計算に必要な材料を保持。
     """
     # apply_fix_021: Anima 3.8B (semantic branch) 対応。
     # semantic_text_encoder / layer_indices が両方揃っている場合のみ
@@ -68,6 +103,16 @@ def encode_prompt_for_sample(
     # ここで渡すmodelsの要素数がそのままsemantic branch有効・無効を決める)。
     use_semantic_branch = semantic_text_encoder is not None and layer_indices is not None
     models = [text_encoder, semantic_text_encoder] if use_semantic_branch else [text_encoder]
+
+    # Anima 3.8B v1.1: Semantic Connector v2が内蔵されたDiTは、semantic branch
+    # (Qwen3.5)無しでは動作しない(quality_anchor/semantic_resamplerがQwen3.5の
+    # 隠れ状態を必須とするため)。
+    is_semantic_connector_v2 = getattr(dit, "anima_v2_connector", None) is not None
+    if is_semantic_connector_v2 and not use_semantic_branch:
+        raise ValueError(
+            "このDiT checkpointはAnima 3.8B v1.1(Semantic Connector v2内蔵)ですが、"
+            "semantic_text_encoder(Qwen3.5)またはlayer_indicesが渡されていません。"
+        )
 
     tokens = tokenize_strategy.tokenize(prompt)
     # encode_tokens returns [prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask]
@@ -134,7 +179,24 @@ def encode_prompt_for_sample(
     )
     # --- 診断ログ2ここまで ---
 
+    if is_semantic_connector_v2:
+        # Anima 3.8B v1.1: ここではcrossattn_embを計算せず、denoising step毎に
+        # dit._preprocess_text_embeds()を現在のtimestepで再実行するための材料を返す
+        # (改修指示書 禁止3。semantic_resamplerがtimestep-awareなため)。
+        return AnimaTextConditioning(
+            deferred_kwargs=dict(
+                source_hidden_states=prompt_embeds,
+                target_input_ids=t5_input_ids,
+                target_attention_mask=t5_attn_mask,
+                source_attention_mask=attn_mask,
+                semantic_hidden_states=semantic_hidden_states_list,
+                semantic_attention_mask=semantic_attn_mask,
+            ),
+            t5_attention_mask=t5_attn_mask,
+        )
+
     # _preprocess_text_embeds: LLM adapter を通して T5 空間へ変換
+    # (v1.0/adapterなし: timestepに依存しないため1回だけ実行して使い回す)
     with torch.no_grad():
         crossattn_emb = dit._preprocess_text_embeds(
             source_hidden_states=prompt_embeds,
@@ -161,7 +223,7 @@ def encode_prompt_for_sample(
     )
     # --- 診断ログここまで ---
 
-    return crossattn_emb  # (1, N, D)
+    return AnimaTextConditioning(precomputed_crossattn_emb=crossattn_emb)
 
 
 # ---------------------------------------------------------------------------
@@ -170,8 +232,8 @@ def encode_prompt_for_sample(
 
 def _denoise(
     dit: anima_models.Anima,
-    crossattn_emb: torch.Tensor,
-    neg_crossattn_emb: Optional[torch.Tensor],
+    crossattn_emb: AnimaTextConditioning,
+    neg_crossattn_emb: Optional[AnimaTextConditioning],
     height: int,
     width: int,
     steps: int,
@@ -182,6 +244,11 @@ def _denoise(
     dtype: torch.dtype,
 ) -> torch.Tensor:
     """Euler ステップによるデノイズ。anima_minimal_inference.generate_body の経路に準拠。
+
+    crossattn_emb / neg_crossattn_emb は AnimaTextConditioning。v1.0系では内部で
+    保持する事前計算済みテンソルがそのまま返るため既存動作と同一。Anima 3.8B v1.1
+    (Semantic Connector v2)では、resolve()が各step呼び出し時の実際のtimestepで
+    `_preprocess_text_embeds`を再実行する(timestep-awareなsemantic_resamplerのため)。
 
     Returns
     -------
@@ -216,11 +283,14 @@ def _denoise(
             # t = sigma 値（0〜1）をそのまま渡す（do_sample と同一）
             t = sigmas[i].unsqueeze(0).to(dtype)
 
-            noise_pred = dit(latents, t, crossattn_emb, padding_mask=padding_mask)
+            resolved_crossattn_emb = crossattn_emb.resolve(dit, t)
+            noise_pred = dit(latents, t, resolved_crossattn_emb, padding_mask=padding_mask)
             # target_input_ids を渡さない → forward 内の _preprocess_text_embeds は素通り
+            # (resolve()側で既にadapter/Semantic Connectorを通し終えているため)
 
             if do_cfg:
-                uncond_pred = dit(latents, t, neg_crossattn_emb, padding_mask=padding_mask)
+                resolved_neg_crossattn_emb = neg_crossattn_emb.resolve(dit, t)
+                uncond_pred = dit(latents, t, resolved_neg_crossattn_emb, padding_mask=padding_mask)
                 # 診断ログ（最初と最後のステップのみ）: CFG前の cond/uncond を記録
                 if i == 0 or i == steps - 1:
                     cond_norm_pre  = float(noise_pred.norm().item())
@@ -541,12 +611,14 @@ def sample_images_from_prompts(
             logger.error("[SampleGen] VAE が指定されていません（args.vae が空）。スキップします。")
             return
         logger.info(f"[SampleGen] VAE を一時ロードします: {vae_path}")
-        active_vae = qwen_image_autoencoder_kl.load_vae(
-            vae_path,
+        # apply_fix_027: --qwen_image_vae_2d を無視して常に3D実装を呼んでいた
+        # 既存バグを修正。anima_train_utils.load_qwen_image_vae() は
+        # args.qwen_image_vae_2d を見て2D/3Dを正しく振り分ける
+        # (apply_fix_015でanima_train_network.pyに導入したのと同じディスパッチャ)。
+        active_vae = anima_train_utils.load_qwen_image_vae(
+            args,
             device="cpu",
             disable_mmap=True,
-            spatial_chunk_size=getattr(args, "vae_chunk_size", None),
-            disable_cache=getattr(args, "vae_disable_cache", False),
         )
         active_vae.to(dtype)
         active_vae.eval()

@@ -1320,7 +1320,19 @@ class Anima(nn.Module):
         """
         # Run LLM adapter inside forward for correct DDP gradient synchronization
         if t5_input_ids is not None and self.use_llm_adapter and hasattr(self, "llm_adapter"):
-            if isinstance(self.llm_adapter, ProgressiveQwen35CrossAdapter):
+            if getattr(self, "anima_v2_connector", None) is not None:
+                # Anima 3.8B v1.1: Semantic Connector v2。timesteps_B_TはAdaLN変調に使う。
+                crossattn_emb = self.anima_v2_connector(
+                    llm_adapter=self.llm_adapter,
+                    native_source_hidden_states=crossattn_emb,
+                    target_input_ids=t5_input_ids,
+                    semantic_hidden_states=semantic_hidden_states,
+                    timesteps=timesteps_B_T,
+                    target_attention_mask=t5_attn_mask,
+                    native_source_mask=source_attention_mask,
+                    semantic_source_mask=semantic_attention_mask,
+                )
+            elif isinstance(self.llm_adapter, ProgressiveQwen35CrossAdapter):
                 crossattn_emb = self.llm_adapter(
                     native_source_hidden_states=crossattn_emb,
                     target_input_ids=t5_input_ids,
@@ -1395,6 +1407,7 @@ class Anima(nn.Module):
             source_attention_mask,
             semantic_hidden_states=semantic_hidden_states,
             semantic_attention_mask=semantic_attention_mask,
+            timesteps=timesteps,
         )
         return self.forward_mini_train_dit(x, timesteps, context, fps=fps, padding_mask=padding_mask, **kwargs)
 
@@ -1406,9 +1419,24 @@ class Anima(nn.Module):
         source_attention_mask=None,
         semantic_hidden_states: Optional[Sequence[torch.Tensor]] = None,
         semantic_attention_mask: Optional[torch.Tensor] = None,
+        timesteps: Optional[torch.Tensor] = None,
     ):
         if target_input_ids is not None:
-            if isinstance(self.llm_adapter, ProgressiveQwen35CrossAdapter):
+            # Anima 3.8B v1.1: Semantic Connector v2(anima_v2_connector)が存在する場合を
+            # 最優先で分岐する。llm_adapter自体はv1.1でも素のLLMAdapterのまま(凍結)であり、
+            # v1.0のProgressiveQwen35CrossAdapter経路(下のisinstance分岐)は変更しない。
+            if getattr(self, "anima_v2_connector", None) is not None:
+                context = self.anima_v2_connector(
+                    llm_adapter=self.llm_adapter,
+                    native_source_hidden_states=source_hidden_states,
+                    target_input_ids=target_input_ids,
+                    semantic_hidden_states=semantic_hidden_states,
+                    timesteps=timesteps,
+                    target_attention_mask=target_attention_mask,
+                    native_source_mask=source_attention_mask,
+                    semantic_source_mask=semantic_attention_mask,
+                )
+            elif isinstance(self.llm_adapter, ProgressiveQwen35CrossAdapter):
                 context = self.llm_adapter(
                     native_source_hidden_states=source_hidden_states,
                     target_input_ids=target_input_ids,
@@ -1902,6 +1930,388 @@ class ProgressiveQwen35CrossAdapter(nn.Module):
             + sum(parameter.numel() for parameter in self.source_norms.parameters()),
             "trainable_routing": self.layer_mix_logits.numel(),
             "total_trainable": trainable,
+            "total_parameters": sum(parameter.numel() for parameter in self.parameters()),
+        }
+
+
+# === Anima 3.8B v1.1: Semantic Connector v2 ===
+# 2026-09: v1.0のProgressiveQwen35CrossAdapterは変更せず(non-destructive)、
+# v1.1の`net.anima_v2_connector.*`に対応する新規クラス群を追加する。
+# 参照: architecture-addendum.md、Anima_3_8B_v1_0_v1_1_対応改修指示書.txt。
+# 以下のうちAdaLN-Zero方式のtimestep変調(AnimaSemanticResamplerBlock内の
+# 各種LayerNormがelementwise_affine=Falseである点、GLUの分割方向、
+# cross-attentionにAdaLN変調を適用しない点)は、dumpのtensor keyに
+# 対応する重みが存在しないため標準的なDiT/Perceiver Resamplerパターンとして
+# 再構成したものであり、公式reference実装による裏取りは未了。
+
+
+class AnimaSemanticResamplerAttention(nn.Module):
+    """Semantic Resampler専用の素朴なMulti-Head Attention(QK-Norm・RoPEなし)。
+
+    LLMAdapterAttentionと異なり、dumpのtensor keyにq_norm/k_normおよび
+    RoPE関連の重みが存在しないため、素のscaled dot-product attentionのみを実装する。
+    """
+
+    def __init__(self, query_dim: int, context_dim: int, num_heads: int, head_dim: int) -> None:
+        super().__init__()
+        inner_dim = head_dim * num_heads
+        self.num_heads = num_heads
+        self.head_dim = head_dim
+        self.q_proj = nn.Linear(query_dim, inner_dim, bias=False)
+        self.k_proj = nn.Linear(context_dim, inner_dim, bias=False)
+        self.v_proj = nn.Linear(context_dim, inner_dim, bias=False)
+        self.o_proj = nn.Linear(inner_dim, query_dim, bias=False)
+
+    def forward(
+        self, query_hidden_states: torch.Tensor, context_hidden_states: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        context_hidden_states = query_hidden_states if context_hidden_states is None else context_hidden_states
+        batch_size, query_length = query_hidden_states.shape[:2]
+        context_length = context_hidden_states.shape[1]
+
+        query_states = self.q_proj(query_hidden_states).view(
+            batch_size, query_length, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+        key_states = self.k_proj(context_hidden_states).view(
+            batch_size, context_length, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+        value_states = self.v_proj(context_hidden_states).view(
+            batch_size, context_length, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+
+        attn_output = F.scaled_dot_product_attention(query_states, key_states, value_states)
+        attn_output = attn_output.transpose(1, 2).reshape(batch_size, query_length, -1).contiguous()
+        return self.o_proj(attn_output)
+
+
+class AnimaSemanticResamplerBlock(nn.Module):
+    """Semantic Resamplerの1ブロック(self-attn → cross-attn → GLU-MLP)。
+
+    self-attnとmlpのサブレイヤーはAdaLN-Zero方式でtimestep条件付けする
+    (dumpの`time_modulation`重み[12288=2048*6]がこの構成と一致する)。
+    cross-attnはAdaLN変調を持たない単純な残差接続とする
+    (dumpにcross-attn用の変調重みが別途存在しないため)。
+    """
+
+    _NUM_ADALN_CHUNKS = 6  # shift/scale/gate をself-attn・mlpそれぞれに1組ずつ
+
+    def __init__(self, resampler_dim: int, source_dim: int, num_heads: int, mlp_hidden_dim: int) -> None:
+        super().__init__()
+        head_dim = resampler_dim // num_heads
+        self.resampler_dim = resampler_dim
+        self.self_attention = AnimaSemanticResamplerAttention(resampler_dim, resampler_dim, num_heads, head_dim)
+        self.cross_attention = AnimaSemanticResamplerAttention(resampler_dim, source_dim, num_heads, head_dim)
+        self.source_norm = nn.LayerNorm(source_dim)
+        self.mlp_in = nn.Linear(resampler_dim, mlp_hidden_dim * 2, bias=False)
+        self.mlp_out = nn.Linear(mlp_hidden_dim, resampler_dim, bias=False)
+        self.time_modulation = nn.Linear(resampler_dim, resampler_dim * self._NUM_ADALN_CHUNKS, bias=True)
+
+    def forward(
+        self,
+        query_hidden_states: torch.Tensor,
+        source_hidden_states: torch.Tensor,
+        time_conditioning: torch.Tensor,
+    ) -> torch.Tensor:
+        modulation = self.time_modulation(time_conditioning)  # (B, 6*D)
+        shift_attn, scale_attn, gate_attn, shift_mlp, scale_mlp, gate_mlp = modulation.chunk(
+            self._NUM_ADALN_CHUNKS, dim=-1
+        )
+
+        normed = F.layer_norm(query_hidden_states, (self.resampler_dim,))
+        modulated = normed * (1.0 + scale_attn.unsqueeze(1)) + shift_attn.unsqueeze(1)
+        query_hidden_states = query_hidden_states + gate_attn.unsqueeze(1) * self.self_attention(modulated)
+
+        normed_source = self.source_norm(source_hidden_states)
+        query_hidden_states = query_hidden_states + self.cross_attention(query_hidden_states, normed_source)
+
+        normed = F.layer_norm(query_hidden_states, (self.resampler_dim,))
+        modulated = normed * (1.0 + scale_mlp.unsqueeze(1)) + shift_mlp.unsqueeze(1)
+        gate_value, hidden_value = self.mlp_in(modulated).chunk(2, dim=-1)
+        mlp_output = self.mlp_out(F.silu(gate_value) * hidden_value)
+        query_hidden_states = query_hidden_states + gate_mlp.unsqueeze(1) * mlp_output
+
+        return query_hidden_states
+
+
+class AnimaSemanticResampler(nn.Module):
+    """Qwen3.5の複数層隠れ状態を固定長query tokenへ圧縮するPerceiver Resampler。
+
+    Anima 3.8B v1.1(Semantic Connector v2)専用。出力はv2 cross-attention群への
+    contextとして使われる(次元はLLMAdapter互換空間である`output_dim`)。
+    timestep-awareであり、sampling時は各denoising stepごとに再実行される想定
+    (`anima_v2_adapter_timestep_gate=0`のため追加ゲート乗算は行わない)。
+    """
+
+    architecture = "anima_semantic_resampler_v2"
+
+    def __init__(
+        self,
+        source_dim: int,
+        resampler_dim: int,
+        output_dim: int,
+        num_query_tokens: int,
+        num_heads: int,
+        mlp_hidden_dim: int,
+        num_blocks: int,
+        layer_indices: Sequence[int],
+    ) -> None:
+        super().__init__()
+        self.layer_indices = tuple(int(index) for index in layer_indices)
+        self.query_tokens = nn.Parameter(torch.zeros(1, num_query_tokens, resampler_dim))
+        self.layer_embeddings = nn.Parameter(torch.zeros(len(self.layer_indices), 1, source_dim))
+        self.time_mlp = nn.Sequential(
+            nn.Linear(resampler_dim, resampler_dim),
+            nn.SiLU(),
+            nn.Linear(resampler_dim, resampler_dim),
+        )
+        self.timestep_features = Timesteps(resampler_dim)
+        self.blocks = nn.ModuleList(
+            [
+                AnimaSemanticResamplerBlock(resampler_dim, source_dim, num_heads, mlp_hidden_dim)
+                for _ in range(num_blocks)
+            ]
+        )
+        self.output_norm = nn.LayerNorm(resampler_dim)
+        self.output_projection = nn.Linear(resampler_dim, output_dim, bias=False)
+
+    def forward(self, semantic_hidden_states: Sequence[torch.Tensor], timesteps: torch.Tensor) -> torch.Tensor:
+        """Qwen3.5の複数層隠れ状態をresampleする。
+
+        Args:
+            semantic_hidden_states: `layer_indices`と同数のQwen3.5隠れ状態のリスト。
+                各要素は(B, L, source_dim)。
+            timesteps: (B,)または(B, 1)のtimestep。
+
+        Returns:
+            (B, num_query_tokens, output_dim)のresample済みsemantic tokens。
+
+        Raises:
+            ValueError: semantic_hidden_statesの長さがlayer_indicesと一致しない場合。
+        """
+        if len(semantic_hidden_states) != len(self.layer_indices):
+            raise ValueError(
+                f"semantic_hidden_statesは{len(self.layer_indices)}層分が必要ですが、"
+                f"{len(semantic_hidden_states)}層が渡されました。"
+            )
+
+        batch_size = semantic_hidden_states[0].shape[0]
+        tagged_layers = [
+            hidden_state + self.layer_embeddings[layer_index]
+            for layer_index, hidden_state in enumerate(semantic_hidden_states)
+        ]
+        source = torch.cat(tagged_layers, dim=1)  # (B, num_layers*L, source_dim)
+
+        timesteps_flat = timesteps.reshape(batch_size, -1)[:, :1].float()
+        time_features = self.timestep_features(timesteps_flat).squeeze(1).to(source.dtype)
+        time_conditioning = self.time_mlp(time_features)
+
+        query_hidden_states = self.query_tokens.expand(batch_size, -1, -1).to(source.dtype)
+        for block in self.blocks:
+            query_hidden_states = block(query_hidden_states, source, time_conditioning)
+
+        query_hidden_states = self.output_norm(query_hidden_states)
+        return self.output_projection(query_hidden_states)
+
+
+class AnimaV2QualityAnchor(nn.Module):
+    """v1.0のProgressiveQwen35CrossAdapterが持つ追加分(native_adapterを除く)のみを
+    切り出したモジュール。`net.anima_v2_connector.quality_anchor.*`に対応する。
+
+    v1.1ではllm_adapter(native_adapter相当)がAnima側の別属性として独立して
+    存在するため、このモジュールはnative_adapterを所有しない
+    (forward時に外部から受け取る)。
+    """
+
+    def __init__(
+        self,
+        model_dim: int,
+        semantic_source_dim: int,
+        num_blocks: int,
+        num_heads: int,
+        layer_indices: Sequence[int],
+    ) -> None:
+        super().__init__()
+        self.layer_indices = tuple(int(index) for index in layer_indices)
+        head_dim = model_dim // num_heads
+        self.query_norms = nn.ModuleList(
+            [LLMAdapterRMSNorm(model_dim, eps=_ADAPTER_NORM_EPS) for _ in range(num_blocks)]
+        )
+        self.source_norms = nn.ModuleList(
+            [LLMAdapterRMSNorm(semantic_source_dim, eps=_ADAPTER_NORM_EPS) for _ in range(num_blocks)]
+        )
+        self.semantic_attentions = nn.ModuleList(
+            [
+                LLMAdapterAttention(
+                    query_dim=model_dim, context_dim=semantic_source_dim, n_heads=num_heads, head_dim=head_dim
+                )
+                for _ in range(num_blocks)
+            ]
+        )
+        self.layer_mix_logits = nn.Parameter(torch.zeros(num_blocks, len(self.layer_indices)))
+
+
+class AnimaQualitySemanticConnectorV2(nn.Module):
+    """Anima 3.8B v1.1: Semantic Connector v2(`net.anima_v2_connector`に対応)。
+
+    既存llm_adapter(6ブロック、凍結、Anima側が別属性として保持)を外部から受け取り、
+    (1) quality_anchor: 生のQwen3.5隠れ状態へのcross-attention(v1.0と同一計算)、
+    (2) semantic_resampler + v2_attentions: resample済みsemantic tokenへの
+        cross-attention(v1.1新規)、
+    の両方をllm_adapterの各ブロック直後に残差加算する。
+
+    v1.0のProgressiveQwen35CrossAdapterクラス自体は変更しない(non-destructive)。
+    """
+
+    architecture = "anima_qwen35_quality_anchored_semantic_connector_v2"
+
+    def __init__(
+        self,
+        model_dim: int,
+        semantic_source_dim: int,
+        num_native_blocks: int,
+        num_heads: int,
+        layer_indices: Sequence[int],
+        semantic_resampler: AnimaSemanticResampler,
+    ) -> None:
+        super().__init__()
+        self.layer_indices = tuple(int(index) for index in layer_indices)
+        self.quality_anchor = AnimaV2QualityAnchor(
+            model_dim=model_dim,
+            semantic_source_dim=semantic_source_dim,
+            num_blocks=num_native_blocks,
+            num_heads=num_heads,
+            layer_indices=layer_indices,
+        )
+        self.semantic_resampler = semantic_resampler
+        resampled_dim = semantic_resampler.output_projection.out_features
+        head_dim = model_dim // num_heads
+
+        self.v2_query_norms = nn.ModuleList(
+            [LLMAdapterRMSNorm(model_dim, eps=_ADAPTER_NORM_EPS) for _ in range(num_native_blocks)]
+        )
+        self.v2_semantic_norms = nn.ModuleList(
+            [LLMAdapterRMSNorm(resampled_dim, eps=_ADAPTER_NORM_EPS) for _ in range(num_native_blocks)]
+        )
+        self.v2_attentions = nn.ModuleList(
+            [
+                LLMAdapterAttention(query_dim=model_dim, context_dim=resampled_dim, n_heads=num_heads, head_dim=head_dim)
+                for _ in range(num_native_blocks)
+            ]
+        )
+
+    @staticmethod
+    def _normalize_attention_mask(mask: Optional[torch.Tensor]) -> Optional[torch.Tensor]:
+        if mask is None:
+            return None
+        mask = mask.to(torch.bool)
+        return mask.unsqueeze(1).unsqueeze(1) if mask.ndim == 2 else mask
+
+    @staticmethod
+    def _mix_semantic_sources(
+        hidden_states: Sequence[torch.Tensor], mix_weights: torch.Tensor, block_index: int
+    ) -> torch.Tensor:
+        return sum(
+            hidden * mix_weights[block_index, layer_index] for layer_index, hidden in enumerate(hidden_states)
+        )
+
+    def forward(
+        self,
+        llm_adapter: "LLMAdapter",
+        native_source_hidden_states: torch.Tensor,
+        target_input_ids: torch.Tensor,
+        semantic_hidden_states: Sequence[torch.Tensor],
+        timesteps: torch.Tensor,
+        target_attention_mask: Optional[torch.Tensor] = None,
+        native_source_mask: Optional[torch.Tensor] = None,
+        semantic_source_mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """Qwen3(native)とQwen3.5(quality anchor + semantic resampler)の両方を
+        条件付けに使い、T5互換空間へ出力する。
+
+        Args:
+            llm_adapter: 凍結対象の既存LLMAdapter(Anima側が所有するインスタンスを渡す)。
+            native_source_hidden_states: Qwen3 0.6Bの隠れ状態。
+            target_input_ids: T5トークンID列。
+            semantic_hidden_states: Qwen3.5 4Bから抽出した隠れ状態のリスト
+                (長さは`self.layer_indices`と一致していなければならない)。
+            timesteps: (B,)または(B, 1)のtimestep(semantic_resamplerのAdaLN変調に使う)。
+            target_attention_mask: target側(T5トークン)のattentionマスク。
+            native_source_mask: Qwen3 0.6B側のattentionマスク。
+            semantic_source_mask: Qwen3.5 4B側のattentionマスク。
+
+        Returns:
+            既存LLMAdapterと同一shapeのT5互換空間conditioning。
+
+        Raises:
+            ValueError: semantic_hidden_statesの長さがlayer_indicesと一致しない場合。
+        """
+        if len(semantic_hidden_states) != len(self.layer_indices):
+            raise ValueError(
+                f"semantic_hidden_statesは{len(self.layer_indices)}層分が必要ですが、"
+                f"{len(semantic_hidden_states)}層が渡されました。"
+            )
+
+        target_attention_mask = self._normalize_attention_mask(target_attention_mask)
+        native_source_mask = self._normalize_attention_mask(native_source_mask)
+        semantic_source_mask = self._normalize_attention_mask(semantic_source_mask)
+
+        x = llm_adapter.in_proj(llm_adapter.embed(target_input_ids))
+
+        query_positions = torch.arange(x.shape[1], device=x.device).unsqueeze(0)
+        native_positions = torch.arange(native_source_hidden_states.shape[1], device=x.device).unsqueeze(0)
+        semantic_positions = torch.arange(semantic_hidden_states[0].shape[1], device=x.device).unsqueeze(0)
+
+        query_rope = llm_adapter.rotary_emb(x, query_positions)
+        native_rope = llm_adapter.rotary_emb(x, native_positions)
+        semantic_rope = llm_adapter.rotary_emb(x, semantic_positions)
+
+        mix_weights = self.quality_anchor.layer_mix_logits.float().softmax(dim=-1).to(dtype=x.dtype)
+
+        # Semantic Resamplerはtimestep条件付きで1回だけ実行し、6ブロック全てで共有する
+        # (anima_v2_adapter_timestep_gate=0のため、追加のゲート乗算はここでは行わない)。
+        resampled_semantic_tokens = self.semantic_resampler(semantic_hidden_states, timesteps)
+
+        for block_index, native_block in enumerate(llm_adapter.blocks):
+            x = native_block(
+                x,
+                native_source_hidden_states,
+                target_attention_mask=target_attention_mask,
+                source_attention_mask=native_source_mask,
+                position_embeddings=query_rope,
+                position_embeddings_context=native_rope,
+            )
+
+            # 既存quality anchor(v1.0のProgressiveQwen35CrossAdapterと同一計算)
+            mixed_semantic_source = self.quality_anchor.source_norms[block_index](
+                self._mix_semantic_sources(semantic_hidden_states, mix_weights, block_index)
+            )
+            x = x + self.quality_anchor.semantic_attentions[block_index](
+                self.quality_anchor.query_norms[block_index](x),
+                mask=semantic_source_mask,
+                context=mixed_semantic_source,
+                position_embeddings=query_rope,
+                position_embeddings_context=semantic_rope,
+            )
+
+            # v1.1新規: resample済みsemantic tokenへのcross-attention
+            # (固定query tokenへの参照でありRoPEは適用しない)
+            x = x + self.v2_attentions[block_index](
+                self.v2_query_norms[block_index](x),
+                context=self.v2_semantic_norms[block_index](resampled_semantic_tokens),
+            )
+
+        return llm_adapter.norm(llm_adapter.out_proj(x))
+
+    def summarize_parameters(self) -> Dict[str, int]:
+        """パラメータ数の内訳を返す(ログ出力用)。"""
+        return {
+            "quality_anchor": sum(parameter.numel() for parameter in self.quality_anchor.parameters()),
+            "semantic_resampler": sum(parameter.numel() for parameter in self.semantic_resampler.parameters()),
+            "v2_attentions": sum(
+                parameter.numel()
+                for module in (self.v2_attentions, self.v2_query_norms, self.v2_semantic_norms)
+                for parameter in module.parameters()
+            ),
             "total_parameters": sum(parameter.numel() for parameter in self.parameters()),
         }
 

@@ -130,7 +130,7 @@ class _TrainState:
         self.model_path     = tk.StringVar()
         self.vae_path       = tk.StringVar()
         self.qwen3_path     = tk.StringVar()
-        self.llm_adapter_path = tk.StringVar()
+        # apply_fix_023: llm_adapter_path は削除済み(死んだ引数、GUIからも撤去)。
         self.output_dir     = tk.StringVar(value=str(paths.lora))
         self.output_name    = tk.StringVar(value="lora_output")
         self.precision      = tk.StringVar(value="bf16")
@@ -227,6 +227,15 @@ class _TrainState:
         self.detected_num_blocks: Optional[int] = None
         self.detected_is_non_anima: bool = False
         self.detected_model_label = tk.StringVar(value="")
+
+        # Anima 3.8B v1.1: DiT checkpoint自体にSemantic Connector v2が内蔵されているか。
+        # 「モデルを検出」ボタンで更新する。Trueの場合、外部Progressive Cross Adapter
+        # (v1.0)は併用禁止のため progressive_adapter_path 欄を無効化・クリアする。
+        self.detected_is_semantic_connector_v2: bool = False
+        # progressive_adapter_path欄のウィジェット参照(v1.1検出時に無効化するため)。
+        # _build_model_tabで実体が設定される。
+        self.progressive_adapter_entry: Optional[ttk.Entry] = None
+        self.progressive_adapter_button: Optional[ttk.Button] = None
 
         # VAEが2D専用版か(--qwen_image_vae_2dの要否)。「モデルを検出」ボタンで自動判定する。
         # True=2D専用(要フラグ) / False=3D対応(不要) / None=未検出・判定不能
@@ -366,6 +375,36 @@ def _anima_block_categories(num_blocks: int) -> list[str]:
     return ["Input"] * third + ["Middle"] * (third + remainder) + ["Output"] * third
 
 
+def _read_safetensors_is_semantic_connector_v2(path: str) -> bool:
+    """safetensorsのヘッダのみを読み取り、Anima 3.8B v1.1(Semantic Connector v2内蔵)
+    かどうかを判定する。
+
+    判定優先順位: (1) metadataの'anima_v2_adapter_architecture'、
+    (2) tensor key namespace('anima_v2_connector.'の有無)。ファイル名では判定しない。
+    library.anima_utils.detect_semantic_connector_v2_architecture()と同一ロジックだが、
+    GUIはsd-scripts側のPythonパッケージを直接importしない構成のため、ここに複製している。
+
+    Raises:
+        RuntimeError: safetensorsパッケージが無い、またはファイルが読めない場合。
+    """
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+
+    with safe_open(path, framework="pt") as handle:
+        metadata = handle.metadata() or {}
+        architecture = metadata.get("anima_v2_adapter_architecture")
+        if architecture is not None:
+            return architecture == "anima_qwen35_quality_anchored_semantic_connector_v2"
+        for key in handle.keys():
+            if "anima_v2_connector." in _strip_known_dit_prefix(key):
+                return True
+    return False
+
+
 def _detect_vae_is_2d(path: str) -> Optional[bool]:
     """VAE checkpointのconv系レイヤーの次元数から2D専用版/3D対応版を判定する。
 
@@ -424,13 +463,42 @@ def _on_detect_model_clicked(s: "_TrainState") -> None:
     if num_blocks is None:
         s.detected_num_blocks = None
         s.detected_is_non_anima = True
+        s.detected_is_semantic_connector_v2 = False
         s.detected_model_label.set(gettext("lora_detect_not_anima"))
         messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_not_anima"))
     else:
         s.detected_num_blocks = num_blocks
         s.detected_is_non_anima = False
-        s.detected_model_label.set(gettext("lora_detect_result", n=num_blocks))
-        s.log_fn(f"[Detect] DiT blocks = {num_blocks}")
+
+        try:
+            is_v11 = _read_safetensors_is_semantic_connector_v2(dit_path)
+        except Exception as exc:
+            s.detected_is_semantic_connector_v2 = False
+            s.log_fn(f"[Detect] Semantic Connector v2 detection failed: {exc}")
+        else:
+            s.detected_is_semantic_connector_v2 = is_v11
+
+        if s.detected_is_semantic_connector_v2:
+            s.detected_model_label.set(gettext("lora_detect_result_v11", n=num_blocks))
+            s.log_fn(f"[Detect] DiT blocks = {num_blocks} (Anima 3.8B v1.1 / Semantic Connector v2)")
+        else:
+            s.detected_model_label.set(gettext("lora_detect_result", n=num_blocks))
+            s.log_fn(f"[Detect] DiT blocks = {num_blocks}")
+
+    # Anima 3.8B v1.1: Semantic Connector v2はDiT checkpointに内蔵されており、
+    # 外部のv1.0 Progressive Cross Adapterとの併用は禁止(改修指示書 禁止1)。
+    # 誤操作を防ぐため、欄自体を無効化し値もクリアする。v1.0/非Animaと再検出された
+    # 場合は元通り有効化する。
+    if s.progressive_adapter_entry is not None and s.progressive_adapter_button is not None:
+        if s.detected_is_semantic_connector_v2:
+            s.progressive_adapter_path.set("")
+            s.progressive_adapter_entry.configure(state=tk.DISABLED)
+            s.progressive_adapter_button.configure(state=tk.DISABLED)
+            s.log_fn("[Detect] This checkpoint bundles Semantic Connector v2 (Anima 3.8B v1.1); "
+                     "Progressive Cross Adapter field disabled (not applicable).")
+        else:
+            s.progressive_adapter_entry.configure(state=tk.NORMAL)
+            s.progressive_adapter_button.configure(state=tk.NORMAL)
 
     # VAEの2D/3D自動判定(--qwen_image_vae_2dを手動スイッチなしで自動付与するため)
     vae_path = s.vae_path.get().strip()
@@ -456,18 +524,18 @@ def _on_detect_model_clicked(s: "_TrainState") -> None:
 
 
 def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
-                      is_dir=False, filetypes=None):
-    """エントリ + Browse ボタンを1行に配置する。"""
+                      is_dir=False, filetypes=None) -> tuple[ttk.Entry, ttk.Button]:
+    """エントリ + Browse ボタンを1行に配置する。呼び出し側で有効/無効を切り替えられるよう
+    生成したウィジェットを返す(既存の呼び出し元は戻り値を無視しているため後方互換)。"""
     ttk.Label(parent, text=label, width=24, anchor=tk.W).grid(
         row=row, column=0, sticky=tk.W, padx=(4, 2), pady=3
     )
-    ttk.Entry(parent, textvariable=var).grid(
-        row=row, column=1, sticky=tk.EW, padx=(0, 2), pady=3
-    )
+    entry = ttk.Entry(parent, textvariable=var)
+    entry.grid(row=row, column=1, sticky=tk.EW, padx=(0, 2), pady=3)
     cmd = (lambda v=var: _browse_dir(v)) if is_dir else (lambda v=var, ft=filetypes: _browse_file(v, filetypes=ft))
-    ttk.Button(parent, text="Browse", width=7, command=cmd).grid(
-        row=row, column=2, padx=(0, 4), pady=3
-    )
+    button = ttk.Button(parent, text="Browse", width=7, command=cmd)
+    button.grid(row=row, column=2, padx=(0, 4), pady=3)
+    return entry, button
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -498,12 +566,12 @@ def _build_model_tab(parent: ttk.Frame, s: _TrainState) -> None:
                       filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
     _entry_browse_row(lf, 3, gettext("lora_qwen3_label"), s.qwen3_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 4, gettext("lora_llm_adapter_label"), s.llm_adapter_path,
-                      filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
-    _entry_browse_row(lf, 5, gettext("lora_qwen35_label"), s.qwen35_path,
+    # apply_fix_023: 「LLM adapter(任意)」欄(旧row 4)は削除済み。
+    _entry_browse_row(lf, 4, gettext("lora_qwen35_label"), s.qwen35_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 6, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
-                      filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
+    s.progressive_adapter_entry, s.progressive_adapter_button = _entry_browse_row(
+        lf, 5, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
+        filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
 
     lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
     lf2.pack(fill=tk.X)
@@ -1622,7 +1690,6 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
             "model_path":        s.model_path.get(),
             "vae_path":          s.vae_path.get(),
             "qwen3_path":        s.qwen3_path.get(),
-            "llm_adapter_path":  s.llm_adapter_path.get(),
             "qwen35_path":       s.qwen35_path.get(),
             "progressive_adapter_path": s.progressive_adapter_path.get(),
             "output_dir":        s.output_dir.get(),
@@ -1727,7 +1794,6 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.model_path,        "model_path",        "")
         _s(s.vae_path,          "vae_path",           "")
         _s(s.qwen3_path,        "qwen3_path",         "")
-        _s(s.llm_adapter_path,  "llm_adapter_path",   "")
         _s(s.qwen35_path,       "qwen35_path",        "")
         _s(s.progressive_adapter_path, "progressive_adapter_path", "")
         _s(s.output_dir,        "output_dir",         "")
@@ -2133,8 +2199,7 @@ def _build_command(s: _TrainState) -> list[str]:
     # オプション引数
     if s.seed.get():
         cmd += ["--seed", s.seed.get()]
-    if s.llm_adapter_path.get():
-        cmd += ["--llm_adapter_path", s.llm_adapter_path.get()]
+    # apply_fix_023: --llm_adapter_path は削除済み(死んだ引数)。
     if s.qwen35_path.get():
         cmd += ["--qwen35", s.qwen35_path.get()]
     if s.progressive_adapter_path.get():
@@ -2287,6 +2352,11 @@ def _validate(s: _TrainState) -> str | None:
     # Anima 3.8B: progressive_adapter_path指定時はqwen35_pathが必須
     if s.progressive_adapter_path.get() and not s.qwen35_path.get():
         return gettext("lora_validate_adapter_needs_qwen35")
+
+    # Anima 3.8B v1.1: Semantic Connector v2内蔵checkpointもQwen3.5 4Bが必須
+    # (quality_anchor/semantic_resamplerが共にQwen3.5の隠れ状態を必要とするため)
+    if s.detected_is_semantic_connector_v2 and not s.qwen35_path.get():
+        return gettext("lora_validate_v11_needs_qwen35")
 
     # Anima 3.8B: adapter checkpointが前提とするブロック数と、検出済みDiTブロック数の整合性チェック
     if s.progressive_adapter_path.get() and s.detected_num_blocks is not None:
