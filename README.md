@@ -5,6 +5,7 @@
 - We are currently working on support for derivative versions of Anima.
 - Since Anima 3.8B has a large text encoder, temporary high system loads may occur during tasks like sample generation.
 - Please make sure to click "Detect Model" for accurate version identification.
+
 | item | Supported Versions |
 | :--- | :--- |
 | Model Merge | Anima Base 1.0 |
