@@ -1,6 +1,6 @@
 # Animerge
 
-$BF|K\8l$O"*(B [README_ja.md](./docs/README_ja.md).
+日本語は→ [README_ja.md](./docs/README_ja.md).
 
 - We are currently working on support for derivative versions of Anima.
 - Since Anima 3.8B has a large text encoder, temporary high system loads may occur during tasks like sample generation.
@@ -56,7 +56,7 @@ Place base model files in `checkpoints/` and LoRA files in `lora/`. Supported mo
   - Selectable Optimizers (`AdamW`, `AdamW8bit`, `Adafactor`, `DAdaptAdam`, `DAdaptAdaGrad`, `DAdaptSGD`, `Lion`, `Prodigy`).
   - Selectable LR Schedulers (`constant`, `constant_with_warmup`, `cosine`, `cosine_with_restarts`, `linear`, `polynomial`).
   - Configurable precision, timestep sampling, attention modes, and weighting schemes.
-  - Real-time training monitoring graphs tracking Train Loss, Val Loss, LR, grad_norm, and (IN$BG-(Boss.
+  - Real-time training monitoring graphs tracking Train Loss, Val Loss, LR, grad_norm, and ﾎ猫oss.
   - EarlyStopping counter progress, estimated time remaining, and automated diagnostic messages.
 
 ## Main Files
