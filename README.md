@@ -1,6 +1,6 @@
 # Animerge
 
-ì˙ñ{åÍÇÕÅ® [README_ja.md](./docs/README_ja.md).
+$BF|K\8l$O"*(B [README_ja.md](./docs/README_ja.md).
 
 - We are currently working on support for derivative versions of Anima.
 - Since Anima 3.8B has a large text encoder, temporary high system loads may occur during tasks like sample generation.
@@ -12,8 +12,8 @@
 | LoRA Merge| Anima Base 1.0 |
 | Layer Analysis | Anima Base 1.0 |
 | Detailed Analysis | Anima Base 1.0 |
-| LoRA Training | Anima Base 1.0ÅAAnima3.8B v1.0ÅAAnima3.8B v1.1 |
-| LECO Training | Anima Base 1.0ÅAAnima3.8B v1.0 |
+| LoRA Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
+| LECO Training | Anima Base 1.0, Anima3.8B v1.0 |
 | ADDifT Training | Anima Base 1.0 |
 
 Animerge is a desktop GUI tool for working with Anima model checkpoints and LoRA files. The current build is centered on `app/gui.py`, with merge, analysis, model I/O, and LoRA training support split into related modules under `app/`.
@@ -56,7 +56,7 @@ Place base model files in `checkpoints/` and LoRA files in `lora/`. Supported mo
   - Selectable Optimizers (`AdamW`, `AdamW8bit`, `Adafactor`, `DAdaptAdam`, `DAdaptAdaGrad`, `DAdaptSGD`, `Lion`, `Prodigy`).
   - Selectable LR Schedulers (`constant`, `constant_with_warmup`, `cosine`, `cosine_with_restarts`, `linear`, `polynomial`).
   - Configurable precision, timestep sampling, attention modes, and weighting schemes.
-  - Real-time training monitoring graphs tracking Train Loss, Val Loss, LR, grad_norm, and ŒîLoss.
+  - Real-time training monitoring graphs tracking Train Loss, Val Loss, LR, grad_norm, and (IN$BG-(Boss.
   - EarlyStopping counter progress, estimated time remaining, and automated diagnostic messages.
 
 ## Main Files
