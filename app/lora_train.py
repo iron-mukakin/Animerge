@@ -232,6 +232,8 @@ class _TrainState:
         # 「モデルを検出」ボタンで更新する。Trueの場合、外部Progressive Cross Adapter
         # (v1.0)は併用禁止のため progressive_adapter_path 欄を無効化・クリアする。
         self.detected_is_semantic_connector_v2: bool = False
+        # 直近に「モデルを検出」を実行したパス(model_path変更検知の誤発火防止用)。
+        self._last_detected_model_path: Optional[str] = None
         # progressive_adapter_path欄のウィジェット参照(v1.1検出時に無効化するため)。
         # _build_model_tabで実体が設定される。
         self.progressive_adapter_entry: Optional[ttk.Entry] = None
@@ -375,6 +377,82 @@ def _anima_block_categories(num_blocks: int) -> list[str]:
     return ["Input"] * third + ["Middle"] * (third + remainder) + ["Output"] * third
 
 
+# Anima 3.8B: 旧DiT(40ブロック、Anima-2.9B系)を新DiT(52ブロック、3.8B v1.0/v1.1共通)へ
+# LLaMA-Pro方式で拡張した際の実際の挿入位置(safetensors metadataから実測済み)。
+# 3.8B v1.0/v1.1はどちらもこの52ブロック構造を共有するため、同じ表を両方に使う。
+_LLAMA_PRO_40_TO_52_INSERTION_POSITIONS = (3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47)
+
+
+def _llama_pro_block_index_map(old_block_count: int, new_block_count: int) -> Optional[dict[int, int]]:
+    """LLaMA-Pro方式のブロック挿入による{new_index: old_index}対応表を返す。
+
+    挿入で新規追加されたブロック(旧モデルに対応物が無いブロック)は、挿入直前の
+    (クローン元の)旧ブロック番号を割り当てる。
+
+    既知の変換(現状old=40, new=52のみ)以外はNoneを返す(推測による誤ったマッピングを
+    避けるため)。old==newの場合は恒等写像を返す。
+    """
+    if old_block_count == new_block_count:
+        return {i: i for i in range(new_block_count)}
+    if old_block_count == 40 and new_block_count == 52:
+        inserted_positions = set(_LLAMA_PRO_40_TO_52_INSERTION_POSITIONS)
+        mapping: dict[int, int] = {}
+        old_index = 0
+        for new_index in range(new_block_count):
+            if new_index in inserted_positions:
+                mapping[new_index] = max(old_index - 1, 0)
+            else:
+                mapping[new_index] = old_index
+                old_index += 1
+        return mapping
+    return None
+
+
+def _remap_layer_block_scales(
+    layer_scales: dict, old_block_count: int, new_block_count: int
+) -> dict:
+    """Transformerモードの"blocks.N"キーの値を、old_block_count基準からnew_block_count
+    基準へ再マッピングする。
+
+    既知の変換(現状40→52)はLLaMA-Pro方式の実際の挿入位置に基づいて厳密にマッピング
+    する。それ以外の組み合わせ(例: Base1.0の28ブロックから52ブロックへの変換)は
+    正確な挿入位置表を持たないため、_anima_block_categories()によるカテゴリ
+    (Input/Middle/Output)単位の平均値を引き継ぐ近似フォールバックを使う。
+    この場合は呼び出し側が近似である旨をログに出すこと。
+    """
+    if old_block_count == new_block_count:
+        return dict(layer_scales)
+
+    index_map = _llama_pro_block_index_map(old_block_count, new_block_count)
+    if index_map is not None:
+        remapped: dict[str, float] = {}
+        for new_index in range(new_block_count):
+            old_key = f"blocks.{index_map[new_index]}"
+            if old_key in layer_scales:
+                remapped[f"blocks.{new_index}"] = layer_scales[old_key]
+        return remapped
+
+    # フォールバック: 正確な対応表が無い組み合わせは、カテゴリ単位の平均値を引き継ぐ。
+    old_categories = _anima_block_categories(old_block_count)
+    new_categories = _anima_block_categories(new_block_count)
+    category_sums: dict[str, float] = {}
+    category_counts: dict[str, int] = {}
+    for old_index, category in enumerate(old_categories):
+        key = f"blocks.{old_index}"
+        if key in layer_scales:
+            category_sums[category] = category_sums.get(category, 0.0) + float(layer_scales[key])
+            category_counts[category] = category_counts.get(category, 0) + 1
+    category_avg = {
+        category: category_sums[category] / category_counts[category]
+        for category in category_sums
+    }
+    remapped = {}
+    for new_index, category in enumerate(new_categories):
+        if category in category_avg:
+            remapped[f"blocks.{new_index}"] = category_avg[category]
+    return remapped
+
+
 def _read_safetensors_is_semantic_connector_v2(path: str) -> bool:
     """safetensorsのヘッダのみを読み取り、Anima 3.8B v1.1(Semantic Connector v2内蔵)
     かどうかを判定する。
@@ -454,6 +532,10 @@ def _on_detect_model_clicked(s: "_TrainState") -> None:
         messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_no_file"))
         return
 
+    # 検出対象パスを記録する(_on_model_path_changedが、値が変わっていない
+    # 再設定(プリセット再適用等)まで誤ってリセットしないようにするため)。
+    s._last_detected_model_path = dit_path
+
     try:
         num_blocks = _read_safetensors_num_blocks(dit_path)
     except Exception as exc:
@@ -523,6 +605,29 @@ def _on_detect_model_clicked(s: "_TrainState") -> None:
         _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
 
 
+def _on_model_path_changed(s: "_TrainState") -> None:
+    """DiTパスが変更されたら検出状態を無効化する(古い検出結果のまま学習開始
+    できてしまう事故を防ぐ。「モデルを検出」の再実行を必須化する一環)。
+
+    直近に検出を実行したパスと同一の場合はリセットしない
+    (プリセット適用時に同一パスが再設定されるだけで検出結果が失われるのを防ぐ)。
+    """
+    current_path = s.model_path.get().strip()
+    if current_path and current_path == getattr(s, "_last_detected_model_path", None):
+        return
+
+    s.detected_num_blocks = None
+    s.detected_is_non_anima = False
+    s.detected_is_semantic_connector_v2 = False
+    s.detected_vae_is_2d = None
+    s.detected_model_label.set(gettext("lora_detect_stale_hint"))
+    if s.progressive_adapter_entry is not None and s.progressive_adapter_button is not None:
+        s.progressive_adapter_entry.configure(state=tk.NORMAL)
+        s.progressive_adapter_button.configure(state=tk.NORMAL)
+    if hasattr(s, "layer_canvas") and hasattr(s, "layer_inner"):
+        _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
+
+
 def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
                       is_dir=False, filetypes=None) -> tuple[ttk.Entry, ttk.Button]:
     """エントリ + Browse ボタンを1行に配置する。呼び出し側で有効/無効を切り替えられるよう
@@ -572,6 +677,11 @@ def _build_model_tab(parent: ttk.Frame, s: _TrainState) -> None:
     s.progressive_adapter_entry, s.progressive_adapter_button = _entry_browse_row(
         lf, 5, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
         filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
+
+    # Anima 3.8B: DiTパス変更時は必ず検出をやり直させる(古い検出結果のまま
+    # 学習を開始できてしまうと、Base1.0(28ブロック)等で誤ったブロック数のまま
+    # 進んでしまう恐れがあるため)。検出状態を明示的にリセットする。
+    s.model_path.trace_add("write", lambda *_args: _on_model_path_changed(s))
 
     lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
     lf2.pack(fill=tk.X)
@@ -985,10 +1095,7 @@ def _build_layer_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
 
     ctrl_inner = ttk.Frame(ctrl_canvas)
     ctrl_canvas.create_window((0, 0), window=ctrl_inner, anchor="nw")
-    s.layer_canvas = ctrl_canvas
-    s.layer_inner  = ctrl_inner
-    s.layer_canvas = ctrl_canvas
-    s.layer_inner  = ctrl_inner
+    # apply_fix_035: 元は同一代入が3回重複していたため1回に整理済み
     s.layer_canvas = ctrl_canvas
     s.layer_inner  = ctrl_inner
     ctrl_inner.bind(
@@ -1772,6 +1879,14 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
                 k: round(float(v.get()), 4)
                 for k, v in s.layer_parameter_vars.items()
             },
+            # Transformerモードの場合、保存時に検出済みだったブロック数を記録する。
+            # 読み込み時にブロック数が異なる(旧プリセット)場合、LLaMA-Pro方式の
+            # ブロック挿入を考慮した再マッピングに使う。
+            "layer_block_count": (
+                s.detected_num_blocks
+                if s.layer_display_mode.get() == "Transformer"
+                else None
+            ),
             # Validation / EarlyStopping
             "validation_split":          s.validation_split.get(),
             "early_stopping":             bool(s.early_stopping.get()),
@@ -1781,8 +1896,15 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         }
         return simple
 
-    def _apply(data: dict) -> None:
-        """dict の値を _TrainState の各 tk.Variable に反映する。"""
+    def _apply(data: dict, target_block_count: Optional[int] = None) -> None:
+        """dict の値を _TrainState の各 tk.Variable に反映する。
+
+        target_block_count: Transformerモードのlayer_parameter_vars remapに使う
+        「現在検出済みのブロック数」。この関数の内部でmodel_pathを設定すると
+        (プリセットが別のモデルパスを指す場合)_on_model_path_changedが発火し
+        s.detected_num_blocksがリセットされてしまうため、呼び出し側で事前に
+        キャプチャした値をここに渡す。
+        """
         def _s(var, key, default=None):
             if key in data:
                 try:
@@ -1873,6 +1995,29 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _s(s.layer_train_enabled, "layer_train_enabled", False)
         _s(s.layer_display_mode,  "layer_display_mode",  "Matrix")
         layer_scales = data.get("layer_parameter_vars", {})
+        saved_block_count = data.get("layer_block_count")
+        if (
+            s.layer_display_mode.get() == "Transformer"
+            and isinstance(saved_block_count, int)
+            and target_block_count is not None
+            and saved_block_count != target_block_count
+        ):
+            layer_scales = _remap_layer_block_scales(
+                layer_scales, saved_block_count, target_block_count
+            )
+            if _llama_pro_block_index_map(saved_block_count, target_block_count) is not None:
+                s.log_fn(
+                    f"[Preset] Remapped Transformer layer scales: "
+                    f"{saved_block_count} blocks -> {target_block_count} blocks "
+                    f"(exact LLaMA-Pro block insertion mapping)."
+                )
+            else:
+                s.log_fn(
+                    f"[Preset] Remapped Transformer layer scales: "
+                    f"{saved_block_count} blocks -> {target_block_count} blocks "
+                    f"(APPROXIMATE: no exact LLaMA-Pro mapping known for this block-count pair; "
+                    f"used Input/Middle/Output category average instead)."
+                )
         for k, v in layer_scales.items():
             if k in s.layer_parameter_vars:
                 try:
@@ -1923,31 +2068,37 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
         _pre_mode    = data.get("layer_display_mode", "Matrix")
         if _pre_mode not in LAYER_TRAIN_MODES:
             _pre_mode = "Matrix"
+
+        # Anima 3.8B: Transformerモードのプリセットは検出済みブロック数が無いと
+        # 正しいキー("blocks.N")を生成できず、値が失われてしまう(既知バグ)。
+        # 「モデルを検出」の実行を必須化した際、未検出なら即エラーにしていたが、
+        # 自動的に検出を実行してから進める(ユーザーに個別の検出クリックを強制しない)。
+        # モデルタブが未設定の初期状態からプリセットを読み込む場合もあるため、
+        # モデルタブに何も入力されていなければプリセット自身が記録している
+        # model_pathを使って検出する(「最初にプリセットを読み込む」動線に対応)。
+        if _pre_mode == "Transformer" and s.detected_num_blocks is None:
+            effective_model_path = s.model_path.get().strip() or str(data.get("model_path", "")).strip()
+            if effective_model_path:
+                if not s.model_path.get().strip():
+                    s.model_path.set(effective_model_path)
+                s.log_fn(
+                    "[Preset] Transformer layer preset requires a detected block count; "
+                    "running model detection automatically."
+                )
+                _on_detect_model_clicked(s)
+            if s.detected_num_blocks is None:
+                messagebox.showerror("Preset", gettext("lora_preset_load_needs_detect"))
+                return
+
         s.layer_train_enabled.set(_pre_enabled)
         s.layer_display_mode.set(_pre_mode)
         if s.layer_canvas is not None and s.layer_inner is not None:
             _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
-        # 階層学習 enabled/mode を _apply より先にセットしてスライダーを生成する。
-        # layer_parameter_vars が空のままだとスケール値が反映されないため先行処理が必要。
-        _pre_enabled = bool(data.get("layer_train_enabled", False))
-        _pre_mode    = data.get("layer_display_mode", "Matrix")
-        if _pre_mode not in LAYER_TRAIN_MODES:
-            _pre_mode = "Matrix"
-        s.layer_train_enabled.set(_pre_enabled)
-        s.layer_display_mode.set(_pre_mode)
-        if s.layer_canvas is not None and s.layer_inner is not None:
-            _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
-        # 階層学習 enabled/mode を _apply より先にセットしてスライダーを生成する。
-        # layer_parameter_vars が空のままだとスケール値が反映されないため先行処理が必要。
-        _pre_enabled = bool(data.get("layer_train_enabled", False))
-        _pre_mode    = data.get("layer_display_mode", "Matrix")
-        if _pre_mode not in LAYER_TRAIN_MODES:
-            _pre_mode = "Matrix"
-        s.layer_train_enabled.set(_pre_enabled)
-        s.layer_display_mode.set(_pre_mode)
-        if s.layer_canvas is not None and s.layer_inner is not None:
-            _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
-        _apply(data)
+        # _apply内でmodel_pathを設定すると(プリセットが別のモデルパスを指す場合)
+        # _on_model_path_changedが発火しs.detected_num_blocksがリセットされて
+        # しまうため、現在(ユーザーが実際に検出した)ブロック数を先にキャプチャしておく。
+        _target_block_count = s.detected_num_blocks
+        _apply(data, target_block_count=_target_block_count)
         s.log_fn(gettext("lora_preset_log_loaded", name=src.name))
 
     # ── Delete ────────────────────────────────────────────────────
@@ -2349,6 +2500,11 @@ def _validate(s: _TrainState) -> str | None:
     if not s.qwen3_path.get():
         return gettext("lora_validate_no_qwen3")
 
+    # Anima 3.8B/Base1.0: 「モデルを検出」の実行を常に必須化する。階層学習を使わない
+    # 場合やBase1.0(28ブロック)でも、ブロック数・v1.1判定を毎回確定させるため。
+    if s.detected_num_blocks is None:
+        return gettext("lora_validate_needs_detect")
+
     # Anima 3.8B: progressive_adapter_path指定時はqwen35_pathが必須
     if s.progressive_adapter_path.get() and not s.qwen35_path.get():
         return gettext("lora_validate_adapter_needs_qwen35")
@@ -2372,10 +2528,8 @@ def _validate(s: _TrainState) -> str | None:
                 adapter=expected,
             )
 
-    # 階層学習(Transformer/Component)はブロック数の検出が前提
-    if s.layer_train_enabled.get() and s.layer_display_mode.get() in ("Transformer", "Component"):
-        if s.detected_num_blocks is None:
-            return gettext("lora_validate_layer_needs_detect")
+    # 階層学習(Component)はカテゴリ数がブロック数依存のため検出済みである必要があるが、
+    # 検出自体は上で既に必須化しているためここでの追加チェックは不要。
 
     if not s.train_data_dir.get():
         return gettext("lora_validate_no_data")

@@ -1,4 +1,16 @@
 # Animerge
+- 現在はAnimaの派生バージョンに対応作業中です。
+- Anima3.8Bはtextencoderが大きいのでサンプル生成などで一瞬負荷が大きくなることがあります。
+- バージョン判別の為に必ず「モデルを検知」を押して下さい。
+| 項目 | 対応済みバージョン |
+| :--- | :--- |
+| 本体マージ | Anima Base 1.0 |
+| LoRAマージ | Anima Base 1.0 |
+| レイヤー分析 | Anima Base 1.0 |
+| 詳細分析 | Anima Base 1.0 |
+| LoRA学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
+| LECO学習 | Anima Base 1.0、Anima3.8B v1.0 |
+| ADDifT学習 | Anima Base 1.0 |
 
 Animerge は Anima モデルのチェックポイントと LoRA ファイルを扱うためのデスクトップ GUI ツールです。現時点の実装はマージ、解析、LoRA 学習機能です。全ての機能で階層指定に対応しています。
 

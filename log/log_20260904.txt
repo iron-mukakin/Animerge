@@ -1,0 +1,28 @@
+2026-09-04 14:29:55 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
+2026-09-04 14:34:39 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
+2026-09-04 14:47:06 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
+2026-09-04 14:47:18 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
+2026-09-04 20:03:41 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
+2026-09-04 20:05:47 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
+2026-09-04 22:03:27 [Rescan Folders]
+  Checkpoints: 6
+  LoRA files : 2
+
