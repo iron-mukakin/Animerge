@@ -191,6 +191,12 @@ class _LecoTrainState:
         self.detected_is_non_anima: bool = False
         self.detected_model_label = tk.StringVar(value="")
         self.detected_vae_is_2d: "bool | None" = None
+        # apply_fix_038: Anima 3.8B v1.1(Semantic Connector v2内蔵)対応
+        # (lora_train.pyのapply_fix_033/035と同一仕様)。
+        self.detected_is_semantic_connector_v2: bool = False
+        self._last_detected_model_path: "str | None" = None
+        self.progressive_adapter_entry: "ttk.Entry | None" = None
+        self.progressive_adapter_button: "ttk.Button | None" = None
         self.vae_path         = tk.StringVar()
         self.qwen3_path       = tk.StringVar()
         # apply_fix_024: llm_adapter_path は削除済み(死んだ引数、GUIからも撤去)。
@@ -310,14 +316,21 @@ def _browse_dir(var: tk.StringVar, title: str | None = None):
 
 def _entry_browse_row(parent, row: int, label: str, var: tk.StringVar,
                       is_dir=False, filetypes=None):
+    """エントリ + Browse ボタンを1行に配置する。
+
+    apply_fix_038: lora_train.pyのapply_fix_033と同一仕様。呼び出し側が
+    有効/無効を切り替えられるよう生成したウィジェットを返す
+    (既存の呼び出し元は戻り値を無視しているため後方互換)。
+    """
     ttk.Label(parent, text=label, width=26, anchor=tk.W).grid(
         row=row, column=0, sticky=tk.W, padx=(4, 2), pady=3)
-    ttk.Entry(parent, textvariable=var).grid(
-        row=row, column=1, sticky=tk.EW, padx=(0, 2), pady=3)
+    entry = ttk.Entry(parent, textvariable=var)
+    entry.grid(row=row, column=1, sticky=tk.EW, padx=(0, 2), pady=3)
     cmd = (lambda v=var: _browse_dir(v)) if is_dir \
         else (lambda v=var, ft=filetypes: _browse_file(v, filetypes=ft))
-    ttk.Button(parent, text="Browse", width=7, command=cmd).grid(
-        row=row, column=2, padx=(0, 4), pady=3)
+    button = ttk.Button(parent, text="Browse", width=7, command=cmd)
+    button.grid(row=row, column=2, padx=(0, 4), pady=3)
+    return entry, button
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -408,15 +421,126 @@ def _detect_vae_is_2d(path: str) -> "bool | None":
     return None
 
 
+# apply_fix_038: Anima 3.8B v1.1(Semantic Connector v2)対応
+# (lora_train.pyのapply_fix_033/035と同一仕様。GUI側はsd-scripts側のPythonパッケージを
+#  直接importしない構成のため、ロジックをここに複製している)
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Anima 3.8B: 旧DiT(40ブロック、Anima-2.9B系)を新DiT(52ブロック、3.8B v1.0/v1.1共通)へ
+# LLaMA-Pro方式で拡張した際の実際の挿入位置(safetensors metadataから実測済み)。
+# 3.8B v1.0/v1.1はどちらもこの52ブロック構造を共有するため、同じ表を両方に使う。
+_LLAMA_PRO_40_TO_52_INSERTION_POSITIONS = (3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47)
+
+
+def _anima_block_categories(num_blocks: int) -> list[str]:
+    """ブロック総数からInput/Middle/Outputカテゴリ列を生成する(lora_train.pyと同一仕様)。"""
+    if num_blocks == 28:
+        return ["Input"] * 9 + ["Middle"] * 10 + ["Output"] * 9
+    third = num_blocks // 3
+    remainder = num_blocks - third * 3
+    return ["Input"] * third + ["Middle"] * (third + remainder) + ["Output"] * third
+
+
+def _llama_pro_block_index_map(old_block_count: int, new_block_count: int) -> "dict[int, int] | None":
+    """LLaMA-Pro方式のブロック挿入による{new_index: old_index}対応表を返す(lora_train.pyと同一仕様)。
+
+    既知の変換(現状old=40, new=52のみ)以外はNoneを返す(推測による誤ったマッピングを
+    避けるため)。old==newの場合は恒等写像を返す。
+    """
+    if old_block_count == new_block_count:
+        return {i: i for i in range(new_block_count)}
+    if old_block_count == 40 and new_block_count == 52:
+        inserted_positions = set(_LLAMA_PRO_40_TO_52_INSERTION_POSITIONS)
+        mapping: dict[int, int] = {}
+        old_index = 0
+        for new_index in range(new_block_count):
+            if new_index in inserted_positions:
+                mapping[new_index] = max(old_index - 1, 0)
+            else:
+                mapping[new_index] = old_index
+                old_index += 1
+        return mapping
+    return None
+
+
+def _remap_layer_block_scales(
+    layer_scales: dict, old_block_count: int, new_block_count: int
+) -> dict:
+    """Transformerモードの"blocks.N"キーの値を、old_block_count基準からnew_block_count
+    基準へ再マッピングする(lora_train.pyと同一仕様)。
+    """
+    if old_block_count == new_block_count:
+        return dict(layer_scales)
+
+    index_map = _llama_pro_block_index_map(old_block_count, new_block_count)
+    if index_map is not None:
+        remapped: dict[str, float] = {}
+        for new_index in range(new_block_count):
+            old_key = f"blocks.{index_map[new_index]}"
+            if old_key in layer_scales:
+                remapped[f"blocks.{new_index}"] = layer_scales[old_key]
+        return remapped
+
+    old_categories = _anima_block_categories(old_block_count)
+    new_categories = _anima_block_categories(new_block_count)
+    category_sums: dict[str, float] = {}
+    category_counts: dict[str, int] = {}
+    for old_index, category in enumerate(old_categories):
+        key = f"blocks.{old_index}"
+        if key in layer_scales:
+            category_sums[category] = category_sums.get(category, 0.0) + float(layer_scales[key])
+            category_counts[category] = category_counts.get(category, 0) + 1
+    category_avg = {
+        category: category_sums[category] / category_counts[category]
+        for category in category_sums
+    }
+    remapped = {}
+    for new_index, category in enumerate(new_categories):
+        if category in category_avg:
+            remapped[f"blocks.{new_index}"] = category_avg[category]
+    return remapped
+
+
+def _read_safetensors_is_semantic_connector_v2(path: str) -> bool:
+    """safetensorsのヘッダのみを読み取り、Anima 3.8B v1.1(Semantic Connector v2内蔵)
+    かどうかを判定する(lora_train.pyと同一仕様)。
+
+    判定優先順位: (1) metadataの'anima_v2_adapter_architecture'、
+    (2) tensor key namespace('anima_v2_connector.'の有無)。ファイル名では判定しない。
+    """
+    try:
+        from safetensors import safe_open
+    except ImportError as exc:
+        raise RuntimeError(
+            "safetensorsパッケージが見つかりません。pip install safetensors を実行してください。"
+        ) from exc
+
+    with safe_open(path, framework="pt") as handle:
+        metadata = handle.metadata() or {}
+        architecture = metadata.get("anima_v2_adapter_architecture")
+        if architecture is not None:
+            return architecture == "anima_qwen35_quality_anchored_semantic_connector_v2"
+        for key in handle.keys():
+            if "anima_v2_connector." in _strip_known_dit_prefix(key):
+                return True
+    return False
+
+
 def _on_detect_model_clicked(s: "_LecoTrainState") -> None:
     """「モデルを検出」ボタン: DiTのブロック数を再検出しレイヤー学習UIへ反映する。
 
     apply_fix_026: lora_train.pyの_on_detect_model_clicked()と同一仕様。
+    apply_fix_038: Anima 3.8B v1.1(Semantic Connector v2)自動判別を追加
+    (lora_train.pyのapply_fix_033と同一仕様)。
     """
     dit_path = s.model_path.get().strip()
     if not dit_path or not Path(dit_path).is_file():
         messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_no_file"))
         return
+
+    # 検出対象パスを記録する(_on_model_path_changedが、値が変わっていない
+    # 再設定(プリセット再適用等)まで誤ってリセットしないようにするため)。
+    s._last_detected_model_path = dit_path
 
     try:
         num_blocks = _read_safetensors_num_blocks(dit_path)
@@ -427,13 +551,42 @@ def _on_detect_model_clicked(s: "_LecoTrainState") -> None:
     if num_blocks is None:
         s.detected_num_blocks = None
         s.detected_is_non_anima = True
+        s.detected_is_semantic_connector_v2 = False
         s.detected_model_label.set(gettext("lora_detect_not_anima"))
         messagebox.showerror(gettext("lora_detect_error_title"), gettext("lora_detect_error_not_anima"))
     else:
         s.detected_num_blocks = num_blocks
         s.detected_is_non_anima = False
-        s.detected_model_label.set(gettext("lora_detect_result", n=num_blocks))
-        s.log_fn(f"[Detect] DiT blocks = {num_blocks}")
+
+        try:
+            is_v11 = _read_safetensors_is_semantic_connector_v2(dit_path)
+        except Exception as exc:
+            s.detected_is_semantic_connector_v2 = False
+            s.log_fn(f"[Detect] Semantic Connector v2 detection failed: {exc}")
+        else:
+            s.detected_is_semantic_connector_v2 = is_v11
+
+        if s.detected_is_semantic_connector_v2:
+            s.detected_model_label.set(gettext("lora_detect_result_v11", n=num_blocks))
+            s.log_fn(f"[Detect] DiT blocks = {num_blocks} (Anima 3.8B v1.1 / Semantic Connector v2)")
+        else:
+            s.detected_model_label.set(gettext("lora_detect_result", n=num_blocks))
+            s.log_fn(f"[Detect] DiT blocks = {num_blocks}")
+
+    # Anima 3.8B v1.1: Semantic Connector v2はDiT checkpointに内蔵されており、
+    # 外部のv1.0 Progressive Cross Adapterとの併用は禁止(改修指示書 禁止1)。
+    # 誤操作を防ぐため、欄自体を無効化し値もクリアする。v1.0/非Animaと再検出された
+    # 場合は元通り有効化する。
+    if s.progressive_adapter_entry is not None and s.progressive_adapter_button is not None:
+        if s.detected_is_semantic_connector_v2:
+            s.progressive_adapter_path.set("")
+            s.progressive_adapter_entry.configure(state=tk.DISABLED)
+            s.progressive_adapter_button.configure(state=tk.DISABLED)
+            s.log_fn("[Detect] This checkpoint bundles Semantic Connector v2 (Anima 3.8B v1.1); "
+                     "Progressive Cross Adapter field disabled (not applicable).")
+        else:
+            s.progressive_adapter_entry.configure(state=tk.NORMAL)
+            s.progressive_adapter_button.configure(state=tk.NORMAL)
 
     vae_path = s.vae_path.get().strip()
     if vae_path and Path(vae_path).is_file():
@@ -453,6 +606,30 @@ def _on_detect_model_clicked(s: "_LecoTrainState") -> None:
     else:
         s.detected_vae_is_2d = None
 
+    if s.layer_canvas is not None and s.layer_inner is not None:
+        _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
+
+
+def _on_model_path_changed(s: "_LecoTrainState") -> None:
+    """DiTパスが変更されたら検出状態を無効化する(古い検出結果のまま学習開始
+    できてしまう事故を防ぐ。「モデルを検出」の再実行を必須化する一環)。
+
+    apply_fix_038: lora_train.pyのapply_fix_035と同一仕様。直近に検出を実行した
+    パスと同一の場合はリセットしない(プリセット適用時に同一パスが再設定される
+    だけで検出結果が失われるのを防ぐ)。
+    """
+    current_path = s.model_path.get().strip()
+    if current_path and current_path == getattr(s, "_last_detected_model_path", None):
+        return
+
+    s.detected_num_blocks = None
+    s.detected_is_non_anima = False
+    s.detected_is_semantic_connector_v2 = False
+    s.detected_vae_is_2d = None
+    s.detected_model_label.set(gettext("lora_detect_stale_hint"))
+    if s.progressive_adapter_entry is not None and s.progressive_adapter_button is not None:
+        s.progressive_adapter_entry.configure(state=tk.NORMAL)
+        s.progressive_adapter_button.configure(state=tk.NORMAL)
     if s.layer_canvas is not None and s.layer_inner is not None:
         _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
 
@@ -487,8 +664,14 @@ def _build_model_tab(parent: ttk.Frame, s: _LecoTrainState) -> None:
     # Anima 3.8B (Qwen3.5 / Progressive Cross Adapter) 対応。
     _entry_browse_row(lf, 4, gettext("lora_qwen35_label"), s.qwen35_path,
                       filetypes=[("safetensors", "*.safetensors"), ("dir", "*")])
-    _entry_browse_row(lf, 5, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
-                      filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
+    s.progressive_adapter_entry, s.progressive_adapter_button = _entry_browse_row(
+        lf, 5, gettext("lora_progressive_adapter_label"), s.progressive_adapter_path,
+        filetypes=[("safetensors", "*.safetensors"), ("All", "*.*")])
+
+    # apply_fix_038: DiTパス変更時は必ず検出をやり直させる(lora_train.pyの
+    # apply_fix_035と同一仕様)。古い検出結果のまま学習を開始できてしまうと、
+    # Base1.0(28ブロック)等で誤ったブロック数のまま進んでしまう恐れがあるため。
+    s.model_path.trace_add("write", lambda *_args: _on_model_path_changed(s))
 
     lf2 = ttk.LabelFrame(parent, text=gettext("lora_output_settings"))
     lf2.pack(fill=tk.X)
@@ -1048,10 +1231,21 @@ def _validate(s: _LecoTrainState) -> str | None:
     if not s.qwen3_path.get():
         return gettext("lora_validate_no_qwen3")
 
+    # apply_fix_038: Anima 3.8B/Base1.0対応(lora_train.pyのapply_fix_035と同一チェック)。
+    # 「モデルを検出」の実行を常に必須化する。階層学習を使わない場合や
+    # Base1.0(28ブロック)でも、ブロック数・v1.1判定を毎回確定させるため。
+    if s.detected_num_blocks is None:
+        return gettext("lora_validate_needs_detect")
+
     # apply_fix_028: Anima 3.8B対応(lora_train.pyと同一チェック)。
     # progressive_adapter_path指定時はqwen35_pathが必須。
     if s.progressive_adapter_path.get() and not s.qwen35_path.get():
         return gettext("lora_validate_adapter_needs_qwen35")
+
+    # apply_fix_038: Anima 3.8B v1.1: Semantic Connector v2内蔵checkpointも
+    # Qwen3.5 4Bが必須(lora_train.pyのapply_fix_033と同一チェック)。
+    if s.detected_is_semantic_connector_v2 and not s.qwen35_path.get():
+        return gettext("lora_validate_v11_needs_qwen35")
 
     # adapter checkpointが前提とするブロック数と、検出済みDiTブロック数の整合性チェック。
     if s.progressive_adapter_path.get() and s.detected_num_blocks is not None:
@@ -1067,10 +1261,8 @@ def _validate(s: _LecoTrainState) -> str | None:
                 adapter=expected,
             )
 
-    # 階層学習(Transformer/Component)はブロック数の検出が前提。
-    if s.layer_train_enabled.get() and s.layer_display_mode.get() in ("Transformer", "Component"):
-        if s.detected_num_blocks is None:
-            return gettext("lora_validate_layer_needs_detect")
+    # 階層学習(Transformer/Component)はカテゴリ数・ブロック数依存のため検出済みで
+    # ある必要があるが、検出自体は上で既に必須化しているためここでの追加チェックは不要。
 
     if not s.prompts_file.get():
         return gettext("leco_validate_no_prompts")
@@ -1691,6 +1883,14 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
                 k: round(float(v.get()), 4)
                 for k, v in s.layer_parameter_vars.items()
             },
+            # apply_fix_038: Transformerモードの場合、保存時に検出済みだったブロック数を
+            # 記録する(lora_train.pyのapply_fix_035と同一仕様)。読み込み時にブロック数が
+            # 異なる(旧プリセット)場合、LLaMA-Pro方式のブロック挿入を考慮した再マッピングに使う。
+            "layer_block_count": (
+                s.detected_num_blocks
+                if s.layer_display_mode.get() == "Transformer"
+                else None
+            ),
             # サンプル生成
             "sample": {
                 "every_n_steps":            s.sample_every_n_steps.get(),
@@ -1717,7 +1917,15 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
                 pass
         return data
 
-    def _apply(data: dict) -> None:
+    def _apply(data: dict, target_block_count: "int | None" = None) -> None:
+        """dict の値を _LecoTrainState の各 tk.Variable に反映する。
+
+        apply_fix_038: lora_train.pyのapply_fix_035と同一仕様。target_block_count:
+        Transformerモードのlayer_parameter_vars remapに使う「現在検出済みの
+        ブロック数」。この関数の内部でmodel_pathを設定すると(プリセットが別の
+        モデルパスを指す場合)_on_model_path_changedが発火しs.detected_num_blocks
+        がリセットされてしまうため、呼び出し側で事前にキャプチャした値をここに渡す。
+        """
         def _s(var, key, default=None):
             if key in data:
                 try:
@@ -1775,7 +1983,32 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         _s(s.discrete_flow_shift, "discrete_flow_shift", 1.0)
 
         # 階層学習スライダーは先行セット済みなのでスケール値のみ反映
+        # apply_fix_038: Transformerモードでブロック数が異なる場合はLLaMA-Pro方式で
+        # 再マッピングする(lora_train.pyのapply_fix_035と同一仕様)。
         layer_scales = data.get("layer_parameter_vars", {})
+        saved_block_count = data.get("layer_block_count")
+        if (
+            s.layer_display_mode.get() == "Transformer"
+            and isinstance(saved_block_count, int)
+            and target_block_count is not None
+            and saved_block_count != target_block_count
+        ):
+            layer_scales = _remap_layer_block_scales(
+                layer_scales, saved_block_count, target_block_count
+            )
+            if _llama_pro_block_index_map(saved_block_count, target_block_count) is not None:
+                s.log_fn(
+                    f"[Preset] Remapped Transformer layer scales: "
+                    f"{saved_block_count} blocks -> {target_block_count} blocks "
+                    f"(exact LLaMA-Pro block insertion mapping)."
+                )
+            else:
+                s.log_fn(
+                    f"[Preset] Remapped Transformer layer scales: "
+                    f"{saved_block_count} blocks -> {target_block_count} blocks "
+                    f"(APPROXIMATE: no exact LLaMA-Pro mapping known for this block-count pair; "
+                    f"used Input/Middle/Output category average instead)."
+                )
         for k, v in layer_scales.items():
             if k in s.layer_parameter_vars:
                 try:
@@ -1854,11 +2087,37 @@ def _build_leco_preset_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
         _pre_mode    = data.get("layer_display_mode", "Matrix")
         if _pre_mode not in LAYER_TRAIN_MODES:
             _pre_mode = "Matrix"
+
+        # apply_fix_038: Transformerモードのプリセットは検出済みブロック数が無いと
+        # 正しいキー("blocks.N")を生成できず値が失われてしまう(lora_train.pyの
+        # apply_fix_036/037と同一の既知バグ対応)。「モデルを検出」の実行を必須化した
+        # 際に未検出なら即エラーにするのではなく、自動的に検出を実行してから進める。
+        # モデルタブが未設定の初期状態からプリセットを読み込む場合もあるため、
+        # モデルタブに何も入力されていなければプリセット自身が記録している
+        # model_pathを使って検出する(「最初にプリセットを読み込む」動線に対応)。
+        if _pre_mode == "Transformer" and s.detected_num_blocks is None:
+            effective_model_path = s.model_path.get().strip() or str(data.get("model_path", "")).strip()
+            if effective_model_path:
+                if not s.model_path.get().strip():
+                    s.model_path.set(effective_model_path)
+                s.log_fn(
+                    "[Preset] Transformer layer preset requires a detected block count; "
+                    "running model detection automatically."
+                )
+                _on_detect_model_clicked(s)
+            if s.detected_num_blocks is None:
+                messagebox.showerror("Preset", gettext("lora_preset_load_needs_detect"))
+                return
+
         s.layer_train_enabled.set(_pre_enabled)
         s.layer_display_mode.set(_pre_mode)
         if s.layer_canvas is not None and s.layer_inner is not None:
             _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
-        _apply(data)
+        # apply_fix_038: _apply内でmodel_pathを設定すると(プリセットが別のモデルパスを
+        # 指す場合)_on_model_path_changedが発火しs.detected_num_blocksがリセットされて
+        # しまうため、現在(ユーザーが実際に検出した)ブロック数を先にキャプチャしておく。
+        _target_block_count = s.detected_num_blocks
+        _apply(data, target_block_count=_target_block_count)
         s.log_fn(gettext("lora_preset_log_loaded", name=src.name))
 
     # ── Delete ────────────────────────────────────────────────────

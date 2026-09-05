@@ -1,0 +1,291 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_leco_wrapper.py --pretrained_model_name_or_path E:/Animerge/checkpoints/Anima-3.8B-v1.1.safetensors --vae E:/Animerge/checkpoints/Qwen2D-Anime-dense_epoch_1.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --prompts_file E:/Animerge/preset/leco_train/leco_test.toml --output_dir E:\Animerge\lora --output_name leco_output --network_module networks.lora --network_dim 4 --network_alpha 1.0 --learning_rate 1e-4 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --max_train_steps 500 --save_every_n_steps 100 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --max_denoising_steps 20 --leco_denoise_guidance_scale 3.0 --attn_mode torch --discrete_flow_shift 1.0 --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --qwen35 E:/Animerge/checkpoints/qwen35_4b.safetensors --qwen_image_vae_2d --gradient_checkpointing --sample_every_n_steps 5 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen --network_args anima_block_lr_weight=0.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
+
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+accelerator device: cuda
+2026-09-05 18:30:09 INFO     Loaded 1 LECO prompt       anima_train_leco.py:414
+                             settings from
+                             E:/Animerge/preset/leco_tr
+                             ain/leco_test.toml
+                    INFO     Loading Qwen3 text         anima_train_leco.py:417
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:633
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-09-05 18:30:28 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:680
+                             keys matched successfully>
+                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:688
+                             Parameters: 596,049,920
+                    INFO     Loading Qwen3.5 text       anima_train_leco.py:444
+                             encoder...
+                    INFO     Loading Qwen3.5 text encoder    anima_utils.py:750
+                             from
+                             E:/Animerge/checkpoints/qwen35_
+                             4b.safetensors
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+2026-09-05 18:31:31 INFO     Loaded Qwen3.5 state dict:      anima_utils.py:806
+                             _IncompatibleKeys(missing_keys=
+                             ['layers.31.mlp.gate_proj.weigh
+                             t',
+                             'layers.31.mlp.up_proj.weight',
+                             'layers.31.mlp.down_proj.weight
+                             ',
+                             'layers.31.post_attention_layer
+                             norm.weight', 'norm.weight'],
+                             unexpected_keys=['norm.0.bias',
+                             'norm.0.weight',
+                             'norm.1.weight', 'norm.3.bias',
+                             'norm.3.weight'])
+2026-09-05 18:31:35 INFO     Loaded Qwen3.5 text encoder.    anima_utils.py:814
+                             Parameters: 4,205,751,296
+2026-09-05 18:31:36 INFO     Loading Anima VAE...       anima_train_leco.py:463
+                    INFO     Using image-only          anima_train_utils.py:245
+                             Qwen-Image 2D VAE
+                    INFO     Initializing   qwen_image_autoencoder_kl_2d.py:535
+                             image-only
+                             QwenImage 2D
+                             VAE
+                    INFO     Loading VAE    qwen_image_autoencoder_kl_2d.py:550
+                             from
+                             E:/Animerge/ch
+                             eckpoints/Qwen
+                             2D-Anime-dense
+                             _epoch_1.safet
+                             ensors
+                    INFO     Loaded         qwen_image_autoencoder_kl_2d.py:555
+                             image-only
+                             QwenImage 2D
+                             VAE: <All keys
+                             matched
+                             successfully>
+                    INFO     Loading Anima DiT model    anima_train_leco.py:482
+                             (attn_mode=torch)...
+2026-09-05 18:31:38 INFO     Attaching Semantic Connector v2 anima_utils.py:340
+                             (Anima 3.8B v1.1):
+                             layer_indices=[7, 15, 23, 31],
+                             resampler_dim=2048,
+                             num_query_tokens=64,
+                             num_resampler_blocks=6
+                    INFO     Loading DiT model from          anima_utils.py:520
+                             E:/Animerge/checkpoints/Anima-3
+                             .8B-v1.1.safetensors,
+                             device=cpu
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['E:/Animerge/checkpoints/Anima-3
+                             .8B-v1.1.safetensors']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+Loading Anima-3.8B-v1.1.safetensors:   0%|          | 0/1358 [00:00<?, ?it/s]
+Loading Anima-3.8B-v1.1.safetensors:   4%|▍         | 53/1358 [00:00<00:02, 521.52it/s]
+Loading Anima-3.8B-v1.1.safetensors:   8%|▊         | 106/1358 [00:00<00:07, 173.20it/s]
+Loading Anima-3.8B-v1.1.safetensors:  10%|▉         | 135/1358 [00:00<00:07, 155.60it/s]
+Loading Anima-3.8B-v1.1.safetensors:  15%|█▍        | 203/1358 [00:00<00:04, 254.10it/s]
+Loading Anima-3.8B-v1.1.safetensors:  18%|█▊        | 241/1358 [00:01<00:04, 249.37it/s]
+Loading Anima-3.8B-v1.1.safetensors:  20%|██        | 274/1358 [00:01<00:04, 231.69it/s]
+Loading Anima-3.8B-v1.1.safetensors:  22%|██▏       | 303/1358 [00:01<00:04, 223.66it/s]
+Loading Anima-3.8B-v1.1.safetensors:  24%|██▍       | 329/1358 [00:01<00:04, 218.57it/s]
+Loading Anima-3.8B-v1.1.safetensors:  26%|██▌       | 353/1358 [00:01<00:04, 220.54it/s]
+Loading Anima-3.8B-v1.1.safetensors:  28%|██▊       | 377/1358 [00:01<00:04, 224.84it/s]
+Loading Anima-3.8B-v1.1.safetensors:  30%|██▉       | 401/1358 [00:01<00:04, 222.80it/s]
+Loading Anima-3.8B-v1.1.safetensors:  31%|███▏      | 425/1358 [00:01<00:04, 204.53it/s]
+Loading Anima-3.8B-v1.1.safetensors:  33%|███▎      | 447/1358 [00:02<00:04, 205.77it/s]
+Loading Anima-3.8B-v1.1.safetensors:  35%|███▍      | 470/1358 [00:02<00:04, 209.77it/s]
+Loading Anima-3.8B-v1.1.safetensors:  37%|███▋      | 499/1358 [00:02<00:03, 228.50it/s]
+Loading Anima-3.8B-v1.1.safetensors:  39%|███▊      | 523/1358 [00:02<00:03, 216.28it/s]
+Loading Anima-3.8B-v1.1.safetensors:  40%|████      | 546/1358 [00:02<00:03, 214.52it/s]
+Loading Anima-3.8B-v1.1.safetensors:  42%|████▏     | 568/1358 [00:02<00:03, 213.30it/s]
+Loading Anima-3.8B-v1.1.safetensors:  44%|████▎     | 591/1358 [00:02<00:03, 217.37it/s]
+Loading Anima-3.8B-v1.1.safetensors:  46%|████▌     | 619/1358 [00:02<00:03, 232.00it/s]
+Loading Anima-3.8B-v1.1.safetensors:  47%|████▋     | 643/1358 [00:02<00:03, 217.49it/s]
+Loading Anima-3.8B-v1.1.safetensors:  49%|████▉     | 666/1358 [00:03<00:03, 212.45it/s]
+Loading Anima-3.8B-v1.1.safetensors:  51%|█████     | 690/1358 [00:03<00:03, 217.66it/s]
+Loading Anima-3.8B-v1.1.safetensors:  53%|█████▎    | 718/1358 [00:03<00:02, 234.26it/s]
+Loading Anima-3.8B-v1.1.safetensors:  55%|█████▍    | 742/1358 [00:03<00:02, 234.67it/s]
+Loading Anima-3.8B-v1.1.safetensors:  56%|█████▋    | 766/1358 [00:03<00:02, 214.34it/s]
+Loading Anima-3.8B-v1.1.safetensors:  58%|█████▊    | 789/1358 [00:03<00:02, 212.48it/s]
+Loading Anima-3.8B-v1.1.safetensors:  60%|██████    | 818/1358 [00:03<00:02, 227.38it/s]
+Loading Anima-3.8B-v1.1.safetensors:  62%|██████▏   | 841/1358 [00:03<00:02, 221.91it/s]
+Loading Anima-3.8B-v1.1.safetensors:  64%|██████▎   | 864/1358 [00:03<00:02, 200.96it/s]
+Loading Anima-3.8B-v1.1.safetensors:  66%|██████▌   | 890/1358 [00:04<00:02, 208.14it/s]
+Loading Anima-3.8B-v1.1.safetensors:  67%|██████▋   | 912/1358 [00:04<00:02, 208.84it/s]
+Loading Anima-3.8B-v1.1.safetensors:  69%|██████▉   | 942/1358 [00:04<00:01, 229.79it/s]
+Loading Anima-3.8B-v1.1.safetensors:  71%|███████   | 966/1358 [00:04<00:01, 209.19it/s]
+Loading Anima-3.8B-v1.1.safetensors:  73%|███████▎  | 989/1358 [00:04<00:01, 212.01it/s]
+Loading Anima-3.8B-v1.1.safetensors:  75%|███████▌  | 1019/1358 [00:04<00:01, 231.43it/s]
+Loading Anima-3.8B-v1.1.safetensors:  77%|███████▋  | 1043/1358 [00:04<00:01, 215.26it/s]
+Loading Anima-3.8B-v1.1.safetensors:  78%|███████▊  | 1065/1358 [00:04<00:01, 209.36it/s]
+Loading Anima-3.8B-v1.1.safetensors:  80%|████████  | 1087/1358 [00:04<00:01, 210.52it/s]
+Loading Anima-3.8B-v1.1.safetensors:  82%|████████▏ | 1109/1358 [00:05<00:01, 211.57it/s]
+Loading Anima-3.8B-v1.1.safetensors:  84%|████████▎ | 1134/1358 [00:05<00:01, 220.68it/s]
+Loading Anima-3.8B-v1.1.safetensors:  85%|████████▌ | 1161/1358 [00:05<00:00, 230.56it/s]
+Loading Anima-3.8B-v1.1.safetensors:  87%|████████▋ | 1185/1358 [00:05<00:00, 209.05it/s]
+Loading Anima-3.8B-v1.1.safetensors:  89%|████████▉ | 1207/1358 [00:05<00:00, 211.02it/s]
+Loading Anima-3.8B-v1.1.safetensors:  91%|█████████ | 1230/1358 [00:05<00:00, 213.39it/s]
+Loading Anima-3.8B-v1.1.safetensors:  97%|█████████▋| 1311/1358 [00:05<00:00, 376.97it/s]
+Loading Anima-3.8B-v1.1.safetensors: 100%|█████████▉| 1355/1358 [00:05<00:00, 394.84it/s]
+2026-09-05 18:31:44 INFO     [key normalization] 1358 key(s) anima_utils.py:417
+                             renamed. Examples:
+                             [('net.anima_v2_connector.quali
+                             ty_anchor.layer_mix_logits',
+                             'anima_v2_connector.quality_anc
+                             hor.layer_mix_logits'),
+                             ('net.anima_v2_connector.qualit
+                             y_anchor.query_norms.0.weight',
+                             'anima_v2_connector.quality_anc
+                             hor.query_norms.0.weight'),
+                             ('net.anima_v2_connector.qualit
+                             y_anchor.query_norms.1.weight',
+                             'anima_v2_connector.quality_anc
+                             hor.query_norms.1.weight')]
+                    INFO     Loaded DiT model from           anima_utils.py:564
+                             E:/Animerge/checkpoints/Anima-3
+                             .8B-v1.1.safetensors,
+                             unexpected missing keys: 0,
+                             unexpected keys: 0
+2026-09-05 18:32:32 WARNING  anima_block_lr_weight: 28 values       lora.py:143
+                             given, expected 52. Missing blocks are
+                             filled with 1.0.
+                    INFO     anima_block_lr_weight                  lora.py:157
+                             (blocks.0->blocks.51): [0.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+                    INFO     create LoRA network. base dim (rank): lora.py:1141
+                             4, alpha: 1.0
+                    INFO     neuron dropout: p=None, rank dropout: lora.py:1142
+                             p=None, module dropout: p=None
+                    INFO     create LoRA for Text Encoder:         lora.py:1236
+                    INFO     create LoRA for Text Encoder: 0       lora.py:1241
+                             modules.
+2026-09-05 18:32:33 INFO     create LoRA for U-Net: 892 modules.   lora.py:1249
+                    INFO     enable LoRA for U-Net: 892 modules    lora.py:1297
+                    INFO     NO LR skipping!                       lora.py:1441
+                    INFO     use AdamW optimizer | {}        train_util.py:5230
+steps:   0%|          | 0/500 [00:00<?, ?it/s]
+steps:   0%|          | 1/500 [00:10<1:24:48, 10.20s/it, loss=0.0031]
+steps:   0%|          | 2/500 [00:26<1:52:06, 13.51s/it, loss=0.0046]
+steps:   1%|          | 3/500 [00:41<2:00:26, 14.54s/it, loss=0.0027]
+steps:   1%|          | 4/500 [00:48<1:36:13, 11.64s/it, loss=0.0026]
+steps:   1%|          | 5/500 [00:57<1:26:48, 10.52s/it, loss=0.0014]2026-09-05 18:33:30 INFO     [SampleGen] VAE            anima_sample_gen.py:613
+                             を一時ロードします:
+                             E:/Animerge/checkpoints/Qw
+                             en2D-Anime-dense_epoch_1.s
+                             afetensors
+                    INFO     Using image-only          anima_train_utils.py:245
+                             Qwen-Image 2D VAE
+                    INFO     Initializing   qwen_image_autoencoder_kl_2d.py:535
+                             image-only
+                             QwenImage 2D
+                             VAE
+2026-09-05 18:33:31 INFO     Loading VAE    qwen_image_autoencoder_kl_2d.py:550
+                             from
+                             E:/Animerge/ch
+                             eckpoints/Qwen
+                             2D-Anime-dense
+                             _epoch_1.safet
+                             ensors
+                    INFO     Loaded         qwen_image_autoencoder_kl_2d.py:555
+                             image-only
+                             QwenImage 2D
+                             VAE: <All keys
+                             matched
+                             successfully>
+                    INFO     [SampleGen] prompt='1girl, anima_sample_gen.py:380
+                             solo, full body',
+                             neg='worst quality, low
+                             quality, score_1, score_2,
+                             score_3', 512x512,
+                             steps=20, scale=4.5,
+                             flow_shift=3.0, seed=42
+2026-09-05 18:33:48 INFO     [DIAG2] PRE-adapter        anima_sample_gen.py:174
+                             prompt='1girl, solo, full
+                             body' qwen3_nonzero=7/512
+                             qwen3_norm=267.5838
+                             qwen3_mean=0.025024
+                             t5_nonzero=8 t5_ids=[209,
+                             18722, 6, 6729, 6, 423,
+                             643, 1]
+2026-09-05 18:34:03 INFO     [DIAG2] PRE-adapter        anima_sample_gen.py:174
+                             prompt='worst quality, low
+                             quality, score_1, sco'
+                             qwen3_nonzero=18/512
+                             qwen3_norm=426.5021
+                             qwen3_mean=0.062988
+                             t5_nonzero=16
+                             t5_ids=[6025, 463, 6, 731,
+                             463, 6, 2604, 834, 4347,
+                             2604, 834, 4482, 2604,
+                             834, 519, 1]
+2026-09-05 18:34:06 INFO     [DIAG] _denoise start:     anima_sample_gen.py:276
+                             latents norm=257.5315
+                             shape=(1, 16, 1, 64, 64)
+                             sigmas[0]=1.0000
+                             sigmas[-1]=0.0000
+                             do_cfg=True
+                             guidance_scale=4.5
+                             flow_shift=3.0
+Sampling:   0%|          | 0/20 [00:00<?, ?it/s]2026-09-05 18:34:07 INFO     [DIAG2] step 0: t=1.0000   anima_sample_gen.py:299
+                             cond_norm=290.0770
+                             uncond_norm=278.9567
+                             cond-uncond_norm=35.5136
+                             (CFG前)
+                    INFO     [DIAG] step 0: t=1.0000    anima_sample_gen.py:309
+                             noise_pred norm=355.1692
+                             latents norm=257.5315
+Sampling:   5%|▌         | 1/20 [00:00<00:17,  1.09it/s]
+Sampling:  10%|█         | 2/20 [00:01<00:15,  1.15it/s]
+Sampling:  15%|█▌        | 3/20 [00:02<00:15,  1.13it/s]
+Sampling:  20%|██        | 4/20 [00:03<00:14,  1.13it/s]
+Sampling:  25%|██▌       | 5/20 [00:04<00:13,  1.13it/s]
+Sampling:  30%|███       | 6/20 [00:05<00:12,  1.11it/s]
+Sampling:  35%|███▌      | 7/20 [00:06<00:11,  1.13it/s]
+Sampling:  40%|████      | 8/20 [00:07<00:10,  1.12it/s]
+Sampling:  45%|████▌     | 9/20 [00:08<00:09,  1.12it/s]
+Sampling:  50%|█████     | 10/20 [00:08<00:08,  1.14it/s]
+Sampling:  55%|█████▌    | 11/20 [00:09<00:07,  1.13it/s]
+Sampling:  60%|██████    | 12/20 [00:10<00:06,  1.15it/s]
+Sampling:  65%|██████▌   | 13/20 [00:11<00:06,  1.15it/s]
+Sampling:  70%|███████   | 14/20 [00:12<00:05,  1.15it/s]
+Sampling:  75%|███████▌  | 15/20 [00:13<00:04,  1.15it/s]
+Sampling:  80%|████████  | 16/20 [00:14<00:03,  1.14it/s]
+Sampling:  85%|████████▌ | 17/20 [00:14<00:02,  1.14it/s]
+Sampling:  90%|█████████ | 18/20 [00:15<00:01,  1.15it/s]
+Sampling:  95%|█████████▌| 19/20 [00:16<00:00,  1.16it/s]2026-09-05 18:34:23 INFO     [DIAG2] step 19: t=0.1367  anima_sample_gen.py:299
+                             cond_norm=328.2779
+                             uncond_norm=327.8508
+                             cond-uncond_norm=6.2299
+                             (CFG前)
+                    INFO     [DIAG] step 19: t=0.1367   anima_sample_gen.py:309
+                             noise_pred norm=330.6864
+                             latents norm=192.7673
+Sampling: 100%|██████████| 20/20 [00:17<00:00,  1.13it/s]
+                                                                             INFO     [DIAG] _denoise end:       anima_sample_gen.py:320
+                             latents norm=219.2909
+2026-09-05 18:34:24 INFO     [SampleGen] saved:         anima_sample_gen.py:676
+                             E:\Animerge\log\sample_gen
+                             \leco_output_000005_00_202
+                             60905183424_42.png
+                    INFO     [SampleGen] 一時ロードした anima_sample_gen.py:700
+                             VAE をアンロードしました。
+steps:   1%|          | 6/500 [02:01<3:56:42, 28.75s/it, loss=0.0013]
+steps:   1%|▏         | 7/500 [02:17<3:21:16, 24.50s/it, loss=0.0020]
+steps:   2%|▏         | 8/500 [02:27<2:44:23, 20.05s/it, loss=0.0012]forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFBB184605D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFBB1EECCB7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFBB3FCCAEC  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFBB184605D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFBB1EECCB7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFBB3FCCAEC  Unknown               Unknown  Unknown

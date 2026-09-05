@@ -422,21 +422,43 @@ def main():
     qwen3_text_encoder.requires_grad_(False)
 
     # apply_fix_025: Anima 3.8B (semantic branch) 対応。
-    # --progressive_adapter_path が指定されている場合のみQwen3.5をロードし、
-    # layer_indicesを検出する。未指定の場合は従来通りsemantic branch無効。
+    # apply_fix_039: Anima 3.8B v1.1(Semantic Connector v2内蔵)対応
+    # (anima_train_network.pyのapply_fix_031と同一仕様)。
+    # --progressive_adapter_path が指定されている場合、またはDiT checkpoint自体が
+    # v1.1(Semantic Connector v2内蔵)の場合にQwen3.5をロードし、layer_indicesを検出する。
+    # どちらでもない場合は従来通りsemantic branch無効。
     qwen35_text_encoder = None
     layer_indices = None
     progressive_adapter_path = getattr(args, "progressive_adapter_path", None)
-    if progressive_adapter_path:
-        if not getattr(args, "qwen35", None):
-            raise ValueError("--progressive_adapter_path requires --qwen35 to be set.")
+    is_semantic_connector_v2 = anima_utils.detect_semantic_connector_v2_architecture(
+        args.pretrained_model_name_or_path
+    )
+    if (progressive_adapter_path or is_semantic_connector_v2) and not getattr(args, "qwen35", None):
+        raise ValueError(
+            "--progressive_adapter_path、またはv1.1(Semantic Connector v2内蔵)の"
+            "DiT checkpointを指定する場合は --qwen35 も指定してください。"
+            " / --qwen35 is required when --progressive_adapter_path is set, "
+            "or when the DiT checkpoint bundles Semantic Connector v2 (Anima 3.8B v1.1)."
+        )
+    if progressive_adapter_path or is_semantic_connector_v2:
         logger.info("Loading Qwen3.5 text encoder...")
         qwen35_text_encoder, _ = anima_utils.load_qwen35_text_encoder(
             args.qwen35, dtype=weight_dtype, device="cpu"
         )
         qwen35_text_encoder.eval()
         qwen35_text_encoder.requires_grad_(False)
-        _, layer_indices = anima_utils.detect_progressive_adapter_architecture(progressive_adapter_path)
+        if progressive_adapter_path:
+            # v1.0: 外部Progressive Cross Adapter checkpointのmetadataから検出。
+            # (v1.1との併用は禁止されており、両方指定時はload_anima_model内で
+            # RuntimeErrorとなる。)
+            _, layer_indices = anima_utils.detect_progressive_adapter_architecture(progressive_adapter_path)
+        else:
+            # v1.1: DiT checkpoint自体にSemantic Connector v2が内蔵されているため、
+            # そちらのmetadataから検出する。
+            connector_config = anima_utils.detect_anima_v2_connector_config(
+                args.pretrained_model_name_or_path
+            )
+            layer_indices = connector_config["layer_indices"]
 
     logger.info("Loading Anima VAE...")
     vae = anima_train_utils.load_qwen_image_vae(args, device="cpu", disable_mmap=True)
