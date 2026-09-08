@@ -1,0 +1,162 @@
+CMD: E:\Animerge\.venv\Scripts\python.exe -m accelerate.commands.launch --mixed_precision bf16 --num_cpu_threads_per_process 1 E:\Animerge\sd-scripts\_gui_leco_wrapper.py --pretrained_model_name_or_path E:/Animerge/checkpoints/Anima-3.8B-v1.1.safetensors --vae E:/Animerge/checkpoints/Qwen2D-Anime-dense_epoch_1.safetensors --qwen3 F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/clip/qwen_3_06b_base.safetensors --prompts_file E:/Animerge/preset/leco_train/leco_test.toml --output_dir E:\Animerge\lora --output_name leco_output --network_module networks.lora --network_dim 4 --network_alpha 1.0 --learning_rate 1e-4 --lr_scheduler constant --lr_warmup_steps 0 --optimizer_type AdamW --max_train_steps 500 --save_every_n_steps 100 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --max_denoising_steps 20 --leco_denoise_guidance_scale 3.0 --attn_mode torch --discrete_flow_shift 1.0 --qwen3_max_token_length 512 --t5_max_token_length 512 --network_train_unet_only --seed 42 --qwen35 E:/Animerge/checkpoints/qwen35_4b.safetensors --qwen_image_vae_2d --gradient_checkpointing --sample_every_n_steps 5 --sample_prompts E:\Animerge\log\sample_gen\_sample_prompt.txt --sample_save_dir E:\Animerge\log\sample_gen --network_args anima_block_lr_weight=0.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000
+
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+accelerator device: cuda
+2026-09-05 21:18:35 INFO     Loaded 1 LECO prompt       anima_train_leco.py:414
+                             settings from
+                             E:/Animerge/preset/leco_tr
+                             ain/leco_test.toml
+                    INFO     Loading Qwen3 text         anima_train_leco.py:417
+                             encoder...
+                    INFO     Loading Qwen3 text encoder from anima_utils.py:633
+                             F:/Game_Files/ComfyUI_windows_p
+                             ortable/ComfyUI/models/clip/qwe
+                             n_3_06b_base.safetensors
+2026-09-05 21:18:44 INFO     Loaded Qwen3 state dict: <All   anima_utils.py:680
+                             keys matched successfully>
+                    INFO     Loaded Qwen3 text encoder.      anima_utils.py:688
+                             Parameters: 596,049,920
+                    INFO     Loading Qwen3.5 text       anima_train_leco.py:444
+                             encoder...
+                    INFO     Loading Qwen3.5 text encoder    anima_utils.py:750
+                             from
+                             E:/Animerge/checkpoints/qwen35_
+                             4b.safetensors
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+2026-09-05 21:19:46 INFO     Loaded Qwen3.5 state dict:      anima_utils.py:806
+                             _IncompatibleKeys(missing_keys=
+                             ['layers.31.mlp.gate_proj.weigh
+                             t',
+                             'layers.31.mlp.up_proj.weight',
+                             'layers.31.mlp.down_proj.weight
+                             ',
+                             'layers.31.post_attention_layer
+                             norm.weight', 'norm.weight'],
+                             unexpected_keys=['norm.0.bias',
+                             'norm.0.weight',
+                             'norm.1.weight', 'norm.3.bias',
+                             'norm.3.weight'])
+2026-09-05 21:19:50 INFO     Loaded Qwen3.5 text encoder.    anima_utils.py:814
+                             Parameters: 4,205,751,296
+                    INFO     Loading Anima VAE...       anima_train_leco.py:463
+                    INFO     Using image-only          anima_train_utils.py:245
+                             Qwen-Image 2D VAE
+                    INFO     Initializing   qwen_image_autoencoder_kl_2d.py:535
+                             image-only
+                             QwenImage 2D
+                             VAE
+2026-09-05 21:19:51 INFO     Loading VAE    qwen_image_autoencoder_kl_2d.py:550
+                             from
+                             E:/Animerge/ch
+                             eckpoints/Qwen
+                             2D-Anime-dense
+                             _epoch_1.safet
+                             ensors
+                    INFO     Loaded         qwen_image_autoencoder_kl_2d.py:555
+                             image-only
+                             QwenImage 2D
+                             VAE: <All keys
+                             matched
+                             successfully>
+                    INFO     Loading Anima DiT model    anima_train_leco.py:482
+                             (attn_mode=torch)...
+2026-09-05 21:19:53 INFO     Attaching Semantic Connector v2 anima_utils.py:340
+                             (Anima 3.8B v1.1):
+                             layer_indices=[7, 15, 23, 31],
+                             resampler_dim=2048,
+                             num_query_tokens=64,
+                             num_resampler_blocks=6
+                    INFO     Loading DiT model from          anima_utils.py:520
+                             E:/Animerge/checkpoints/Anima-3
+                             .8B-v1.1.safetensors,
+                             device=cpu
+                    INFO     Loading model files:              lora_utils.py:90
+                             ['E:/Animerge/checkpoints/Anima-3
+                             .8B-v1.1.safetensors']
+                    INFO     Loading state dict without FP8   lora_utils.py:264
+                             optimization. Dtype of weight:
+                             torch.bfloat16, hook enabled:
+                             False
+Loading Anima-3.8B-v1.1.safetensors:   0%|          | 0/1358 [00:00<?, ?it/s]
+Loading Anima-3.8B-v1.1.safetensors:   5%|▌         | 68/1358 [00:00<00:02, 549.80it/s]
+Loading Anima-3.8B-v1.1.safetensors:   9%|▉         | 123/1358 [00:00<00:03, 328.45it/s]
+Loading Anima-3.8B-v1.1.safetensors:  15%|█▌        | 204/1358 [00:00<00:02, 464.79it/s]
+Loading Anima-3.8B-v1.1.safetensors:  19%|█▉        | 258/1358 [00:00<00:02, 472.60it/s]
+Loading Anima-3.8B-v1.1.safetensors:  23%|██▎       | 310/1358 [00:00<00:02, 432.16it/s]
+Loading Anima-3.8B-v1.1.safetensors:  27%|██▋       | 361/1358 [00:00<00:02, 442.53it/s]
+Loading Anima-3.8B-v1.1.safetensors:  30%|███       | 408/1358 [00:00<00:02, 426.62it/s]
+Loading Anima-3.8B-v1.1.safetensors:  33%|███▎      | 453/1358 [00:01<00:02, 427.34it/s]
+Loading Anima-3.8B-v1.1.safetensors:  37%|███▋      | 501/1358 [00:01<00:01, 432.27it/s]
+Loading Anima-3.8B-v1.1.safetensors:  40%|████      | 545/1358 [00:01<00:01, 421.14it/s]
+Loading Anima-3.8B-v1.1.safetensors:  43%|████▎     | 590/1358 [00:01<00:01, 415.87it/s]
+Loading Anima-3.8B-v1.1.safetensors:  47%|████▋     | 643/1358 [00:01<00:01, 434.16it/s]
+Loading Anima-3.8B-v1.1.safetensors:  51%|█████     | 687/1358 [00:01<00:01, 422.97it/s]
+Loading Anima-3.8B-v1.1.safetensors:  54%|█████▍    | 730/1358 [00:01<00:01, 413.00it/s]
+Loading Anima-3.8B-v1.1.safetensors:  57%|█████▋    | 779/1358 [00:01<00:01, 431.20it/s]
+Loading Anima-3.8B-v1.1.safetensors:  61%|██████    | 823/1358 [00:01<00:01, 420.72it/s]
+Loading Anima-3.8B-v1.1.safetensors:  64%|██████▍   | 866/1358 [00:02<00:01, 419.62it/s]
+Loading Anima-3.8B-v1.1.safetensors:  67%|██████▋   | 909/1358 [00:02<00:01, 409.74it/s]
+Loading Anima-3.8B-v1.1.safetensors:  70%|███████   | 951/1358 [00:02<00:01, 399.38it/s]
+Loading Anima-3.8B-v1.1.safetensors:  74%|███████▎  | 1001/1358 [00:02<00:00, 415.02it/s]
+Loading Anima-3.8B-v1.1.safetensors:  77%|███████▋  | 1043/1358 [00:02<00:00, 404.45it/s]
+Loading Anima-3.8B-v1.1.safetensors:  80%|███████▉  | 1086/1358 [00:02<00:00, 398.37it/s]
+Loading Anima-3.8B-v1.1.safetensors:  83%|████████▎ | 1127/1358 [00:02<00:00, 387.24it/s]
+Loading Anima-3.8B-v1.1.safetensors:  86%|████████▌ | 1166/1358 [00:02<00:00, 361.91it/s]
+Loading Anima-3.8B-v1.1.safetensors:  89%|████████▊ | 1204/1358 [00:02<00:00, 357.85it/s]
+Loading Anima-3.8B-v1.1.safetensors:  94%|█████████▍| 1281/1358 [00:03<00:00, 456.80it/s]
+2026-09-05 21:19:56 INFO     [key normalization] 1358 key(s) anima_utils.py:417
+                             renamed. Examples:
+                             [('net.anima_v2_connector.quali
+                             ty_anchor.layer_mix_logits',
+                             'anima_v2_connector.quality_anc
+                             hor.layer_mix_logits'),
+                             ('net.anima_v2_connector.qualit
+                             y_anchor.query_norms.0.weight',
+                             'anima_v2_connector.quality_anc
+                             hor.query_norms.0.weight'),
+                             ('net.anima_v2_connector.qualit
+                             y_anchor.query_norms.1.weight',
+                             'anima_v2_connector.quality_anc
+                             hor.query_norms.1.weight')]
+                    INFO     Loaded DiT model from           anima_utils.py:564
+                             E:/Animerge/checkpoints/Anima-3
+                             .8B-v1.1.safetensors,
+                             unexpected missing keys: 0,
+                             unexpected keys: 0
+2026-09-05 21:20:49 INFO     anima_block_lr_weight                  lora.py:157
+                             (blocks.0->blocks.51): [0.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+                    INFO     create LoRA network. base dim (rank): lora.py:1141
+                             4, alpha: 1.0
+                    INFO     neuron dropout: p=None, rank dropout: lora.py:1142
+                             p=None, module dropout: p=None
+                    INFO     create LoRA for Text Encoder:         lora.py:1236
+                    INFO     create LoRA for Text Encoder: 0       lora.py:1241
+                             modules.
+                    INFO     create LoRA for U-Net: 892 modules.   lora.py:1249
+                    INFO     enable LoRA for U-Net: 892 modules    lora.py:1297
+2026-09-05 21:20:50 INFO     NO LR skipping!                       lora.py:1441
+                    INFO     use AdamW optimizer | {}        train_util.py:5230
+steps:   0%|          | 0/500 [00:00<?, ?it/s]
+steps:   0%|          | 1/500 [00:09<1:21:52,  9.85s/it, loss=0.0031]
+steps:   0%|          | 2/500 [00:25<1:50:08, 13.27s/it, loss=0.0045]forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFBB184605D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFBB1EECCB7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFBB3FCCAEC  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFBB184605D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFBB1EECCB7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFBB3FCCAEC  Unknown               Unknown  Unknown
+[LECO Train] 完了 (return code: 1)

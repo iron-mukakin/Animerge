@@ -13,6 +13,7 @@ from .config import AppPaths, MergeOptions
 from .i18n import gettext, load_language
 from .merge import (
     adjustment_group,
+    describe_anima_model_variant_from_path,
     extract_lora_difference,
     fuse_lora_into_model,
     is_merge_target,
@@ -347,12 +348,21 @@ class AnimaModelEditor(tk.Tk):
         self.secondary_combo = self._model_file_row(
             tab, 1, "secondary_model", self.secondary_model_var, self.paths.checkpoints
         )
-        self._output_controls(tab, 2)
+        _detect_row_mm = ttk.Frame(tab)
+        _detect_row_mm.grid(row=2, column=1, sticky=tk.W, pady=(0, 6))
+        ttk.Button(
+            _detect_row_mm,
+            text=gettext("merge_detect_button"),
+            command=self._on_detect_merge_models_clicked,
+        ).pack(side=tk.LEFT)
+        self.merge_detect_result_var = tk.StringVar(value="")
+        ttk.Label(_detect_row_mm, textvariable=self.merge_detect_result_var).pack(side=tk.LEFT, padx=(8, 0))
+        self._output_controls(tab, 3)
         _bf_mm = ttk.Frame(tab)
-        _bf_mm.grid(row=3, column=1, sticky=tk.E, pady=12)
+        _bf_mm.grid(row=4, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_mm, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_mm, text=gettext("run_model_merge"), style="Run.TButton", command=self.start_model_merge).pack(side=tk.LEFT)
-        self._run_log_row(tab, 4, "model_merge")
+        self._run_log_row(tab, 5, "model_merge")
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_fuse_tab(self, notebook: ttk.Notebook) -> None:
@@ -1299,6 +1309,52 @@ class AnimaModelEditor(tk.Tk):
             dry_run=bool(self.dry_run_var.get()),
             output_name=Path(self.output_var.get()).name,
         )
+
+    def _on_detect_merge_models_clicked(self) -> None:
+        """本体マージタブの「モデルを検出」ボタン: Base/Secondaryのバリアントをヘッダのみで判定し表示する。"""
+        base_text = self.base_model_var.get()
+        secondary_text = self.secondary_model_var.get()
+        if not base_text or not secondary_text:
+            self.merge_detect_result_var.set(gettext("merge_detect_result_missing_path"))
+            return
+        try:
+            base_variant, base_num_blocks, _base_v2 = describe_anima_model_variant_from_path(Path(base_text))
+            secondary_variant, secondary_num_blocks, _secondary_v2 = describe_anima_model_variant_from_path(
+                Path(secondary_text)
+            )
+        except (DependencyError, FileNotFoundError, ValueError) as exc:
+            self.merge_detect_result_var.set(gettext("merge_detect_result_error", error=str(exc)))
+            return
+
+        self.merge_detect_result_var.set(
+            gettext(
+                "merge_detect_result_pair",
+                base_variant=base_variant,
+                base_blocks=base_num_blocks if base_num_blocks is not None else "?",
+                secondary_variant=secondary_variant,
+                secondary_blocks=secondary_num_blocks if secondary_num_blocks is not None else "?",
+            )
+        )
+
+        if base_variant == "unknown" and secondary_variant == "unknown":
+            return
+        verified_pairs = {
+            frozenset({"anima-base-v1.0", "anima-base-v1.0"}),
+            frozenset({"anima-base-v1.0", "anima-3.8b-v1.0"}),
+            frozenset({"anima-base-v1.0", "anima-3.8b-v1.1"}),
+            frozenset({"anima-3.8b-v1.0", "anima-3.8b-v1.0"}),
+            frozenset({"anima-3.8b-v1.1", "anima-3.8b-v1.1"}),
+            frozenset({"anima-3.8b-v1.0", "anima-3.8b-v1.1"}),
+        }
+        if frozenset({base_variant, secondary_variant}) not in verified_pairs:
+            messagebox.showwarning(
+                gettext("merge_detect_unverified_title"),
+                gettext(
+                    "merge_detect_unverified_message",
+                    base_variant=base_variant,
+                    secondary_variant=secondary_variant,
+                ),
+            )
 
     def start_model_merge(self) -> None:
         self._merge_stop_event.clear()

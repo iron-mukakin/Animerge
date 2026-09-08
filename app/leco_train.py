@@ -1197,7 +1197,10 @@ def _build_command(s: _LecoTrainState) -> list[str]:
             )
             cmd += ["--network_args", f"anima_matrix_scales={_scales_json}"]
         else:
-            _weights = _layer_scales_to_block_weights(_mode, _scales)
+            # apply_fix_040: 検出済みブロック数分のanima_block_lr_weightを渡す
+            # (_validate()でs.detected_num_blocks is not Noneであることを保証済み、
+            # lora_train.pyと同一仕様)。
+            _weights = _layer_scales_to_block_weights(_mode, _scales, s.detected_num_blocks)
             weight_str = ",".join(f"{w:.4f}" for w in _weights)
             cmd += ["--network_args", f"anima_block_lr_weight={weight_str}"]
 
@@ -1650,20 +1653,61 @@ def _load_layer_preset(s: "_LecoTrainState", canvas: tk.Canvas, inner: ttk.Frame
     )
 
 
-def _layer_scales_to_block_weights(mode: str, scales: dict[str, float]) -> list[float]:
+def _layer_scales_to_block_weights(
+    mode: str,
+    scales: dict[str, float],
+    num_blocks: int,
+) -> list[float]:
+    """GUI のスケール値を num_blocks 要素の anima_block_lr_weight リストに変換する。
+
+    apply_fix_040: lora_train.pyの_layer_scales_to_block_weights()と同一仕様
+    (既知バグ修正: 従来は28固定でハードコードされており、3.8B(52ブロック)/
+    40ブロックのDiTでは末尾のブロックのスケール値がCLIへ渡らず暗黙的に
+    lora.py側のデフォルト値1.0で埋められてしまっていた)。num_blocksは
+    「モデルを検出」ボタンで検出された実際のDiTブロック総数
+    (s.detected_num_blocks)を呼び出し側から渡すこと。28/40/52いずれにも対応する。
+
+    Transformer モード
+        GUI グループ名が 'blocks.N' → そのまま N 番目の値として使用。
+
+    Matrix モード
+        GUI グループ名は 'Block_Component'（例: 'Input_Attention'）。
+        blocks.N のスケール = そのブロックの Block カテゴリに属する
+        全 Component スケールの平均値。
+        注: _build_command() では Matrix モード時はこの関数を経由せず
+        anima_matrix_scales を直接JSON化して渡す(精度損失なし・ブロック数
+        に依存しない)ため、ここのMatrix分岐は現状呼び出されない
+        (将来的な直接利用や後方互換のために維持している)。
+
+    Component モード
+        GUI グループ名は 'MLP' / 'Norm' 等のコンポーネント名。
+        blocks.N のスケール = 全コンポーネントスケールの平均値
+        （コンポーネント情報はブロック単位に集約できないため）。
+    """
     weights: list[float] = []
+
     if mode == "Transformer":
-        for i in range(28):
+        # 'blocks.N' → インデックス N へ直接マッピング
+        for i in range(num_blocks):
             weights.append(float(scales.get(f"blocks.{i}", 1.0)))
+
     elif mode == "Matrix":
-        for i in range(28):
-            cat = _BLOCK_CAT[i]
-            comp_vals = [scales.get(f"{cat}_{c}", 1.0) for c in MATRIX_COMPONENTS]
+        # Block ごとに所属する全 Component の平均を取る
+        cats = _anima_block_categories(num_blocks)
+        for i in range(num_blocks):
+            cat = cats[i]  # 'Input' / 'Middle' / 'Output'
+            comp_vals = [
+                scales.get(f"{cat}_{c}", 1.0)
+                for c in MATRIX_COMPONENTS
+            ]
             weights.append(sum(comp_vals) / len(comp_vals))
-    else:
+
+    else:  # Component モード
+        # コンポーネントはブロック単位に分解できないため全体の平均
         all_vals = [scales.get(c, 1.0) for c in COMPONENT_GROUPS]
         avg = sum(all_vals) / len(all_vals)
-        weights = [avg] * 28
+        weights = [avg] * num_blocks
+
     return weights
 
 

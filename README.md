@@ -5,16 +5,17 @@
 - We are currently working on support for derivative versions of Anima.
 - Since Anima 3.8B has a large text encoder, temporary high system loads may occur during tasks like sample generation.
 - Please make sure to click "Detect Model" for accurate version identification.
+- The merge function for different versions is incomplete.
 
 | item | Supported Versions |
 | :--- | :--- |
-| Model Merge | Anima Base 1.0 |
+| Model Merge | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LoRA Merge| Anima Base 1.0 |
 | Layer Analysis | Anima Base 1.0 |
 | Detailed Analysis | Anima Base 1.0 |
 | LoRA Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LECO Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
-| ADDifT Training | Anima Base 1.0 |
+| ADDifT Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 
 Animerge is a desktop GUI tool for working with Anima model checkpoints and LoRA files. The current build is centered on `app/gui.py`, with merge, analysis, model I/O, and LoRA training support split into related modules under `app/`.
 

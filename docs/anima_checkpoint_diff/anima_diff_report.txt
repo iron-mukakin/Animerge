@@ -1,0 +1,1869 @@
+Anima v1.0 / v1.1 Checkpoint Structure Diff
+================================================================================
+
+[FILES]
+v1.0: anima-base-v1.0.safetensors
+v1.1: Anima-3.8B-v1.1.safetensors
+
+[SUMMARY]
+v1.0_tensor_count: 685
+v1.1_tensor_count: 1358
+common_tensor_count: 685
+v1.0_only_tensor_count: 0
+v1.1_only_tensor_count: 673
+shape_or_dtype_changed_count: 0
+v1.0_parameters: 2091068928
+v1.1_parameters: 4404529475
+parameter_difference: 2313460547
+v1.0_parameter_difference_human: 2.091 B
+v1.1_parameter_difference_human: 4.405 B
+parameter_difference_human: 2.313 B
+v1.0_weight_bytes: 0
+v1.1_weight_bytes: 0
+v1.0_weight_size: 0.00 B
+v1.1_weight_size: 0.00 B
+weight_size_difference: 0.00 B
+
+[METADATA DIFF]
+
+v1.1_only: anima_v2_adapter_activation_checkpointing
+  v1.0: <MISSING>
+  v1.1: 1
+
+v1.1_only: anima_v2_adapter_anchor_max_departure
+  v1.0: <MISSING>
+  v1.1: 1.0
+
+v1.1_only: anima_v2_adapter_anchor_scope
+  v1.0: <MISSING>
+  v1.1: per_block_per_channel_semantic_zero_term
+
+v1.1_only: anima_v2_adapter_architecture
+  v1.0: <MISSING>
+  v1.1: anima_qwen35_quality_anchored_semantic_connector_v2
+
+v1.1_only: anima_v2_adapter_dit_learning_rate
+  v1.0: <MISSING>
+  v1.1: 5e-05
+
+v1.1_only: anima_v2_adapter_dit_train_scope
+  v1.0: <MISSING>
+  v1.1: full
+
+v1.1_only: anima_v2_adapter_exact_native_replay_at_zero_source
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_filename
+  v1.0: <MISSING>
+  v1.1: expanded_adapter_v2_ep91_NN_91.safetensors
+
+v1.1_only: anima_v2_adapter_fp32_master_training
+  v1.0: <MISSING>
+  v1.1: 1
+
+v1.1_only: anima_v2_adapter_fresh_initialization
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_frozen_native_blocks
+  v1.0: <MISSING>
+  v1.1: 6
+
+v1.1_only: anima_v2_adapter_frozen_native_sha256
+  v1.0: <MISSING>
+  v1.1: b1fe0e738232736d478951a040f698f8e04e327f27548e3a7710c9f43865a6ce
+
+v1.1_only: anima_v2_adapter_gate_only_training
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_initialization
+  v1.0: <MISSING>
+  v1.1: interleaved_deep_copy_zero_residual_outputs
+
+v1.1_only: anima_v2_adapter_layer_indices
+  v1.0: <MISSING>
+  v1.1: [7, 15, 23, 31]
+
+v1.1_only: anima_v2_adapter_learnable_anchor
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_paper_faithful_direct_blocks
+  v1.0: <MISSING>
+  v1.1: 1
+
+v1.1_only: anima_v2_adapter_parameter_efficient_cross_only
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_quality_anchor_adapter
+  v1.0: <MISSING>
+  v1.1: /workspace/checkpoints/anima_epoch67_frozen_v1_adapter.safetensors
+
+v1.1_only: anima_v2_adapter_quality_anchored_semantic_connector_v2
+  v1.0: <MISSING>
+  v1.1: 1
+
+v1.1_only: anima_v2_adapter_qwen35_checkpoint
+  v1.0: <MISSING>
+  v1.1: C:\AI\sd-webui-forge-neo\models\text_encoder\qwen35_4b.safetensors
+
+v1.1_only: anima_v2_adapter_sample_strategy
+  v1.0: <MISSING>
+  v1.1: semantic_force
+
+v1.1_only: anima_v2_adapter_semantic_contrast_margin
+  v1.0: <MISSING>
+  v1.1: 0.02
+
+v1.1_only: anima_v2_adapter_semantic_contrast_weight
+  v1.0: <MISSING>
+  v1.1: 0.0
+
+v1.1_only: anima_v2_adapter_semantic_query_tokens
+  v1.0: <MISSING>
+  v1.1: 64
+
+v1.1_only: anima_v2_adapter_semantic_resampler_blocks
+  v1.0: <MISSING>
+  v1.1: 6
+
+v1.1_only: anima_v2_adapter_semantic_resampler_dim
+  v1.0: <MISSING>
+  v1.1: 2048
+
+v1.1_only: anima_v2_adapter_semantic_resampler_heads
+  v1.0: <MISSING>
+  v1.1: 16
+
+v1.1_only: anima_v2_adapter_semantic_resampler_mlp_hidden_dim
+  v1.0: <MISSING>
+  v1.1: 5632
+
+v1.1_only: anima_v2_adapter_source_method
+  v1.0: <MISSING>
+  v1.1: Anima-2.9B / LLaMA-Pro block expansion
+
+v1.1_only: anima_v2_adapter_step
+  v1.0: <MISSING>
+  v1.1: 3526
+
+v1.1_only: anima_v2_adapter_target
+  v1.0: <MISSING>
+  v1.1: /workspace/checkpoints/anima_epoch67_frozen_dit_base.safetensors
+
+v1.1_only: anima_v2_adapter_timestep_gate
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_timestep_gate_blocks
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_timestep_gate_scope
+  v1.0: <MISSING>
+  v1.1: anchored_semantic_residual_outer
+
+v1.1_only: anima_v2_adapter_total_blocks
+  v1.0: <MISSING>
+  v1.1: 12
+
+v1.1_only: anima_v2_adapter_train_expanded_dit
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_train_mode
+  v1.0: <MISSING>
+  v1.1: all
+
+v1.1_only: anima_v2_adapter_trainable_dit_blocks
+  v1.0: <MISSING>
+  v1.1: []
+
+v1.1_only: anima_v2_adapter_trainable_inserted_native_blocks
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_trainable_inserted_semantic_blocks
+  v1.0: <MISSING>
+  v1.1: 6
+
+v1.1_only: anima_v2_adapter_trainable_pilot_semantic_blocks
+  v1.0: <MISSING>
+  v1.1: 0
+
+v1.1_only: anima_v2_adapter_training_index
+  v1.0: <MISSING>
+  v1.1: /workspace/training_cache_512/index_train_runpod.json
+
+v1.1_only: anima_v2_adapter_training_views
+  v1.0: <MISSING>
+  v1.1: ['dual', 'dual', 'tags', 'nl']
+
+v1.1_only: anima_v2_base_filename
+  v1.0: <MISSING>
+  v1.1: Anima-2.9B-preview-v1-pro52-qwen35-joint-epoch67.safetensors
+
+v1.1_only: anima_v2_bundle_format
+  v1.0: <MISSING>
+  v1.1: 1
+
+v1.1_only: anima_v2_connector_prefix
+  v1.0: <MISSING>
+  v1.1: net.anima_v2_connector.
+
+v1.1_only: anima_v2_native_sha256
+  v1.0: <MISSING>
+  v1.1: b1fe0e738232736d478951a040f698f8e04e327f27548e3a7710c9f43865a6ce
+
+v1.1_only: anima_v2_strength
+  v1.0: <MISSING>
+  v1.1: 1.0
+
+v1.1_only: architecture
+  v1.0: <MISSING>
+  v1.1: anima_3_8b_semantic_connector_v2_bundle
+
+v1.1_only: architecture_expansion
+  v1.0: <MISSING>
+  v1.1: LLaMA-Pro interleaved identity blocks
+
+v1.1_only: expansion_source
+  v1.0: <MISSING>
+  v1.1: C:\AI\ComfyUI_windows_portable\ComfyUI\models\diffusion_models\Anima-2.9B\Anima-2.9B-preview-v1.safetensors
+
+v1.1_only: format
+  v1.0: <MISSING>
+  v1.1: pt
+
+v1.1_only: inserted_to_source
+  v1.0: <MISSING>
+  v1.1: {'3': 2, '7': 5, '11': 8, '15': 11, '19': 14, '23': 17, '27': 20, '31': 23, '35': 26, '39': 29, '43': 32, '47': 35}
+
+v1.1_only: insertion_positions
+  v1.0: <MISSING>
+  v1.1: [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47]
+
+v1.1_only: new_block_count
+  v1.0: <MISSING>
+  v1.1: 52
+
+v1.1_only: old_block_count
+  v1.0: <MISSING>
+  v1.1: 40
+
+v1.1_only: qwen35_joint_dit_blocks
+  v1.0: <MISSING>
+  v1.1: [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 16, 17, 18, 19, 21, 22, 24, 25, 27, 28, 30, 31, 32, 33, 34, 36, 38, 40, 43, 44, 46, 49, 50]
+
+v1.1_only: qwen35_joint_dit_scale
+  v1.0: <MISSING>
+  v1.1: 1.0
+
+v1.1_only: qwen35_joint_source
+  v1.0: <MISSING>
+  v1.1: C:\AI\ComfyUI_windows_portable\ComfyUI\models\text_encoders\ep67.safetensors
+
+v1.1_only: qwen35_joint_step
+  v1.0: <MISSING>
+  v1.1: 14537
+
+v1.1_only: qwen35_joint_training_index
+  v1.0: <MISSING>
+  v1.1: /workspace/training_cache_512/index_train_runpod.json
+
+v1.1_only: train_only_inserted_blocks
+  v1.0: <MISSING>
+  v1.1: 1
+
+[CATEGORY STATISTICS]
+
+v1.0
+  dit_block                      tensors=  560 params=     1.938 B bytes=0.00 B
+  other                          tensors=    7 params=    18.622 M bytes=0.00 B
+  llm_adapter                    tensors=  114 params=   100.714 M bytes=0.00 B
+  llm_adapter_other              tensors=    4 params=    33.950 M bytes=0.00 B
+
+v1.1
+  v2.quality_anchor              tensors=   49 params=    44.062 M bytes=0.00 B
+  v2.semantic_resampler          tensors=   93 params=   583.262 M bytes=0.00 B
+  v2.inserted_semantic           tensors=   48 params=    25.179 M bytes=0.00 B
+  dit_block                      tensors= 1040 params=     3.599 B bytes=0.00 B
+  other                          tensors=   10 params=    18.623 M bytes=0.00 B
+  llm_adapter                    tensors=  114 params=   100.714 M bytes=0.00 B
+  llm_adapter_other              tensors=    4 params=    33.950 M bytes=0.00 B
+
+[DIT BLOCKS]
+
+Block 0
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 1
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 2
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 3
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 4
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 5
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 6
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 7
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 8
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 9
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 10
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 11
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 12
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 13
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 14
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 15
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 16
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 17
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 18
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 19
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 20
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 21
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 22
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 23
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 24
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 25
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 26
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 27
+  v1.0: 69.207 M, 20 tensors
+  v1.1: 69.207 M, 20 tensors
+
+Block 28
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 29
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 30
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 31
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 32
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 33
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 34
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 35
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 36
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 37
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 38
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 39
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 40
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 41
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 42
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 43
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 44
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 45
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 46
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 47
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 48
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 49
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 50
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+Block 51
+  v1.0: MISSING
+  v1.1: 69.207 M, 20 tensors
+
+[V1.1 INSERTION INDICES]
+  Block 7: exists=True, params=69206528
+  Block 15: exists=True, params=69206528
+  Block 23: exists=True, params=69206528
+  Block 31: exists=True, params=69206528
+
+[TENSOR KEY DIFF]
+same: 685
+v1.1_only: 673
+
+v1.1_only: net.anima_v2_connector.quality_anchor.layer_mix_logits
+
+v1.1_only: net.anima_v2_connector.quality_anchor.query_norms.0.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.query_norms.1.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.query_norms.2.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.query_norms.3.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.query_norms.4.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.query_norms.5.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.0.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.0.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.0.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.0.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.0.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.0.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.1.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.1.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.1.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.1.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.1.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.1.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.2.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.2.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.2.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.2.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.2.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.2.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.3.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.3.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.3.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.3.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.3.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.3.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.4.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.4.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.4.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.4.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.4.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.4.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.5.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.5.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.5.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.5.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.5.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.semantic_attentions.5.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.source_norms.0.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.source_norms.1.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.source_norms.2.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.source_norms.3.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.source_norms.4.weight
+
+v1.1_only: net.anima_v2_connector.quality_anchor.source_norms.5.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.cross_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.cross_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.cross_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.cross_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.mlp_in.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.mlp_out.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.self_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.self_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.self_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.self_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.source_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.source_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.time_modulation.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.0.time_modulation.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.cross_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.cross_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.cross_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.cross_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.mlp_in.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.mlp_out.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.self_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.self_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.self_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.self_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.source_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.source_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.time_modulation.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.1.time_modulation.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.cross_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.cross_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.cross_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.cross_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.mlp_in.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.mlp_out.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.self_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.self_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.self_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.self_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.source_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.source_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.time_modulation.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.2.time_modulation.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.cross_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.cross_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.cross_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.cross_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.mlp_in.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.mlp_out.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.self_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.self_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.self_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.self_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.source_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.source_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.time_modulation.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.3.time_modulation.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.cross_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.cross_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.cross_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.cross_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.mlp_in.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.mlp_out.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.self_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.self_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.self_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.self_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.source_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.source_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.time_modulation.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.4.time_modulation.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.cross_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.cross_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.cross_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.cross_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.mlp_in.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.mlp_out.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.self_attention.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.self_attention.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.self_attention.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.self_attention.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.source_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.source_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.time_modulation.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.blocks.5.time_modulation.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.layer_embeddings
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.output_norm.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.output_norm.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.output_projection.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.query_tokens
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.time_mlp.0.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.time_mlp.0.weight
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.time_mlp.2.bias
+
+v1.1_only: net.anima_v2_connector.semantic_resampler.time_mlp.2.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.0.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.0.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.0.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.0.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.0.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.0.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.1.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.1.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.1.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.1.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.1.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.1.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.2.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.2.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.2.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.2.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.2.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.2.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.3.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.3.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.3.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.3.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.3.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.3.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.4.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.4.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.4.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.4.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.4.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.4.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.5.k_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.5.k_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.5.o_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.5.q_norm.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.5.q_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_attentions.5.v_proj.weight
+
+v1.1_only: net.anima_v2_connector.v2_query_norms.0.weight
+
+v1.1_only: net.anima_v2_connector.v2_query_norms.1.weight
+
+v1.1_only: net.anima_v2_connector.v2_query_norms.2.weight
+
+v1.1_only: net.anima_v2_connector.v2_query_norms.3.weight
+
+v1.1_only: net.anima_v2_connector.v2_query_norms.4.weight
+
+v1.1_only: net.anima_v2_connector.v2_query_norms.5.weight
+
+v1.1_only: net.anima_v2_connector.v2_semantic_norms.0.weight
+
+v1.1_only: net.anima_v2_connector.v2_semantic_norms.1.weight
+
+v1.1_only: net.anima_v2_connector.v2_semantic_norms.2.weight
+
+v1.1_only: net.anima_v2_connector.v2_semantic_norms.3.weight
+
+v1.1_only: net.anima_v2_connector.v2_semantic_norms.4.weight
+
+v1.1_only: net.anima_v2_connector.v2_semantic_norms.5.weight
+
+v1.1_only: net.blocks.28.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.28.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.28.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.28.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.28.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.28.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.28.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.28.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.28.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.28.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.28.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.28.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.28.mlp.layer1.weight
+
+v1.1_only: net.blocks.28.mlp.layer2.weight
+
+v1.1_only: net.blocks.28.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.28.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.28.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.28.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.28.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.28.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.29.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.29.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.29.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.29.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.29.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.29.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.29.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.29.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.29.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.29.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.29.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.29.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.29.mlp.layer1.weight
+
+v1.1_only: net.blocks.29.mlp.layer2.weight
+
+v1.1_only: net.blocks.29.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.29.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.29.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.29.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.29.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.29.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.30.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.30.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.30.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.30.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.30.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.30.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.30.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.30.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.30.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.30.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.30.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.30.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.30.mlp.layer1.weight
+
+v1.1_only: net.blocks.30.mlp.layer2.weight
+
+v1.1_only: net.blocks.30.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.30.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.30.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.30.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.30.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.30.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.31.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.31.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.31.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.31.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.31.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.31.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.31.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.31.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.31.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.31.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.31.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.31.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.31.mlp.layer1.weight
+
+v1.1_only: net.blocks.31.mlp.layer2.weight
+
+v1.1_only: net.blocks.31.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.31.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.31.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.31.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.31.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.31.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.32.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.32.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.32.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.32.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.32.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.32.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.32.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.32.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.32.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.32.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.32.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.32.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.32.mlp.layer1.weight
+
+v1.1_only: net.blocks.32.mlp.layer2.weight
+
+v1.1_only: net.blocks.32.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.32.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.32.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.32.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.32.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.32.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.33.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.33.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.33.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.33.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.33.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.33.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.33.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.33.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.33.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.33.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.33.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.33.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.33.mlp.layer1.weight
+
+v1.1_only: net.blocks.33.mlp.layer2.weight
+
+v1.1_only: net.blocks.33.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.33.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.33.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.33.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.33.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.33.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.34.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.34.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.34.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.34.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.34.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.34.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.34.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.34.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.34.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.34.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.34.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.34.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.34.mlp.layer1.weight
+
+v1.1_only: net.blocks.34.mlp.layer2.weight
+
+v1.1_only: net.blocks.34.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.34.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.34.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.34.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.34.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.34.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.35.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.35.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.35.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.35.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.35.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.35.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.35.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.35.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.35.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.35.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.35.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.35.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.35.mlp.layer1.weight
+
+v1.1_only: net.blocks.35.mlp.layer2.weight
+
+v1.1_only: net.blocks.35.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.35.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.35.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.35.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.35.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.35.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.36.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.36.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.36.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.36.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.36.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.36.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.36.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.36.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.36.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.36.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.36.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.36.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.36.mlp.layer1.weight
+
+v1.1_only: net.blocks.36.mlp.layer2.weight
+
+v1.1_only: net.blocks.36.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.36.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.36.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.36.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.36.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.36.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.37.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.37.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.37.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.37.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.37.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.37.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.37.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.37.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.37.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.37.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.37.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.37.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.37.mlp.layer1.weight
+
+v1.1_only: net.blocks.37.mlp.layer2.weight
+
+v1.1_only: net.blocks.37.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.37.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.37.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.37.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.37.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.37.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.38.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.38.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.38.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.38.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.38.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.38.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.38.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.38.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.38.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.38.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.38.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.38.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.38.mlp.layer1.weight
+
+v1.1_only: net.blocks.38.mlp.layer2.weight
+
+v1.1_only: net.blocks.38.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.38.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.38.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.38.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.38.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.38.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.39.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.39.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.39.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.39.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.39.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.39.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.39.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.39.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.39.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.39.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.39.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.39.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.39.mlp.layer1.weight
+
+v1.1_only: net.blocks.39.mlp.layer2.weight
+
+v1.1_only: net.blocks.39.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.39.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.39.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.39.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.39.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.39.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.40.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.40.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.40.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.40.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.40.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.40.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.40.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.40.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.40.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.40.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.40.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.40.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.40.mlp.layer1.weight
+
+v1.1_only: net.blocks.40.mlp.layer2.weight
+
+v1.1_only: net.blocks.40.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.40.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.40.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.40.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.40.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.40.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.41.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.41.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.41.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.41.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.41.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.41.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.41.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.41.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.41.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.41.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.41.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.41.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.41.mlp.layer1.weight
+
+v1.1_only: net.blocks.41.mlp.layer2.weight
+
+v1.1_only: net.blocks.41.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.41.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.41.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.41.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.41.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.41.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.42.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.42.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.42.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.42.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.42.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.42.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.42.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.42.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.42.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.42.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.42.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.42.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.42.mlp.layer1.weight
+
+v1.1_only: net.blocks.42.mlp.layer2.weight
+
+v1.1_only: net.blocks.42.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.42.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.42.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.42.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.42.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.42.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.43.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.43.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.43.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.43.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.43.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.43.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.43.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.43.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.43.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.43.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.43.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.43.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.43.mlp.layer1.weight
+
+v1.1_only: net.blocks.43.mlp.layer2.weight
+
+v1.1_only: net.blocks.43.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.43.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.43.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.43.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.43.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.43.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.44.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.44.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.44.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.44.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.44.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.44.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.44.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.44.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.44.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.44.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.44.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.44.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.44.mlp.layer1.weight
+
+v1.1_only: net.blocks.44.mlp.layer2.weight
+
+v1.1_only: net.blocks.44.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.44.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.44.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.44.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.44.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.44.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.45.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.45.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.45.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.45.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.45.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.45.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.45.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.45.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.45.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.45.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.45.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.45.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.45.mlp.layer1.weight
+
+v1.1_only: net.blocks.45.mlp.layer2.weight
+
+v1.1_only: net.blocks.45.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.45.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.45.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.45.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.45.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.45.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.46.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.46.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.46.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.46.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.46.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.46.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.46.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.46.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.46.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.46.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.46.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.46.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.46.mlp.layer1.weight
+
+v1.1_only: net.blocks.46.mlp.layer2.weight
+
+v1.1_only: net.blocks.46.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.46.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.46.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.46.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.46.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.46.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.47.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.47.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.47.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.47.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.47.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.47.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.47.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.47.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.47.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.47.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.47.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.47.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.47.mlp.layer1.weight
+
+v1.1_only: net.blocks.47.mlp.layer2.weight
+
+v1.1_only: net.blocks.47.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.47.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.47.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.47.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.47.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.47.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.48.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.48.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.48.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.48.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.48.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.48.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.48.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.48.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.48.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.48.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.48.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.48.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.48.mlp.layer1.weight
+
+v1.1_only: net.blocks.48.mlp.layer2.weight
+
+v1.1_only: net.blocks.48.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.48.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.48.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.48.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.48.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.48.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.49.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.49.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.49.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.49.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.49.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.49.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.49.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.49.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.49.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.49.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.49.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.49.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.49.mlp.layer1.weight
+
+v1.1_only: net.blocks.49.mlp.layer2.weight
+
+v1.1_only: net.blocks.49.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.49.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.49.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.49.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.49.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.49.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.50.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.50.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.50.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.50.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.50.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.50.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.50.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.50.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.50.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.50.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.50.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.50.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.50.mlp.layer1.weight
+
+v1.1_only: net.blocks.50.mlp.layer2.weight
+
+v1.1_only: net.blocks.50.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.50.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.50.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.50.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.50.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.50.self_attn.v_proj.weight
+
+v1.1_only: net.blocks.51.adaln_modulation_cross_attn.1.weight
+
+v1.1_only: net.blocks.51.adaln_modulation_cross_attn.2.weight
+
+v1.1_only: net.blocks.51.adaln_modulation_mlp.1.weight
+
+v1.1_only: net.blocks.51.adaln_modulation_mlp.2.weight
+
+v1.1_only: net.blocks.51.adaln_modulation_self_attn.1.weight
+
+v1.1_only: net.blocks.51.adaln_modulation_self_attn.2.weight
+
+v1.1_only: net.blocks.51.cross_attn.k_norm.weight
+
+v1.1_only: net.blocks.51.cross_attn.k_proj.weight
+
+v1.1_only: net.blocks.51.cross_attn.output_proj.weight
+
+v1.1_only: net.blocks.51.cross_attn.q_norm.weight
+
+v1.1_only: net.blocks.51.cross_attn.q_proj.weight
+
+v1.1_only: net.blocks.51.cross_attn.v_proj.weight
+
+v1.1_only: net.blocks.51.mlp.layer1.weight
+
+v1.1_only: net.blocks.51.mlp.layer2.weight
+
+v1.1_only: net.blocks.51.self_attn.k_norm.weight
+
+v1.1_only: net.blocks.51.self_attn.k_proj.weight
+
+v1.1_only: net.blocks.51.self_attn.output_proj.weight
+
+v1.1_only: net.blocks.51.self_attn.q_norm.weight
+
+v1.1_only: net.blocks.51.self_attn.q_proj.weight
+
+v1.1_only: net.blocks.51.self_attn.v_proj.weight
+
+v1.1_only: net.pos_embedder.dim_spatial_range
+
+v1.1_only: net.pos_embedder.dim_temporal_range
+
+v1.1_only: net.pos_embedder.seq
+
+[V1.1 ARCHITECTURE DETECTION]
+has_llm_adapter: True
+has_quality_anchor: True
+has_semantic_resampler: True
+has_inserted_semantic: True
+categories: {'v2.quality_anchor': 49, 'v2.semantic_resampler': 93, 'v2.inserted_semantic': 48, 'dit_block': 1040, 'other': 10, 'llm_adapter': 114, 'llm_adapter_other': 4}

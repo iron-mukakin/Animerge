@@ -131,17 +131,47 @@ def predict_noise_anima(
 ) -> torch.Tensor:
     """Anima DiT で1stepのノイズ予測を行う。
 
+    apply_fix_041: Anima 3.8B (v1.0 Progressive Cross Adapter / v1.1 Semantic
+    Connector v2) 対応。embeds_tupleが6要素の場合、末尾2要素
+    (semantic_hidden_states, semantic_attention_mask) をconnectorへ渡す。
+    anima_train_leco.pyの_anima_forward()と同一仕様: target_input_ids等と
+    共にsemantic_hidden_statesを毎回のmodel()呼び出しで渡すため、
+    v1.1のtimestep依存semantic_resamplerも呼び出しのたびに現在の
+    timesteps_normalizedで正しく再計算される(1回だけ計算して使い回す
+    最適化は行っていないため、architecture-addendum-v11-connector.mdの
+    「timestep-aware性による設計上の制約」とは元々衝突しない)。
+
     Args:
         timesteps_normalized: [0, 1] に正規化済みのタイムステップ (shape: [B])
         noisy_latents: ノイズ付加済みlatent (4D: [B, C, H, W])
-        embeds_tuple: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)
+        embeds_tuple: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)、
+            またはAnima 3.8B時は末尾に(semantic_hidden_states, semantic_attention_mask)
+            が続く6要素タプル(semantic branch無効時は末尾2要素はNone)。
     """
-    prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = embeds_tuple
+    if len(embeds_tuple) == 6:
+        (
+            prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask,
+            semantic_hidden_states, semantic_attention_mask,
+        ) = embeds_tuple
+    else:
+        prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask = embeds_tuple
+        semantic_hidden_states, semantic_attention_mask = None, None
 
     bs = noisy_latents.shape[0]
     h_lat = noisy_latents.shape[-2]
     w_lat = noisy_latents.shape[-1]
     padding_mask = torch.zeros(bs, 1, h_lat, w_lat, dtype=weight_dtype, device=device)
+
+    # apply_fix_041: Anima 3.8B (semantic branch) 対応。Anima.forward() は
+    # semantic_hidden_states を Sequence[Tensor] (層ごとのリスト、各shape (B, L, D))
+    # として受け取るため、(num_layers, B, L, D) のスタック済みテンソルを
+    # ここで初めてunbindする(anima_train_leco.pyの_anima_forward()と同一仕様)。
+    semantic_kwargs = {}
+    if semantic_hidden_states is not None:
+        semantic_kwargs["semantic_hidden_states"] = list(
+            semantic_hidden_states.to(device, dtype=weight_dtype).unbind(dim=0)
+        )
+        semantic_kwargs["semantic_attention_mask"] = semantic_attention_mask.to(device)
 
     inp = noisy_latents.unsqueeze(2)  # [B, C, H, W] -> [B, C, 1, H, W]
     pred = model(
@@ -152,6 +182,7 @@ def predict_noise_anima(
         target_input_ids=t5_input_ids.to(device, dtype=torch.long),
         target_attention_mask=t5_attn_mask.to(device),
         source_attention_mask=attn_mask.to(device),
+        **semantic_kwargs,
     )
     return pred.squeeze(2)  # [B, C, 1, H, W] -> [B, C, H, W]
 
@@ -328,7 +359,8 @@ def predict_policy_and_reference_noise(
         net_unwrapped: unwrap済みのネットワーク (multiplier制御用)。
         timesteps_normalized: [0, 1] 正規化済みタイムステップ。
         noisy_latent: ノイズ付加済みlatent (4D: [B, C, H, W])。
-        embeds_tuple: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)。
+        embeds_tuple: predict_noise_anima()へそのまま渡す不透明なタプル
+            (4要素、またはAnima 3.8B時は6要素。predict_noise_anima()のdocstring参照)。
         weight_dtype: 演算dtype。
         device: 演算device。
         policy_multiplier: policy側で適用するnetwork multiplier。
@@ -613,7 +645,8 @@ def predict_policy_noise(
         net_unwrapped: unwrap済みのネットワーク (multiplier制御用)。
         timesteps_normalized: [0, 1] 正規化済みタイムステップ。
         noisy_latent: ノイズ付加済みlatent (4D: [B, C, H, W])。
-        embeds_tuple: (prompt_embeds, attn_mask, t5_input_ids, t5_attn_mask)。
+        embeds_tuple: predict_noise_anima()へそのまま渡す不透明なタプル
+            (4要素、またはAnima 3.8B時は6要素。predict_noise_anima()のdocstring参照)。
         weight_dtype: 演算dtype。
         device: 演算device。
         policy_multiplier: policy側で適用するnetwork multiplier。
@@ -1060,6 +1093,44 @@ def main():
     qwen3_text_encoder.eval()
     qwen3_text_encoder.requires_grad_(False)
 
+    # apply_fix_041: Anima 3.8B (v1.0 Progressive Cross Adapter / v1.1 Semantic
+    # Connector v2) 対応(anima_train_leco.pyのapply_fix_025/039と同一仕様)。
+    # --progressive_adapter_path が指定されている場合、またはDiT checkpoint自体が
+    # v1.1(Semantic Connector v2内蔵)の場合にQwen3.5をロードし、layer_indicesを検出する。
+    # どちらでもない場合は従来通りsemantic branch無効。
+    qwen35_text_encoder = None
+    layer_indices = None
+    progressive_adapter_path = getattr(args, "progressive_adapter_path", None)
+    is_semantic_connector_v2 = anima_utils.detect_semantic_connector_v2_architecture(
+        args.pretrained_model_name_or_path
+    )
+    if (progressive_adapter_path or is_semantic_connector_v2) and not getattr(args, "qwen35", None):
+        raise ValueError(
+            "--progressive_adapter_path、またはv1.1(Semantic Connector v2内蔵)の"
+            "DiT checkpointを指定する場合は --qwen35 も指定してください。"
+            " / --qwen35 is required when --progressive_adapter_path is set, "
+            "or when the DiT checkpoint bundles Semantic Connector v2 (Anima 3.8B v1.1)."
+        )
+    if progressive_adapter_path or is_semantic_connector_v2:
+        logger.info("Loading Qwen3.5 text encoder...")
+        qwen35_text_encoder, _ = anima_utils.load_qwen35_text_encoder(
+            args.qwen35, dtype=weight_dtype, device="cpu"
+        )
+        qwen35_text_encoder.eval()
+        qwen35_text_encoder.requires_grad_(False)
+        if progressive_adapter_path:
+            # v1.0: 外部Progressive Cross Adapter checkpointのmetadataから検出。
+            # (v1.1との併用は禁止されており、両方指定時はload_anima_model内で
+            # RuntimeErrorとなる。)
+            _, layer_indices = anima_utils.detect_progressive_adapter_architecture(progressive_adapter_path)
+        else:
+            # v1.1: DiT checkpoint自体にSemantic Connector v2が内蔵されているため、
+            # そちらのmetadataから検出する。
+            connector_config = anima_utils.detect_anima_v2_connector_config(
+                args.pretrained_model_name_or_path
+            )
+            layer_indices = connector_config["layer_indices"]
+
     logger.info("Loading Anima VAE...")
     vae = anima_train_utils.load_qwen_image_vae(args, device="cpu", disable_mmap=True)
     vae.to(device, dtype=weight_dtype)
@@ -1082,8 +1153,26 @@ def main():
 
     _keep_vae = getattr(args, "sample_keep_vae", False) and getattr(args, "sample_every_n_steps", None)
     if _keep_vae:
-        logger.info("sample_keep_vae=True: VAE をVRAMに保持します。")
-        _vae_for_sample = vae
+        # apply_fix_044: サンプル生成専用に独立したVAEインスタンスを別途ロードする。
+        #
+        # 従来はimage_a/image_bのencode_pixels_to_latents()に使用した`vae`インスタンス
+        # そのものを`_vae_for_sample`としてdecode_to_pixels()に再利用していた。実機検証で、
+        # 特定のVAE checkpoint(Qwen2D-Anime-dense_epoch_1.safetensors、--qwen_image_vae_2d
+        # 使用)の組み合わせでのみサンプル生成結果がノイズ画像になる不具合が確認された。
+        # 同一チェックポイント+同一--qwen_image_vae_2dフラグでも、LoRA/LECO学習
+        # (image_a/image_bのencode処理を行わない)では正常に出力されたことから、
+        # 「同一VAEインスタンスに対してencode_pixels_to_latents()を呼んだ直後に
+        # decode_to_pixels()を呼ぶ」というADDifT特有の再利用パターンが原因である
+        # 可能性が高いと判断した(該当VAE実装内部の状態、たとえばcausal conv等の
+        # キャッシュがencode/decode間でリセットされない場合に起こり得る現象)。
+        # 未使用のインスタンスをサンプル生成に用いることで、この再利用自体を回避する。
+        logger.info("sample_keep_vae=True: サンプル生成専用のVAEインスタンスを別途ロードします。")
+        vae.to("cpu")
+        del vae
+        clean_memory_on_device(device)
+        _vae_for_sample = anima_train_utils.load_qwen_image_vae(args, device="cpu", disable_mmap=True)
+        _vae_for_sample.to(device, dtype=weight_dtype)
+        _vae_for_sample.eval()
     else:
         vae.to("cpu")
         del vae
@@ -1103,6 +1192,8 @@ def main():
         "cpu",
         weight_dtype,
         False,  # fp8_scaled not supported for ADDifT
+        # apply_fix_041: Anima 3.8B (semantic branch) 対応。
+        progressive_adapter_path=progressive_adapter_path,
     )
     dit.requires_grad_(False)
     dit.to(device, dtype=weight_dtype)
@@ -1114,14 +1205,34 @@ def main():
         t5_tokenizer_path=getattr(args, "t5_tokenizer_path", None) or None,
         qwen3_max_length=getattr(args, "qwen3_max_token_length", 512),
         t5_max_length=getattr(args, "t5_max_token_length", 512),
+        # apply_fix_041: Anima 3.8B (semantic branch) 対応。
+        qwen35_path=getattr(args, "qwen35", None),
     )
-    text_encoding_strategy = strategy_anima.AnimaTextEncodingStrategy()
+    text_encoding_strategy = strategy_anima.AnimaTextEncodingStrategy(layer_indices=layer_indices)
 
     qwen3_text_encoder.to(device, dtype=weight_dtype)
+    # apply_fix_041: Anima 3.8B (semantic branch) 対応。Qwen3.5もエンコードの間だけ
+    # GPUへ載せ、完了後CPUへ退避する(anima_train_leco.pyの既存設計を踏襲)。
+    if qwen35_text_encoder is not None:
+        qwen35_text_encoder.to(device, dtype=weight_dtype)
     with torch.no_grad():
         tokens = tokenize_strategy.tokenize(args.caption)
-        embeds_tuple = text_encoding_strategy.encode_tokens(tokenize_strategy, [qwen3_text_encoder], tokens)
+        _text_encoding_models = (
+            [qwen3_text_encoder, qwen35_text_encoder]
+            if qwen35_text_encoder is not None
+            else [qwen3_text_encoder]
+        )
+        _raw_embeds = text_encoding_strategy.encode_tokens(tokenize_strategy, _text_encoding_models, tokens)
     qwen3_text_encoder.to("cpu")
+    if qwen35_text_encoder is not None:
+        qwen35_text_encoder.to("cpu")
+    # apply_fix_041: encode_tokens()はsemantic branch有効時のみ6要素を返すため、
+    # predict_noise_anima()が常に同じ形で扱えるよう、無効時はNoneで6要素に揃える
+    # (anima_train_leco.pyのencode_prompt_anima()と同一仕様)。
+    if len(_raw_embeds) == 6:
+        embeds_tuple = tuple(_raw_embeds)
+    else:
+        embeds_tuple = (*_raw_embeds, None, None)
     clean_memory_on_device(device)
 
     # ── Network ──────────────────────────────────────────────────────────
@@ -1350,6 +1461,9 @@ def main():
                         dit=dit_unwrapped,
                         vae_for_sample=_vae_for_sample,
                         text_encoder=qwen3_text_encoder,
+                        # apply_fix_041: Anima 3.8B (semantic branch) 対応。
+                        semantic_text_encoder=qwen35_text_encoder,
+                        layer_indices=layer_indices,
                         tokenize_strategy=tokenize_strategy,
                         text_encoding_strategy=text_encoding_strategy,
                         accelerator=accelerator,

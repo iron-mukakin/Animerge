@@ -79,6 +79,47 @@ def load_state_dict(path: Path, device: str) -> dict[str, Any]:
     return normalize_state_dict(loaded)
 
 
+def read_model_metadata(path: Path) -> dict[str, str]:
+    """モデルファイルの元のメタデータのみを読み取る(テンソル本体はロードしない)。
+
+    safetensors形式はヘッダのmetadataブロックのみを読む(高速・低メモリ)。
+    ckpt/bin形式はファイル全体のロードが必要な形式のため、torch.loadで
+    読み込んだpayload内の"metadata"キー(save_state_dict()が同じ形式で
+    書き込んだもの)を返す。当該キーが無い、またはdict型でない場合は
+    空辞書を返す。
+
+    Args:
+        path: モデルファイルへのパス。
+
+    Returns:
+        メタデータのkey-value辞書(値は全て文字列)。取得できなければ空辞書。
+
+    Raises:
+        FileNotFoundError: pathが存在しない場合。
+        ValueError: 対応していない拡張子の場合。
+        DependencyError: 必要な依存パッケージが無い場合。
+    """
+    validate_model_path(path)
+    if path.suffix.lower() == ".safetensors":
+        if importlib.util.find_spec("safetensors") is None:
+            raise DependencyError("safetensors is required to inspect .safetensors files.")
+        from safetensors import safe_open
+
+        with safe_open(str(path), framework="pt") as handle:
+            return dict(handle.metadata() or {})
+
+    torch = require_torch()
+    try:
+        loaded = torch.load(str(path), map_location="cpu")
+    except Exception:
+        loaded = torch.load(str(path), map_location="cpu", weights_only=False)
+    if isinstance(loaded, dict):
+        metadata = loaded.get("metadata")
+        if isinstance(metadata, dict):
+            return {str(key): str(value) for key, value in metadata.items()}
+    return {}
+
+
 def list_state_dict_layers(path: Path, device: str = "cpu") -> list[tuple[str, str]]:
     validate_model_path(path)
     if path.suffix.lower() == ".safetensors":

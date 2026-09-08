@@ -1,0 +1,686 @@
+﻿block_index,category,dtype,key,nbytes,numel,shape,size,submodule
+0,dit_block,BFLOAT16,net.blocks.0.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+0,dit_block,BFLOAT16,net.blocks.0.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+0,dit_block,BFLOAT16,net.blocks.0.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+0,dit_block,BFLOAT16,net.blocks.0.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+0,dit_block,BFLOAT16,net.blocks.0.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+0,dit_block,BFLOAT16,net.blocks.0.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+0,dit_block,BFLOAT16,net.blocks.0.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+0,dit_block,BFLOAT16,net.blocks.0.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+0,dit_block,BFLOAT16,net.blocks.0.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+0,dit_block,BFLOAT16,net.blocks.0.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+0,dit_block,BFLOAT16,net.blocks.0.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+0,dit_block,BFLOAT16,net.blocks.0.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+0,dit_block,BFLOAT16,net.blocks.0.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+0,dit_block,BFLOAT16,net.blocks.0.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+1,dit_block,BFLOAT16,net.blocks.1.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+1,dit_block,BFLOAT16,net.blocks.1.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+1,dit_block,BFLOAT16,net.blocks.1.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+1,dit_block,BFLOAT16,net.blocks.1.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+1,dit_block,BFLOAT16,net.blocks.1.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+1,dit_block,BFLOAT16,net.blocks.1.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+1,dit_block,BFLOAT16,net.blocks.1.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+1,dit_block,BFLOAT16,net.blocks.1.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+1,dit_block,BFLOAT16,net.blocks.1.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+1,dit_block,BFLOAT16,net.blocks.1.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+1,dit_block,BFLOAT16,net.blocks.1.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+1,dit_block,BFLOAT16,net.blocks.1.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+1,dit_block,BFLOAT16,net.blocks.1.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+10,dit_block,BFLOAT16,net.blocks.10.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+10,dit_block,BFLOAT16,net.blocks.10.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+10,dit_block,BFLOAT16,net.blocks.10.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+10,dit_block,BFLOAT16,net.blocks.10.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+10,dit_block,BFLOAT16,net.blocks.10.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+10,dit_block,BFLOAT16,net.blocks.10.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+10,dit_block,BFLOAT16,net.blocks.10.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+10,dit_block,BFLOAT16,net.blocks.10.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+10,dit_block,BFLOAT16,net.blocks.10.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+10,dit_block,BFLOAT16,net.blocks.10.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+10,dit_block,BFLOAT16,net.blocks.10.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+10,dit_block,BFLOAT16,net.blocks.10.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+10,dit_block,BFLOAT16,net.blocks.10.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+11,dit_block,BFLOAT16,net.blocks.11.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+11,dit_block,BFLOAT16,net.blocks.11.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+11,dit_block,BFLOAT16,net.blocks.11.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+11,dit_block,BFLOAT16,net.blocks.11.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+11,dit_block,BFLOAT16,net.blocks.11.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+11,dit_block,BFLOAT16,net.blocks.11.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+11,dit_block,BFLOAT16,net.blocks.11.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+11,dit_block,BFLOAT16,net.blocks.11.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+11,dit_block,BFLOAT16,net.blocks.11.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+11,dit_block,BFLOAT16,net.blocks.11.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+11,dit_block,BFLOAT16,net.blocks.11.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+11,dit_block,BFLOAT16,net.blocks.11.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+11,dit_block,BFLOAT16,net.blocks.11.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+12,dit_block,BFLOAT16,net.blocks.12.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+12,dit_block,BFLOAT16,net.blocks.12.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+12,dit_block,BFLOAT16,net.blocks.12.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+12,dit_block,BFLOAT16,net.blocks.12.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+12,dit_block,BFLOAT16,net.blocks.12.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+12,dit_block,BFLOAT16,net.blocks.12.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+12,dit_block,BFLOAT16,net.blocks.12.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+12,dit_block,BFLOAT16,net.blocks.12.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+12,dit_block,BFLOAT16,net.blocks.12.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+12,dit_block,BFLOAT16,net.blocks.12.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+12,dit_block,BFLOAT16,net.blocks.12.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+12,dit_block,BFLOAT16,net.blocks.12.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+12,dit_block,BFLOAT16,net.blocks.12.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+13,dit_block,BFLOAT16,net.blocks.13.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+13,dit_block,BFLOAT16,net.blocks.13.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+13,dit_block,BFLOAT16,net.blocks.13.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+13,dit_block,BFLOAT16,net.blocks.13.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+13,dit_block,BFLOAT16,net.blocks.13.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+13,dit_block,BFLOAT16,net.blocks.13.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+13,dit_block,BFLOAT16,net.blocks.13.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+13,dit_block,BFLOAT16,net.blocks.13.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+13,dit_block,BFLOAT16,net.blocks.13.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+13,dit_block,BFLOAT16,net.blocks.13.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+13,dit_block,BFLOAT16,net.blocks.13.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+13,dit_block,BFLOAT16,net.blocks.13.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+13,dit_block,BFLOAT16,net.blocks.13.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+14,dit_block,BFLOAT16,net.blocks.14.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+14,dit_block,BFLOAT16,net.blocks.14.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+14,dit_block,BFLOAT16,net.blocks.14.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+14,dit_block,BFLOAT16,net.blocks.14.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+14,dit_block,BFLOAT16,net.blocks.14.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+14,dit_block,BFLOAT16,net.blocks.14.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+14,dit_block,BFLOAT16,net.blocks.14.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+14,dit_block,BFLOAT16,net.blocks.14.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+14,dit_block,BFLOAT16,net.blocks.14.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+14,dit_block,BFLOAT16,net.blocks.14.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+14,dit_block,BFLOAT16,net.blocks.14.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+14,dit_block,BFLOAT16,net.blocks.14.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+14,dit_block,BFLOAT16,net.blocks.14.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+15,dit_block,BFLOAT16,net.blocks.15.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+15,dit_block,BFLOAT16,net.blocks.15.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+15,dit_block,BFLOAT16,net.blocks.15.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+15,dit_block,BFLOAT16,net.blocks.15.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+15,dit_block,BFLOAT16,net.blocks.15.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+15,dit_block,BFLOAT16,net.blocks.15.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+15,dit_block,BFLOAT16,net.blocks.15.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+15,dit_block,BFLOAT16,net.blocks.15.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+15,dit_block,BFLOAT16,net.blocks.15.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+15,dit_block,BFLOAT16,net.blocks.15.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+15,dit_block,BFLOAT16,net.blocks.15.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+15,dit_block,BFLOAT16,net.blocks.15.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+15,dit_block,BFLOAT16,net.blocks.15.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+16,dit_block,BFLOAT16,net.blocks.16.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+16,dit_block,BFLOAT16,net.blocks.16.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+16,dit_block,BFLOAT16,net.blocks.16.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+16,dit_block,BFLOAT16,net.blocks.16.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+16,dit_block,BFLOAT16,net.blocks.16.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+16,dit_block,BFLOAT16,net.blocks.16.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+16,dit_block,BFLOAT16,net.blocks.16.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+16,dit_block,BFLOAT16,net.blocks.16.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+16,dit_block,BFLOAT16,net.blocks.16.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+16,dit_block,BFLOAT16,net.blocks.16.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+16,dit_block,BFLOAT16,net.blocks.16.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+16,dit_block,BFLOAT16,net.blocks.16.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+16,dit_block,BFLOAT16,net.blocks.16.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+17,dit_block,BFLOAT16,net.blocks.17.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+17,dit_block,BFLOAT16,net.blocks.17.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+17,dit_block,BFLOAT16,net.blocks.17.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+17,dit_block,BFLOAT16,net.blocks.17.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+17,dit_block,BFLOAT16,net.blocks.17.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+17,dit_block,BFLOAT16,net.blocks.17.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+17,dit_block,BFLOAT16,net.blocks.17.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+17,dit_block,BFLOAT16,net.blocks.17.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+17,dit_block,BFLOAT16,net.blocks.17.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+17,dit_block,BFLOAT16,net.blocks.17.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+17,dit_block,BFLOAT16,net.blocks.17.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+17,dit_block,BFLOAT16,net.blocks.17.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+17,dit_block,BFLOAT16,net.blocks.17.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+18,dit_block,BFLOAT16,net.blocks.18.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+18,dit_block,BFLOAT16,net.blocks.18.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+18,dit_block,BFLOAT16,net.blocks.18.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+18,dit_block,BFLOAT16,net.blocks.18.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+18,dit_block,BFLOAT16,net.blocks.18.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+18,dit_block,BFLOAT16,net.blocks.18.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+18,dit_block,BFLOAT16,net.blocks.18.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+18,dit_block,BFLOAT16,net.blocks.18.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+18,dit_block,BFLOAT16,net.blocks.18.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+18,dit_block,BFLOAT16,net.blocks.18.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+18,dit_block,BFLOAT16,net.blocks.18.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+18,dit_block,BFLOAT16,net.blocks.18.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+18,dit_block,BFLOAT16,net.blocks.18.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+19,dit_block,BFLOAT16,net.blocks.19.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+19,dit_block,BFLOAT16,net.blocks.19.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+19,dit_block,BFLOAT16,net.blocks.19.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+19,dit_block,BFLOAT16,net.blocks.19.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+19,dit_block,BFLOAT16,net.blocks.19.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+19,dit_block,BFLOAT16,net.blocks.19.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+19,dit_block,BFLOAT16,net.blocks.19.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+19,dit_block,BFLOAT16,net.blocks.19.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+19,dit_block,BFLOAT16,net.blocks.19.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+19,dit_block,BFLOAT16,net.blocks.19.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+19,dit_block,BFLOAT16,net.blocks.19.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+19,dit_block,BFLOAT16,net.blocks.19.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+19,dit_block,BFLOAT16,net.blocks.19.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+2,dit_block,BFLOAT16,net.blocks.2.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+2,dit_block,BFLOAT16,net.blocks.2.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+2,dit_block,BFLOAT16,net.blocks.2.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+2,dit_block,BFLOAT16,net.blocks.2.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+2,dit_block,BFLOAT16,net.blocks.2.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+2,dit_block,BFLOAT16,net.blocks.2.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+2,dit_block,BFLOAT16,net.blocks.2.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+2,dit_block,BFLOAT16,net.blocks.2.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+2,dit_block,BFLOAT16,net.blocks.2.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+2,dit_block,BFLOAT16,net.blocks.2.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+2,dit_block,BFLOAT16,net.blocks.2.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+2,dit_block,BFLOAT16,net.blocks.2.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+2,dit_block,BFLOAT16,net.blocks.2.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+20,dit_block,BFLOAT16,net.blocks.20.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+20,dit_block,BFLOAT16,net.blocks.20.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+20,dit_block,BFLOAT16,net.blocks.20.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+20,dit_block,BFLOAT16,net.blocks.20.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+20,dit_block,BFLOAT16,net.blocks.20.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+20,dit_block,BFLOAT16,net.blocks.20.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+20,dit_block,BFLOAT16,net.blocks.20.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+20,dit_block,BFLOAT16,net.blocks.20.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+20,dit_block,BFLOAT16,net.blocks.20.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+20,dit_block,BFLOAT16,net.blocks.20.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+20,dit_block,BFLOAT16,net.blocks.20.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+20,dit_block,BFLOAT16,net.blocks.20.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+20,dit_block,BFLOAT16,net.blocks.20.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+21,dit_block,BFLOAT16,net.blocks.21.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+21,dit_block,BFLOAT16,net.blocks.21.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+21,dit_block,BFLOAT16,net.blocks.21.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+21,dit_block,BFLOAT16,net.blocks.21.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+21,dit_block,BFLOAT16,net.blocks.21.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+21,dit_block,BFLOAT16,net.blocks.21.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+21,dit_block,BFLOAT16,net.blocks.21.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+21,dit_block,BFLOAT16,net.blocks.21.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+21,dit_block,BFLOAT16,net.blocks.21.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+21,dit_block,BFLOAT16,net.blocks.21.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+21,dit_block,BFLOAT16,net.blocks.21.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+21,dit_block,BFLOAT16,net.blocks.21.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+21,dit_block,BFLOAT16,net.blocks.21.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+22,dit_block,BFLOAT16,net.blocks.22.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+22,dit_block,BFLOAT16,net.blocks.22.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+22,dit_block,BFLOAT16,net.blocks.22.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+22,dit_block,BFLOAT16,net.blocks.22.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+22,dit_block,BFLOAT16,net.blocks.22.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+22,dit_block,BFLOAT16,net.blocks.22.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+22,dit_block,BFLOAT16,net.blocks.22.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+22,dit_block,BFLOAT16,net.blocks.22.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+22,dit_block,BFLOAT16,net.blocks.22.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+22,dit_block,BFLOAT16,net.blocks.22.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+22,dit_block,BFLOAT16,net.blocks.22.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+22,dit_block,BFLOAT16,net.blocks.22.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+22,dit_block,BFLOAT16,net.blocks.22.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+23,dit_block,BFLOAT16,net.blocks.23.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+23,dit_block,BFLOAT16,net.blocks.23.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+23,dit_block,BFLOAT16,net.blocks.23.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+23,dit_block,BFLOAT16,net.blocks.23.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+23,dit_block,BFLOAT16,net.blocks.23.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+23,dit_block,BFLOAT16,net.blocks.23.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+23,dit_block,BFLOAT16,net.blocks.23.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+23,dit_block,BFLOAT16,net.blocks.23.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+23,dit_block,BFLOAT16,net.blocks.23.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+23,dit_block,BFLOAT16,net.blocks.23.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+23,dit_block,BFLOAT16,net.blocks.23.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+23,dit_block,BFLOAT16,net.blocks.23.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+23,dit_block,BFLOAT16,net.blocks.23.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+24,dit_block,BFLOAT16,net.blocks.24.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+24,dit_block,BFLOAT16,net.blocks.24.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+24,dit_block,BFLOAT16,net.blocks.24.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+24,dit_block,BFLOAT16,net.blocks.24.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+24,dit_block,BFLOAT16,net.blocks.24.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+24,dit_block,BFLOAT16,net.blocks.24.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+24,dit_block,BFLOAT16,net.blocks.24.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+24,dit_block,BFLOAT16,net.blocks.24.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+24,dit_block,BFLOAT16,net.blocks.24.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+24,dit_block,BFLOAT16,net.blocks.24.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+24,dit_block,BFLOAT16,net.blocks.24.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+24,dit_block,BFLOAT16,net.blocks.24.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+24,dit_block,BFLOAT16,net.blocks.24.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+25,dit_block,BFLOAT16,net.blocks.25.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+25,dit_block,BFLOAT16,net.blocks.25.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+25,dit_block,BFLOAT16,net.blocks.25.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+25,dit_block,BFLOAT16,net.blocks.25.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+25,dit_block,BFLOAT16,net.blocks.25.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+25,dit_block,BFLOAT16,net.blocks.25.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+25,dit_block,BFLOAT16,net.blocks.25.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+25,dit_block,BFLOAT16,net.blocks.25.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+25,dit_block,BFLOAT16,net.blocks.25.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+25,dit_block,BFLOAT16,net.blocks.25.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+25,dit_block,BFLOAT16,net.blocks.25.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+25,dit_block,BFLOAT16,net.blocks.25.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+25,dit_block,BFLOAT16,net.blocks.25.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+26,dit_block,BFLOAT16,net.blocks.26.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+26,dit_block,BFLOAT16,net.blocks.26.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+26,dit_block,BFLOAT16,net.blocks.26.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+26,dit_block,BFLOAT16,net.blocks.26.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+26,dit_block,BFLOAT16,net.blocks.26.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+26,dit_block,BFLOAT16,net.blocks.26.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+26,dit_block,BFLOAT16,net.blocks.26.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+26,dit_block,BFLOAT16,net.blocks.26.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+26,dit_block,BFLOAT16,net.blocks.26.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+26,dit_block,BFLOAT16,net.blocks.26.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+26,dit_block,BFLOAT16,net.blocks.26.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+26,dit_block,BFLOAT16,net.blocks.26.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+26,dit_block,BFLOAT16,net.blocks.26.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+27,dit_block,BFLOAT16,net.blocks.27.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+27,dit_block,BFLOAT16,net.blocks.27.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+27,dit_block,BFLOAT16,net.blocks.27.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+27,dit_block,BFLOAT16,net.blocks.27.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+27,dit_block,BFLOAT16,net.blocks.27.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+27,dit_block,BFLOAT16,net.blocks.27.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+27,dit_block,BFLOAT16,net.blocks.27.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+27,dit_block,BFLOAT16,net.blocks.27.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+27,dit_block,BFLOAT16,net.blocks.27.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+27,dit_block,BFLOAT16,net.blocks.27.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+27,dit_block,BFLOAT16,net.blocks.27.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+27,dit_block,BFLOAT16,net.blocks.27.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+27,dit_block,BFLOAT16,net.blocks.27.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+3,dit_block,BFLOAT16,net.blocks.3.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+3,dit_block,BFLOAT16,net.blocks.3.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+3,dit_block,BFLOAT16,net.blocks.3.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+3,dit_block,BFLOAT16,net.blocks.3.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+3,dit_block,BFLOAT16,net.blocks.3.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+3,dit_block,BFLOAT16,net.blocks.3.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+3,dit_block,BFLOAT16,net.blocks.3.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+3,dit_block,BFLOAT16,net.blocks.3.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+3,dit_block,BFLOAT16,net.blocks.3.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+3,dit_block,BFLOAT16,net.blocks.3.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+3,dit_block,BFLOAT16,net.blocks.3.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+3,dit_block,BFLOAT16,net.blocks.3.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+3,dit_block,BFLOAT16,net.blocks.3.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+4,dit_block,BFLOAT16,net.blocks.4.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+4,dit_block,BFLOAT16,net.blocks.4.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+4,dit_block,BFLOAT16,net.blocks.4.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+4,dit_block,BFLOAT16,net.blocks.4.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+4,dit_block,BFLOAT16,net.blocks.4.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+4,dit_block,BFLOAT16,net.blocks.4.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+4,dit_block,BFLOAT16,net.blocks.4.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+4,dit_block,BFLOAT16,net.blocks.4.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+4,dit_block,BFLOAT16,net.blocks.4.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+4,dit_block,BFLOAT16,net.blocks.4.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+4,dit_block,BFLOAT16,net.blocks.4.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+4,dit_block,BFLOAT16,net.blocks.4.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+4,dit_block,BFLOAT16,net.blocks.4.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+5,dit_block,BFLOAT16,net.blocks.5.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+5,dit_block,BFLOAT16,net.blocks.5.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+5,dit_block,BFLOAT16,net.blocks.5.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+5,dit_block,BFLOAT16,net.blocks.5.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+5,dit_block,BFLOAT16,net.blocks.5.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+5,dit_block,BFLOAT16,net.blocks.5.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+5,dit_block,BFLOAT16,net.blocks.5.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+5,dit_block,BFLOAT16,net.blocks.5.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+5,dit_block,BFLOAT16,net.blocks.5.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+5,dit_block,BFLOAT16,net.blocks.5.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+5,dit_block,BFLOAT16,net.blocks.5.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+5,dit_block,BFLOAT16,net.blocks.5.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+5,dit_block,BFLOAT16,net.blocks.5.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+6,dit_block,BFLOAT16,net.blocks.6.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+6,dit_block,BFLOAT16,net.blocks.6.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+6,dit_block,BFLOAT16,net.blocks.6.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+6,dit_block,BFLOAT16,net.blocks.6.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+6,dit_block,BFLOAT16,net.blocks.6.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+6,dit_block,BFLOAT16,net.blocks.6.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+6,dit_block,BFLOAT16,net.blocks.6.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+6,dit_block,BFLOAT16,net.blocks.6.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+6,dit_block,BFLOAT16,net.blocks.6.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+6,dit_block,BFLOAT16,net.blocks.6.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+6,dit_block,BFLOAT16,net.blocks.6.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+6,dit_block,BFLOAT16,net.blocks.6.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+6,dit_block,BFLOAT16,net.blocks.6.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+7,dit_block,BFLOAT16,net.blocks.7.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+7,dit_block,BFLOAT16,net.blocks.7.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+7,dit_block,BFLOAT16,net.blocks.7.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+7,dit_block,BFLOAT16,net.blocks.7.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+7,dit_block,BFLOAT16,net.blocks.7.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+7,dit_block,BFLOAT16,net.blocks.7.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+7,dit_block,BFLOAT16,net.blocks.7.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+7,dit_block,BFLOAT16,net.blocks.7.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+7,dit_block,BFLOAT16,net.blocks.7.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+7,dit_block,BFLOAT16,net.blocks.7.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+7,dit_block,BFLOAT16,net.blocks.7.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+7,dit_block,BFLOAT16,net.blocks.7.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+7,dit_block,BFLOAT16,net.blocks.7.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+8,dit_block,BFLOAT16,net.blocks.8.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+8,dit_block,BFLOAT16,net.blocks.8.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+8,dit_block,BFLOAT16,net.blocks.8.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+8,dit_block,BFLOAT16,net.blocks.8.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+8,dit_block,BFLOAT16,net.blocks.8.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+8,dit_block,BFLOAT16,net.blocks.8.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+8,dit_block,BFLOAT16,net.blocks.8.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+8,dit_block,BFLOAT16,net.blocks.8.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+8,dit_block,BFLOAT16,net.blocks.8.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+8,dit_block,BFLOAT16,net.blocks.8.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+8,dit_block,BFLOAT16,net.blocks.8.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+8,dit_block,BFLOAT16,net.blocks.8.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+8,dit_block,BFLOAT16,net.blocks.8.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.adaln_modulation_cross_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_cross_attn.1.weight
+9,dit_block,BFLOAT16,net.blocks.9.adaln_modulation_cross_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_cross_attn.2.weight
+9,dit_block,BFLOAT16,net.blocks.9.adaln_modulation_mlp.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_mlp.1.weight
+9,dit_block,BFLOAT16,net.blocks.9.adaln_modulation_mlp.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_mlp.2.weight
+9,dit_block,BFLOAT16,net.blocks.9.adaln_modulation_self_attn.1.weight,,524288,"[256, 2048]",N/A,adaln_modulation_self_attn.1.weight
+9,dit_block,BFLOAT16,net.blocks.9.adaln_modulation_self_attn.2.weight,,1572864,"[6144, 256]",N/A,adaln_modulation_self_attn.2.weight
+9,dit_block,BFLOAT16,net.blocks.9.cross_attn.k_norm.weight,,128,[128],N/A,cross_attn.k_norm.weight
+9,dit_block,BFLOAT16,net.blocks.9.cross_attn.k_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.k_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.cross_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.output_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.cross_attn.q_norm.weight,,128,[128],N/A,cross_attn.q_norm.weight
+9,dit_block,BFLOAT16,net.blocks.9.cross_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,cross_attn.q_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.cross_attn.v_proj.weight,,2097152,"[2048, 1024]",N/A,cross_attn.v_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.mlp.layer1.weight,,16777216,"[8192, 2048]",N/A,mlp.layer1.weight
+9,dit_block,BFLOAT16,net.blocks.9.mlp.layer2.weight,,16777216,"[2048, 8192]",N/A,mlp.layer2.weight
+9,dit_block,BFLOAT16,net.blocks.9.self_attn.k_norm.weight,,128,[128],N/A,self_attn.k_norm.weight
+9,dit_block,BFLOAT16,net.blocks.9.self_attn.k_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.k_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.self_attn.output_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.output_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.self_attn.q_norm.weight,,128,[128],N/A,self_attn.q_norm.weight
+9,dit_block,BFLOAT16,net.blocks.9.self_attn.q_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.q_proj.weight
+9,dit_block,BFLOAT16,net.blocks.9.self_attn.v_proj.weight,,4194304,"[2048, 2048]",N/A,self_attn.v_proj.weight
+,other,BFLOAT16,net.final_layer.adaln_modulation.1.weight,,524288,"[256, 2048]",N/A,net.final_layer.adaln_modulation.1.weight
+,other,BFLOAT16,net.final_layer.adaln_modulation.2.weight,,1048576,"[4096, 256]",N/A,net.final_layer.adaln_modulation.2.weight
+,other,BFLOAT16,net.final_layer.linear.weight,,131072,"[64, 2048]",N/A,net.final_layer.linear.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.cross_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.0.cross_attn.k_norm.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.cross_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.cross_attn.k_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.cross_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.cross_attn.o_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.cross_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.0.cross_attn.q_norm.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.cross_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.cross_attn.q_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.cross_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.cross_attn.v_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.mlp.0.bias,,4096,[4096],N/A,net.llm_adapter.blocks.0.mlp.0.bias
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.mlp.0.weight,,4194304,"[4096, 1024]",N/A,net.llm_adapter.blocks.0.mlp.0.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.mlp.2.bias,,1024,[1024],N/A,net.llm_adapter.blocks.0.mlp.2.bias
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.mlp.2.weight,,4194304,"[1024, 4096]",N/A,net.llm_adapter.blocks.0.mlp.2.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.norm_cross_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.0.norm_cross_attn.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.norm_mlp.weight,,1024,[1024],N/A,net.llm_adapter.blocks.0.norm_mlp.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.norm_self_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.0.norm_self_attn.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.self_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.0.self_attn.k_norm.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.self_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.self_attn.k_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.self_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.self_attn.o_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.self_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.0.self_attn.q_norm.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.self_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.self_attn.q_proj.weight
+0,llm_adapter,BFLOAT16,net.llm_adapter.blocks.0.self_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.0.self_attn.v_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.cross_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.1.cross_attn.k_norm.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.cross_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.cross_attn.k_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.cross_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.cross_attn.o_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.cross_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.1.cross_attn.q_norm.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.cross_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.cross_attn.q_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.cross_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.cross_attn.v_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.mlp.0.bias,,4096,[4096],N/A,net.llm_adapter.blocks.1.mlp.0.bias
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.mlp.0.weight,,4194304,"[4096, 1024]",N/A,net.llm_adapter.blocks.1.mlp.0.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.mlp.2.bias,,1024,[1024],N/A,net.llm_adapter.blocks.1.mlp.2.bias
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.mlp.2.weight,,4194304,"[1024, 4096]",N/A,net.llm_adapter.blocks.1.mlp.2.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.norm_cross_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.1.norm_cross_attn.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.norm_mlp.weight,,1024,[1024],N/A,net.llm_adapter.blocks.1.norm_mlp.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.norm_self_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.1.norm_self_attn.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.self_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.1.self_attn.k_norm.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.self_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.self_attn.k_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.self_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.self_attn.o_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.self_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.1.self_attn.q_norm.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.self_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.self_attn.q_proj.weight
+1,llm_adapter,BFLOAT16,net.llm_adapter.blocks.1.self_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.1.self_attn.v_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.cross_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.2.cross_attn.k_norm.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.cross_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.cross_attn.k_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.cross_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.cross_attn.o_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.cross_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.2.cross_attn.q_norm.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.cross_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.cross_attn.q_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.cross_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.cross_attn.v_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.mlp.0.bias,,4096,[4096],N/A,net.llm_adapter.blocks.2.mlp.0.bias
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.mlp.0.weight,,4194304,"[4096, 1024]",N/A,net.llm_adapter.blocks.2.mlp.0.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.mlp.2.bias,,1024,[1024],N/A,net.llm_adapter.blocks.2.mlp.2.bias
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.mlp.2.weight,,4194304,"[1024, 4096]",N/A,net.llm_adapter.blocks.2.mlp.2.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.norm_cross_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.2.norm_cross_attn.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.norm_mlp.weight,,1024,[1024],N/A,net.llm_adapter.blocks.2.norm_mlp.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.norm_self_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.2.norm_self_attn.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.self_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.2.self_attn.k_norm.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.self_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.self_attn.k_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.self_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.self_attn.o_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.self_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.2.self_attn.q_norm.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.self_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.self_attn.q_proj.weight
+2,llm_adapter,BFLOAT16,net.llm_adapter.blocks.2.self_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.2.self_attn.v_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.cross_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.3.cross_attn.k_norm.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.cross_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.cross_attn.k_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.cross_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.cross_attn.o_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.cross_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.3.cross_attn.q_norm.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.cross_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.cross_attn.q_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.cross_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.cross_attn.v_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.mlp.0.bias,,4096,[4096],N/A,net.llm_adapter.blocks.3.mlp.0.bias
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.mlp.0.weight,,4194304,"[4096, 1024]",N/A,net.llm_adapter.blocks.3.mlp.0.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.mlp.2.bias,,1024,[1024],N/A,net.llm_adapter.blocks.3.mlp.2.bias
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.mlp.2.weight,,4194304,"[1024, 4096]",N/A,net.llm_adapter.blocks.3.mlp.2.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.norm_cross_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.3.norm_cross_attn.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.norm_mlp.weight,,1024,[1024],N/A,net.llm_adapter.blocks.3.norm_mlp.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.norm_self_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.3.norm_self_attn.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.self_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.3.self_attn.k_norm.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.self_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.self_attn.k_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.self_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.self_attn.o_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.self_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.3.self_attn.q_norm.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.self_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.self_attn.q_proj.weight
+3,llm_adapter,BFLOAT16,net.llm_adapter.blocks.3.self_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.3.self_attn.v_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.cross_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.4.cross_attn.k_norm.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.cross_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.cross_attn.k_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.cross_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.cross_attn.o_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.cross_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.4.cross_attn.q_norm.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.cross_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.cross_attn.q_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.cross_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.cross_attn.v_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.mlp.0.bias,,4096,[4096],N/A,net.llm_adapter.blocks.4.mlp.0.bias
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.mlp.0.weight,,4194304,"[4096, 1024]",N/A,net.llm_adapter.blocks.4.mlp.0.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.mlp.2.bias,,1024,[1024],N/A,net.llm_adapter.blocks.4.mlp.2.bias
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.mlp.2.weight,,4194304,"[1024, 4096]",N/A,net.llm_adapter.blocks.4.mlp.2.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.norm_cross_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.4.norm_cross_attn.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.norm_mlp.weight,,1024,[1024],N/A,net.llm_adapter.blocks.4.norm_mlp.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.norm_self_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.4.norm_self_attn.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.self_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.4.self_attn.k_norm.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.self_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.self_attn.k_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.self_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.self_attn.o_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.self_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.4.self_attn.q_norm.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.self_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.self_attn.q_proj.weight
+4,llm_adapter,BFLOAT16,net.llm_adapter.blocks.4.self_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.4.self_attn.v_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.cross_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.5.cross_attn.k_norm.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.cross_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.cross_attn.k_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.cross_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.cross_attn.o_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.cross_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.5.cross_attn.q_norm.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.cross_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.cross_attn.q_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.cross_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.cross_attn.v_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.mlp.0.bias,,4096,[4096],N/A,net.llm_adapter.blocks.5.mlp.0.bias
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.mlp.0.weight,,4194304,"[4096, 1024]",N/A,net.llm_adapter.blocks.5.mlp.0.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.mlp.2.bias,,1024,[1024],N/A,net.llm_adapter.blocks.5.mlp.2.bias
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.mlp.2.weight,,4194304,"[1024, 4096]",N/A,net.llm_adapter.blocks.5.mlp.2.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.norm_cross_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.5.norm_cross_attn.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.norm_mlp.weight,,1024,[1024],N/A,net.llm_adapter.blocks.5.norm_mlp.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.norm_self_attn.weight,,1024,[1024],N/A,net.llm_adapter.blocks.5.norm_self_attn.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.self_attn.k_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.5.self_attn.k_norm.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.self_attn.k_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.self_attn.k_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.self_attn.o_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.self_attn.o_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.self_attn.q_norm.weight,,64,[64],N/A,net.llm_adapter.blocks.5.self_attn.q_norm.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.self_attn.q_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.self_attn.q_proj.weight
+5,llm_adapter,BFLOAT16,net.llm_adapter.blocks.5.self_attn.v_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.blocks.5.self_attn.v_proj.weight
+,llm_adapter_other,BFLOAT16,net.llm_adapter.embed.weight,,32899072,"[32128, 1024]",N/A,net.llm_adapter.embed.weight
+,llm_adapter_other,BFLOAT16,net.llm_adapter.norm.weight,,1024,[1024],N/A,net.llm_adapter.norm.weight
+,llm_adapter_other,BFLOAT16,net.llm_adapter.out_proj.bias,,1024,[1024],N/A,net.llm_adapter.out_proj.bias
+,llm_adapter_other,BFLOAT16,net.llm_adapter.out_proj.weight,,1048576,"[1024, 1024]",N/A,net.llm_adapter.out_proj.weight
+,other,BFLOAT16,net.t_embedder.1.linear_1.weight,,4194304,"[2048, 2048]",N/A,net.t_embedder.1.linear_1.weight
+,other,BFLOAT16,net.t_embedder.1.linear_2.weight,,12582912,"[6144, 2048]",N/A,net.t_embedder.1.linear_2.weight
+,other,BFLOAT16,net.t_embedding_norm.weight,,2048,[2048],N/A,net.t_embedding_norm.weight
+,other,BFLOAT16,net.x_embedder.proj.1.weight,,139264,"[2048, 68]",N/A,net.x_embedder.proj.1.weight

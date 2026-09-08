@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 import gc
+import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Iterable, Optional
 
 from .config import MergeOptions
-from .model_io import load_state_dict, save_state_dict, sha256_file, validate_model_path
+from .model_io import (
+    DependencyError,
+    load_state_dict,
+    read_model_metadata,
+    save_state_dict,
+    sha256_file,
+    validate_model_path,
+)
 
 
 ProgressCallback = Callable[[str], None]
@@ -33,6 +41,269 @@ KEY_PREFIXES = (
 )
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Anima DiT ブロック構成・バージョン検出(本体マージのAnima 3.8B対応)
+#
+# AnimaBase v1.0(28block)とAnima 3.8B(52block、v1.0/v1.1でblock構成は
+# 共通)の対応関係は、実チェックポイントdiff実測により「block 0-27は
+# indexそのまま一致・block 28-51はBase側に対応物なしの単純追加」と
+# 判明済み(LLaMA-Pro方式の交互挿入ではない)。このため既存の汎用マージ
+# ロジック(canonical_key一致・shape一致、不一致/欠落キーはBase側の値を
+# 保持)は、追加のblock remap実装なしでこの2アーキテクチャ間のマージ
+# 要件を満たす。ここでは(1)Input/Middle/Output区分をAnima実構成に正しく
+# 合わせるための検出、(2)未検証のblock数の組み合わせでのマージ実行を
+# 防ぐための検証、(3)Base側metadataの保持・マージ履歴の追記、を提供する。
+# ──────────────────────────────────────────────────────────────────────
+
+_ANIMA_BLOCK_KEY_PATTERN = re.compile(r"(?:^|\.)blocks\.(\d+)(?:\.|$)")
+_ANIMA_CONNECTOR_V2_KEY_MARKER = "anima_v2_connector."
+_ANIMA_CONNECTOR_V2_METADATA_KEY = "anima_v2_adapter_architecture"
+_ANIMA_CONNECTOR_V2_METADATA_VALUE = "anima_qwen35_quality_anchored_semantic_connector_v2"
+_KNOWN_ANIMA_DIT_BLOCK_COUNTS = (28, 52)
+
+# 実測・確認済みのAnimaモデルバリアントの組み合わせのみマージを許可する。
+# それ以外(未検証のblock数の組み合わせ)はUnverifiedModelPairErrorで停止する。
+_VERIFIED_ANIMA_VARIANT_PAIRS = frozenset(
+    frozenset(pair)
+    for pair in (
+        ("anima-base-v1.0", "anima-base-v1.0"),
+        ("anima-base-v1.0", "anima-3.8b-v1.0"),
+        ("anima-base-v1.0", "anima-3.8b-v1.1"),
+        ("anima-3.8b-v1.0", "anima-3.8b-v1.0"),
+        ("anima-3.8b-v1.1", "anima-3.8b-v1.1"),
+        ("anima-3.8b-v1.0", "anima-3.8b-v1.1"),
+    )
+)
+
+
+class UnverifiedModelPairError(ValueError):
+    """未検証のAnimaモデルバリアントの組み合わせでマージが要求された場合に送出する。"""
+
+
+def count_dit_blocks_from_keys(keys: Iterable[str]) -> Optional[int]:
+    """テンソルキー群から`blocks.N.`パターンの最大indexを検出し、ブロック総数を返す。
+
+    テンソル本体には触れず、キー名文字列のみを走査する。state_dictのキー、
+    safetensorsヘッダのキー一覧など、文字列を列挙できるものであれば
+    入力形式を問わない。
+
+    Args:
+        keys: 判定対象のテンソルキー文字列を列挙するイテラブル。
+
+    Returns:
+        検出したブロック総数(最大index+1)。`blocks.N.`パターンが
+        1件も無ければNone。
+    """
+    max_index: Optional[int] = None
+    for key in keys:
+        match = _ANIMA_BLOCK_KEY_PATTERN.search(canonical_key(key))
+        if match:
+            index = int(match.group(1))
+            max_index = index if max_index is None else max(max_index, index)
+    return None if max_index is None else max_index + 1
+
+
+def detect_connector_v2_from_keys_and_metadata(
+    keys: Iterable[str], metadata: dict[str, str] | None
+) -> bool:
+    """テンソルキー群とmetadataから、Anima 3.8B v1.1(Semantic Connector v2内蔵)か判定する。
+
+    判定優先順位: (1) metadataの`anima_v2_adapter_architecture`、
+    (2) テンソルキー名前空間(`anima_v2_connector.`の有無)。
+    lora_train.pyの`_read_safetensors_is_semantic_connector_v2`と
+    同一ロジック(モジュール間でimportし合わない既存構成のため、
+    ここでも独立実装として複製している)。
+
+    Args:
+        keys: 判定対象のテンソルキー文字列を列挙するイテラブル。
+        metadata: safetensorsのmetadata辞書。無ければNone。
+
+    Returns:
+        Semantic Connector v2が内蔵されていると判定できればTrue。
+    """
+    keys = list(keys)
+    if metadata:
+        architecture = metadata.get(_ANIMA_CONNECTOR_V2_METADATA_KEY)
+        if architecture is not None:
+            return architecture == _ANIMA_CONNECTOR_V2_METADATA_VALUE
+    return any(_ANIMA_CONNECTOR_V2_KEY_MARKER in canonical_key(key) for key in keys)
+
+
+def classify_anima_model_variant(num_blocks: Optional[int], is_connector_v2: bool) -> str:
+    """検出済みのブロック総数とconnector v2有無から、Animaモデルのバリアントを分類する。
+
+    Args:
+        num_blocks: count_dit_blocks_from_keys()で検出したブロック総数。
+        is_connector_v2: detect_connector_v2_from_keys_and_metadata()の判定結果。
+
+    Returns:
+        "anima-base-v1.0"(28block) / "anima-3.8b-v1.1"(52block、connector
+        内蔵) / "anima-3.8b-v1.0"(52block、connector無し。外付け
+        Progressive Cross Adapter想定だが、当該外部ファイルは本体マージの
+        対象外) / "unknown"(28/52以外、またはblocks.N.パターン非検出で
+        Anima系と判定できない)のいずれか。
+    """
+    if num_blocks == 28:
+        return "anima-base-v1.0"
+    if num_blocks == 52:
+        return "anima-3.8b-v1.1" if is_connector_v2 else "anima-3.8b-v1.0"
+    return "unknown"
+
+
+def verify_anima_variant_pair_if_applicable(base_variant: str, secondary_variant: str) -> None:
+    """Base/Secondaryの組み合わせが検証済みか確認し、未検証なら例外で処理を停止する。
+
+    両方が"unknown"(=どちらもAnima系と判定できない、Anima以外の汎用モデルの
+    マージと推定される)場合は検証をスキップし、既存の汎用マージ動作を
+    そのまま許可する。片方のみAnima系と判定された場合、または既知でない
+    組み合わせの場合は、推測でのマージを避けるためUnverifiedModelPairErrorを
+    送出して停止する。
+
+    Args:
+        base_variant: classify_anima_model_variant()の戻り値(Base側)。
+        secondary_variant: 同(Secondary側)。
+
+    Raises:
+        UnverifiedModelPairError: 未検証の組み合わせの場合。
+    """
+    if base_variant == "unknown" and secondary_variant == "unknown":
+        return
+    if frozenset({base_variant, secondary_variant}) not in _VERIFIED_ANIMA_VARIANT_PAIRS:
+        raise UnverifiedModelPairError(
+            "未検証のモデル組み合わせのためマージを中断しました "
+            f"(base={base_variant}, secondary={secondary_variant})。"
+            "検証済みの組み合わせは AnimaBase v1.0(28block) と "
+            "Anima 3.8B v1.0/v1.1(52block) の間のみです。"
+        )
+
+
+def anima_block_category_layout(num_blocks: int) -> list[str]:
+    """ブロック総数からInput/Middle/Outputのカテゴリ列を生成する。
+
+    lora_train.pyの`_anima_block_categories()`と同一規則(28ブロックは
+    オリジナルの9/10/9分割と完全一致、それ以外は均等3分割で近似)。
+    姉妹コード間の一貫性のため同一ロジックを複製している。
+
+    Args:
+        num_blocks: DiTのブロック総数。
+
+    Returns:
+        index=0..num_blocks-1に対応する"input"/"middle"/"output"のリスト。
+    """
+    if num_blocks == 28:
+        return ["input"] * 9 + ["middle"] * 10 + ["output"] * 9
+    third = num_blocks // 3
+    remainder = num_blocks - third * 3
+    return ["input"] * third + ["middle"] * (third + remainder) + ["output"] * third
+
+
+def is_known_anima_architecture_gap(key: str, secondary_num_blocks: Optional[int]) -> bool:
+    """キーがSecondary側の(より小さい)アーキテクチャゆえに存在しないと想定できるか判定する。
+
+    52block→28blockマージ時のblock28-51や、3.8B v1.0→v1.1マージ時の
+    anima_v2_connector.*のように、「Secondary側に存在しないことが設計上
+    想定済み」のキーを識別する。validate_compatible()の警告を、意図的な
+    除外(想定内)と本当に予期しない不整合とで区別するために使う。
+
+    Args:
+        key: Base側のテンソルキー。
+        secondary_num_blocks: Secondary側で検出されたブロック総数(未検出ならNone)。
+
+    Returns:
+        設計上想定済みの欠落と判定できればTrue。
+    """
+    canonical = canonical_key(key)
+    if secondary_num_blocks is not None:
+        match = _ANIMA_BLOCK_KEY_PATTERN.search(canonical)
+        if match and int(match.group(1)) >= secondary_num_blocks:
+            return True
+    return _ANIMA_CONNECTOR_V2_KEY_MARKER in canonical
+
+
+_MERGE_HISTORY_METADATA_KEY = "anima_model_editor_merge_history"
+
+
+def compose_output_metadata(
+    base_metadata: dict[str, str], overrides: dict[str, str]
+) -> dict[str, str]:
+    """Base側の元のmetadataを保持しつつマージ由来の項目で上書きし、マージ履歴を追記する。
+
+    Args:
+        base_metadata: マージ元(Base)モデルが元々持っていたsafetensors metadata。
+        overrides: 今回のマージ処理自身が付与するメタデータ(merge_type,
+            base_sha256等)。base_metadataの同名キーはこちらで上書きされる。
+
+    Returns:
+        base_metadataをベースにoverridesで上書きした辞書。既存の
+        `anima_model_editor_merge_history`(JSON配列文字列)があれば1件
+        追記し、無ければ新規に1件分の配列として作成する。
+    """
+    composed = dict(base_metadata)
+    composed.update(overrides)
+
+    history_entry = {
+        key: overrides[key]
+        for key in (
+            "merge_type",
+            "base_sha256",
+            "secondary_sha256",
+            "lora_sha256",
+            "target_sha256",
+            "rank",
+        )
+        if key in overrides
+    }
+    try:
+        existing_history = json.loads(base_metadata.get(_MERGE_HISTORY_METADATA_KEY, "[]"))
+        if not isinstance(existing_history, list):
+            existing_history = []
+    except (ValueError, TypeError):
+        existing_history = []
+    existing_history.append(history_entry)
+    composed[_MERGE_HISTORY_METADATA_KEY] = json.dumps(existing_history, ensure_ascii=False)
+    return composed
+
+
+def describe_anima_model_variant_from_path(path: Path) -> tuple[str, Optional[int], bool]:
+    """モデルファイルのヘッダのみを読み取り、Animaバリアント分類に必要な情報を返す。
+
+    テンソル本体は読み込まない(safetensorsのヘッダ情報のみ走査)。GUI側の
+    「モデルを検出」ボタンなど、フルロード前の軽量な事前確認に用いる。
+    ckpt/bin形式はヘッダのみでの判定に対応していないため、この関数は
+    safetensors形式のみを対象とする。
+
+    Args:
+        path: モデルファイルへのパス。
+
+    Returns:
+        (variant, num_blocks, is_connector_v2) のタプル。safetensors以外の
+        拡張子、または`blocks.N.`パターンを検出できない場合は
+        variant="unknown", num_blocks=None, is_connector_v2=False。
+
+    Raises:
+        FileNotFoundError: pathが存在しない場合。
+        DependencyError: safetensorsパッケージが無い場合。
+    """
+    validate_model_path(path)
+    if path.suffix.lower() != ".safetensors":
+        return "unknown", None, False
+
+    import importlib.util
+
+    if importlib.util.find_spec("safetensors") is None:
+        raise DependencyError("safetensors is required to inspect .safetensors files.")
+    from safetensors import safe_open
+
+    with safe_open(str(path), framework="pt") as handle:
+        keys = list(handle.keys())
+        metadata = dict(handle.metadata() or {})
+
+    num_blocks = count_dit_blocks_from_keys(keys)
+    is_connector_v2 = detect_connector_v2_from_keys_and_metadata(keys, metadata)
+    variant = classify_anima_model_variant(num_blocks, is_connector_v2)
+    return variant, num_blocks, is_connector_v2
+
+
 @dataclass
 class MergeReport:
     output_path: Path
@@ -48,7 +319,7 @@ def is_merge_target(name: str) -> bool:
     return not any(marker in lowered for marker in EXCLUDED_COMPONENT_MARKERS)
 
 
-def block_category(name: str) -> str:
+def block_category(name: str, num_blocks: Optional[int] = None) -> str:
     lowered = name.lower()
     if any(token in lowered for token in ("input", "down", "in_blocks", "input_blocks")):
         return "input"
@@ -59,6 +330,8 @@ def block_category(name: str) -> str:
     match = re.search(r"(?:^|\.)blocks\.(\d+)(?:\.|$)", lowered)
     if match:
         index = int(match.group(1))
+        if num_blocks in _KNOWN_ANIMA_DIT_BLOCK_COUNTS and 0 <= index < num_blocks:
+            return anima_block_category_layout(num_blocks)[index]
         if index <= 8:
             return "input"
         if index <= 18:
@@ -105,13 +378,13 @@ def transformer_group(name: str) -> str:
     return block_category(name)
 
 
-def adjustment_group(name: str, mode: str) -> str:
+def adjustment_group(name: str, mode: str, num_blocks: Optional[int] = None) -> str:
     block = {
         "input": "Input",
         "middle": "Middle",
         "output": "Output",
         "other": "Other",
-    }[block_category(name)]
+    }[block_category(name, num_blocks)]
     component = {
         "attention": "Attention",
         "mlp": "MLP",
@@ -310,14 +583,14 @@ def lora_down_key_for(up_key: str) -> str:
     return up_key
 
 
-def layer_alpha(name: str, options: MergeOptions) -> float:
+def layer_alpha(name: str, options: MergeOptions, num_blocks: Optional[int] = None) -> float:
     if name in options.layer_overrides:
         return max(0.0, min(1.0, options.alpha * options.layer_overrides[name]))
-    group = adjustment_group(name, options.layer_display_mode)
+    group = adjustment_group(name, options.layer_display_mode, num_blocks)
     scale = options.parameter_scales.get(group)
     if scale is not None:
         return max(0.0, min(1.0, options.alpha * scale))
-    block = block_category(name)
+    block = block_category(name, num_blocks)
     component = component_category(name)
     block_scale = {
         "input": options.alpha_input,
@@ -336,11 +609,11 @@ def layer_alpha(name: str, options: MergeOptions) -> float:
     return max(0.0, min(1.0, options.alpha * block_scale * component_scale))
 
 
-def should_freeze_bias(name: str, options: MergeOptions) -> bool:
+def should_freeze_bias(name: str, options: MergeOptions, num_blocks: Optional[int] = None) -> bool:
     lowered = name.lower()
     if not (lowered.endswith(".bias") or ".bias." in lowered or lowered.endswith("bias")):
         return False
-    category = block_category(name)
+    category = block_category(name, num_blocks)
     return (
         (category == "input" and options.freeze_bias_input)
         or (category == "middle" and options.freeze_bias_middle)
@@ -357,8 +630,15 @@ def cosine_similarity(torch: object, a: object, b: object) -> float:
     return float(torch.dot(av, bv) / denom)
 
 
-def corrected_alpha(torch: object, name: str, a: object, b: object, options: MergeOptions) -> tuple[float, bool]:
-    alpha = layer_alpha(name, options)
+def corrected_alpha(
+    torch: object,
+    name: str,
+    a: object,
+    b: object,
+    options: MergeOptions,
+    num_blocks: Optional[int] = None,
+) -> tuple[float, bool]:
+    alpha = layer_alpha(name, options, num_blocks)
     if not options.auto_correction:
         return alpha, False
     similarity = cosine_similarity(torch, a, b)
@@ -368,16 +648,46 @@ def corrected_alpha(torch: object, name: str, a: object, b: object, options: Mer
     return alpha * scale, True
 
 
-def validate_compatible(base: dict[str, object], other: dict[str, object], other_map: dict[str, str]) -> list[str]:
+def validate_compatible(
+    base: dict[str, object],
+    other: dict[str, object],
+    other_map: dict[str, str],
+    is_expected_gap: Callable[[str], bool] | None = None,
+) -> list[str]:
+    """Base/Secondary間のキー・shape不整合を検出し、警告メッセージ一覧を返す。
+
+    Args:
+        base: Baseモデルのstate_dict。
+        other: Secondaryモデルのstate_dict。
+        other_map: canonical_state_map(other)の結果。
+        is_expected_gap: Secondary側に存在しないことが設計上想定済みの
+            キー(例: 52block→28blockマージ時のblock28-51・connector関連
+            キー)かどうかを判定する関数。Trueを返すキーは個別警告に
+            含めず、件数のみ末尾に1行でまとめて報告する(想定内の欠落で
+            本来の警告が埋没するのを防ぐため)。Noneの場合は全件を
+            個別警告として報告する(従来動作)。
+
+    Returns:
+        警告メッセージのリスト。
+    """
     warnings: list[str] = []
+    expected_gap_count = 0
     for key, base_tensor in base.items():
         other_key = other_map.get(canonical_key(key))
         if other_key is None:
+            if is_expected_gap is not None and is_expected_gap(key):
+                expected_gap_count += 1
+                continue
             warnings.append(f"Missing in secondary model: {key}")
             continue
         other_tensor = other[other_key]
         if getattr(base_tensor, "shape", None) != getattr(other_tensor, "shape", None):
             warnings.append(f"Shape mismatch: {key} <-> {other_key}")
+    if expected_gap_count:
+        warnings.append(
+            "Secondary model architecture is smaller by design: "
+            f"{expected_gap_count} tensor(s) kept from base only (expected, not an error)."
+        )
     return warnings
 
 
@@ -528,6 +838,8 @@ def extract_lora_difference(
     log(f"Loading target model: {target_path.name}")
     target = load_state_dict(target_path, device)
     target_map = canonical_state_map(target)
+    base_num_blocks = count_dit_blocks_from_keys(base.keys())
+    base_metadata = read_model_metadata(base_path)
 
     report = MergeReport(output_path=output_path)
     extracted: dict[str, object] = {}
@@ -536,7 +848,7 @@ def extract_lora_difference(
     _extract_targets = [
         key for key, t in base.items()
         if is_merge_target(key)
-        and not should_freeze_bias(key, options)
+        and not should_freeze_bias(key, options, base_num_blocks)
         and hasattr(t, "detach")
         and hasattr(t, "is_floating_point")
         and t.is_floating_point()
@@ -551,7 +863,7 @@ def extract_lora_difference(
         report.total_tensors += 1
         if (
             target_tensor is None
-            or should_freeze_bias(key, options)
+            or should_freeze_bias(key, options, base_num_blocks)
             or not is_merge_target(key)
             or getattr(base_tensor, "shape", None) != getattr(target_tensor, "shape", None)
             or not hasattr(base_tensor, "detach")
@@ -563,7 +875,7 @@ def extract_lora_difference(
             report.skipped_tensors += 1
             continue
 
-        scale = layer_alpha(key, options)
+        scale = layer_alpha(key, options, base_num_blocks)
         if scale <= 0.0:
             report.skipped_tensors += 1
             continue
@@ -614,14 +926,17 @@ def extract_lora_difference(
         log("Running dry-run tensor validation")
         dry_run_check(torch, extracted)
 
-    metadata = {
-        "anima_model_editor": "2.0-tab1",
-        "merge_type": "model_difference_to_lora",
-        "base_sha256": sha256_file(base_path),
-        "target_sha256": sha256_file(target_path),
-        "rank": str(rank),
-        "license_guardrail": "NVIDIA Open Model License may apply to Cosmos-Predict2 derivatives.",
-    }
+    metadata = compose_output_metadata(
+        base_metadata,
+        {
+            "anima_model_editor": "2.0-tab1",
+            "merge_type": "model_difference_to_lora",
+            "base_sha256": sha256_file(base_path),
+            "target_sha256": sha256_file(target_path),
+            "rank": str(rank),
+            "license_guardrail": "NVIDIA Open Model License may apply to Cosmos-Predict2 derivatives.",
+        },
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     log(f"Saving extracted LoRA: {output_path}")
     save_state_dict(output_path, extracted, metadata)
@@ -655,8 +970,25 @@ def merge_models(
     other = load_state_dict(secondary_path, device)
     other_map = canonical_state_map(other)
 
+    base_num_blocks = count_dit_blocks_from_keys(base.keys())
+    secondary_num_blocks = count_dit_blocks_from_keys(other.keys())
+    base_metadata = read_model_metadata(base_path)
+    base_is_connector_v2 = detect_connector_v2_from_keys_and_metadata(base.keys(), base_metadata)
+    secondary_metadata = read_model_metadata(secondary_path)
+    secondary_is_connector_v2 = detect_connector_v2_from_keys_and_metadata(other.keys(), secondary_metadata)
+    base_variant = classify_anima_model_variant(base_num_blocks, base_is_connector_v2)
+    secondary_variant = classify_anima_model_variant(secondary_num_blocks, secondary_is_connector_v2)
+    verify_anima_variant_pair_if_applicable(base_variant, secondary_variant)
+    if base_variant != "unknown" or secondary_variant != "unknown":
+        log(f"Detected variants: base={base_variant}, secondary={secondary_variant}")
+
     report = MergeReport(output_path=output_path)
-    compatibility_warnings = validate_compatible(base, other, other_map)
+    compatibility_warnings = validate_compatible(
+        base,
+        other,
+        other_map,
+        is_expected_gap=lambda key: is_known_anima_architecture_gap(key, secondary_num_blocks),
+    )
     report.warnings.extend(compatibility_warnings[:100])
     remapped_count = sum(1 for key in base if key not in other and canonical_key(key) in other_map)
     if remapped_count:
@@ -666,7 +998,7 @@ def merge_models(
     _merge_targets = [
         key for key, base_tensor in base.items()
         if is_merge_target(key)
-        and not should_freeze_bias(key, options)
+        and not should_freeze_bias(key, options, base_num_blocks)
         and hasattr(base_tensor, "detach")
         and hasattr(base_tensor, "is_floating_point")
         and base_tensor.is_floating_point()
@@ -687,7 +1019,7 @@ def merge_models(
         if (
             other_tensor is None
             or not is_merge_target(key)
-            or should_freeze_bias(key, options)
+            or should_freeze_bias(key, options, base_num_blocks)
             or getattr(base_tensor, "shape", None) != getattr(other_tensor, "shape", None)
             or not hasattr(base_tensor, "detach")
             or not hasattr(base_tensor, "is_floating_point")
@@ -700,7 +1032,7 @@ def merge_models(
             continue
 
         _merge_index += 1
-        alpha, corrected = corrected_alpha(torch, key, base_tensor, other_tensor, options)
+        alpha, corrected = corrected_alpha(torch, key, base_tensor, other_tensor, options, base_num_blocks)
         base_d = base_tensor.detach().to(device)
         other_d = other_tensor.detach().to(device)
         merged_tensor = base_d * (1.0 - alpha) + other_d * alpha
@@ -723,13 +1055,16 @@ def merge_models(
         log("Running dry-run tensor validation")
         dry_run_check(torch, merged)
 
-    metadata = {
-        "anima_model_editor": "2.0-tab1",
-        "merge_type": "model_to_model",
-        "base_sha256": sha256_file(base_path),
-        "secondary_sha256": sha256_file(secondary_path),
-        "license_guardrail": "NVIDIA Open Model License may apply to Cosmos-Predict2 derivatives.",
-    }
+    metadata = compose_output_metadata(
+        base_metadata,
+        {
+            "anima_model_editor": "2.0-tab1",
+            "merge_type": "model_to_model",
+            "base_sha256": sha256_file(base_path),
+            "secondary_sha256": sha256_file(secondary_path),
+            "license_guardrail": "NVIDIA Open Model License may apply to Cosmos-Predict2 derivatives.",
+        },
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     log(f"Saving merged model: {output_path}")
     save_state_dict(output_path, merged, metadata)
@@ -761,6 +1096,8 @@ def fuse_lora_into_model(
     base = load_state_dict(base_path, device)
     log(f"Loading LoRA: {lora_path.name}")
     lora = load_state_dict(lora_path, device)
+    base_num_blocks = count_dit_blocks_from_keys(base.keys())
+    base_metadata = read_model_metadata(base_path)
 
     report = MergeReport(output_path=output_path)
     _fuse_key_corrected = sum(
@@ -815,14 +1152,16 @@ def fuse_lora_into_model(
             continue
 
         if (
-            should_freeze_bias(base_key, options)
+            should_freeze_bias(base_key, options, base_num_blocks)
             or not is_merge_target(base_key)
             or not hasattr(target, "is_floating_point")
             or not target.is_floating_point()
         ):
             report.skipped_tensors += 1
             continue
-        merged[target_key] = (target.detach().to("cpu") + delta * layer_alpha(target_key, options)).to(dtype=target.dtype)
+        merged[target_key] = (
+            target.detach().to("cpu") + delta * layer_alpha(target_key, options, base_num_blocks)
+        ).to(dtype=target.dtype)
         used.add(key)
         used.add(down_key)
         report.total_tensors += 1
@@ -841,13 +1180,16 @@ def fuse_lora_into_model(
         log("Running dry-run tensor validation")
         dry_run_check(torch, merged)
 
-    metadata = {
-        "anima_model_editor": "2.0-tab1",
-        "merge_type": "lora_to_model",
-        "base_sha256": sha256_file(base_path),
-        "lora_sha256": sha256_file(lora_path),
-        "license_guardrail": "NVIDIA Open Model License may apply to Cosmos-Predict2 derivatives.",
-    }
+    metadata = compose_output_metadata(
+        base_metadata,
+        {
+            "anima_model_editor": "2.0-tab1",
+            "merge_type": "lora_to_model",
+            "base_sha256": sha256_file(base_path),
+            "lora_sha256": sha256_file(lora_path),
+            "license_guardrail": "NVIDIA Open Model License may apply to Cosmos-Predict2 derivatives.",
+        },
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     log(f"Saving fused model: {output_path}")
     save_state_dict(output_path, merged, metadata)
