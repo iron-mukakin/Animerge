@@ -1,0 +1,29 @@
+2026-09-09 11:04:29 [Rescan Folders]
+  Checkpoints: 9
+  LoRA files : 2
+
+2026-09-09 11:05:12 [Load Base Structure]
+  Layers: 685
+
+2026-09-09 11:05:25 [本体マージ開始]
+  Model A : E:/Animerge/checkpoints/anima-base-v1.0.safetensors
+  Model B : E:\Animerge\checkpoints\Anima-3.8B-v1.1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-09-09 11:12:13 [本体マージ開始]
+  Model A : E:/Animerge/checkpoints/Anima-3.8B-v1.1.safetensors
+  Model B : E:/Animerge/checkpoints/anima-base-v1.0.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model_38b.safetensors
+2026-09-09 11:27:29 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-09 19:07:45 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+

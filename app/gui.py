@@ -14,6 +14,7 @@ from .i18n import gettext, load_language
 from .merge import (
     adjustment_group,
     describe_anima_model_variant_from_path,
+    describe_lora_block_count_from_path,
     extract_lora_difference,
     fuse_lora_into_model,
     is_merge_target,
@@ -374,12 +375,21 @@ class AnimaModelEditor(tk.Tk):
         self.lora_combo = self._model_file_row(
             tab, 1, "lora_label", self.lora_var, self.paths.lora
         )
-        self._output_controls(tab, 2)
+        _detect_row_lf = ttk.Frame(tab)
+        _detect_row_lf.grid(row=2, column=1, sticky=tk.W, pady=(0, 6))
+        ttk.Button(
+            _detect_row_lf,
+            text=gettext("merge_detect_button"),
+            command=self._on_detect_lora_fuse_clicked,
+        ).pack(side=tk.LEFT)
+        self.lora_fuse_detect_result_var = tk.StringVar(value="")
+        ttk.Label(_detect_row_lf, textvariable=self.lora_fuse_detect_result_var).pack(side=tk.LEFT, padx=(8, 0))
+        self._output_controls(tab, 3)
         _bf_lf = ttk.Frame(tab)
-        _bf_lf.grid(row=3, column=1, sticky=tk.E, pady=12)
+        _bf_lf.grid(row=4, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_lf, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_lf, text=gettext("run_lora_fuse"), style="Run.TButton", command=self.start_lora_fuse).pack(side=tk.LEFT)
-        self._run_log_row(tab, 4, "lora_fuse")
+        self._run_log_row(tab, 5, "lora_fuse")
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_merge_tab(self, notebook: ttk.Notebook) -> None:
@@ -391,12 +401,21 @@ class AnimaModelEditor(tk.Tk):
         self.secondary_lora_combo = self._model_file_row(
             tab, 1, "secondary_lora", self.secondary_lora_var, self.paths.lora
         )
-        self._output_controls(tab, 2)
+        _detect_row_lm = ttk.Frame(tab)
+        _detect_row_lm.grid(row=2, column=1, sticky=tk.W, pady=(0, 6))
+        ttk.Button(
+            _detect_row_lm,
+            text=gettext("merge_detect_button"),
+            command=self._on_detect_lora_merge_clicked,
+        ).pack(side=tk.LEFT)
+        self.lora_merge_detect_result_var = tk.StringVar(value="")
+        ttk.Label(_detect_row_lm, textvariable=self.lora_merge_detect_result_var).pack(side=tk.LEFT, padx=(8, 0))
+        self._output_controls(tab, 3)
         _bf_lm = ttk.Frame(tab)
-        _bf_lm.grid(row=3, column=1, sticky=tk.E, pady=12)
+        _bf_lm.grid(row=4, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_lm, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_lm, text=gettext("run_lora_merge"), style="Run.TButton", command=self.start_lora_merge).pack(side=tk.LEFT)
-        self._run_log_row(tab, 4, "lora_merge")
+        self._run_log_row(tab, 5, "lora_merge")
         tab.columnconfigure(1, weight=1)
 
     def _build_lora_extract_tab(self, notebook: ttk.Notebook) -> None:
@@ -574,11 +593,16 @@ class AnimaModelEditor(tk.Tk):
         ctrl = ttk.LabelFrame(parent, text=gettext("analysis_controls"))
         ctrl.pack(fill=tk.X, padx=0, pady=(0, 6))
 
-        # row0: Device ラベル + モード表示 + Rescan + アンロード（左寄せ）
-        _mode_text = gettext("gpu_mode") if self._mode == "cuda" else gettext("cpu_mode")
-        _mode_fg = "#22C55E" if self._mode == "cuda" else "#64748B"
+        # row0: Device ラベル + デバイス選択(CPU/GPU切替) + Rescan + アンロード（左寄せ）
         ttk.Label(ctrl, text=gettext("device_label")).grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
-        ttk.Label(ctrl, text=_mode_text, foreground=_mode_fg, font=("TkDefaultFont", 10, "bold")).grid(row=0, column=1, padx=4, pady=6, sticky=tk.W)
+        self.analysis_device_combo = ttk.Combobox(
+            ctrl,
+            textvariable=self.device_var,
+            values=["cpu", "cuda"],
+            state="readonly",
+            width=8,
+        )
+        self.analysis_device_combo.grid(row=0, column=1, padx=4, pady=6, sticky=tk.W)
         ttk.Button(ctrl, text=gettext("rescan_folders"), command=self.refresh_files).grid(row=0, column=2, padx=8, pady=6, sticky=tk.W)
         ttk.Button(ctrl, text=gettext("unload_models"), command=self.unload_models).grid(row=0, column=3, padx=8, pady=6, sticky=tk.W)
 
@@ -1355,6 +1379,49 @@ class AnimaModelEditor(tk.Tk):
                     secondary_variant=secondary_variant,
                 ),
             )
+
+    def _on_detect_lora_fuse_clicked(self) -> None:
+        """LoRAフューズタブの「モデルを検出」ボタン: 本体モデルとLoRAをヘッダのみで判定し表示する。"""
+        base_text = self.base_model_var.get()
+        lora_text = self.lora_var.get()
+        if not base_text or not lora_text:
+            self.lora_fuse_detect_result_var.set(gettext("merge_detect_result_missing_path"))
+            return
+        try:
+            base_variant, base_num_blocks, _base_v2 = describe_anima_model_variant_from_path(Path(base_text))
+            lora_num_blocks = describe_lora_block_count_from_path(Path(lora_text))
+        except (DependencyError, FileNotFoundError, ValueError) as exc:
+            self.lora_fuse_detect_result_var.set(gettext("merge_detect_result_error", error=str(exc)))
+            return
+        self.lora_fuse_detect_result_var.set(
+            gettext(
+                "lora_fuse_detect_result_pair",
+                base_variant=base_variant,
+                base_blocks=base_num_blocks if base_num_blocks is not None else "?",
+                lora_blocks=lora_num_blocks if lora_num_blocks is not None else "?",
+            )
+        )
+
+    def _on_detect_lora_merge_clicked(self) -> None:
+        """LoRAマージタブの「モデルを検出」ボタン: Base/Secondary LoRAをヘッダのみで判定し表示する。"""
+        base_text = self.lora_var.get()
+        secondary_text = self.secondary_lora_var.get()
+        if not base_text or not secondary_text:
+            self.lora_merge_detect_result_var.set(gettext("merge_detect_result_missing_path"))
+            return
+        try:
+            base_blocks = describe_lora_block_count_from_path(Path(base_text))
+            secondary_blocks = describe_lora_block_count_from_path(Path(secondary_text))
+        except (DependencyError, FileNotFoundError, ValueError) as exc:
+            self.lora_merge_detect_result_var.set(gettext("merge_detect_result_error", error=str(exc)))
+            return
+        self.lora_merge_detect_result_var.set(
+            gettext(
+                "lora_merge_detect_result_pair",
+                base_blocks=base_blocks if base_blocks is not None else "?",
+                secondary_blocks=secondary_blocks if secondary_blocks is not None else "?",
+            )
+        )
 
     def start_model_merge(self) -> None:
         self._merge_stop_event.clear()

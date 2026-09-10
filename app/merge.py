@@ -8,6 +8,11 @@ from pathlib import Path
 from typing import Callable, Iterable, Optional
 
 from .config import MergeOptions
+from .anima_block_manifests import (
+    block_correspondence_map,
+    inserted_block_positions,
+    is_expansion_pair_official,
+)
 from .model_io import (
     DependencyError,
     load_state_dict,
@@ -304,6 +309,269 @@ def describe_anima_model_variant_from_path(path: Path) -> tuple[str, Optional[in
     return variant, num_blocks, is_connector_v2
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Layer 2: Architecture-aware block mapping
+#
+# AnimaBase v1.0(28block)とAnima 3.8B(52block)は、28->40(Anima 2.9B)->52の
+# 2段階のLLaMA-Pro方式block挿入で拡張されている。挿入位置の前後でblock
+# indexがズレるため、「base.blocks.N と secondary.blocks.N は同一index」
+# という前提(canonical_key一致・shape一致のみによる対応付け)は誤りであり、
+# 意味的に無関係なblock同士をmergeしてモデルを破損させる恐れがある。
+# ここでは expand_manifest(anima_block_manifests.py、一次資料から検証済み)
+# に基づき、継承block同士を正しく対応付けるためのmapping層を提供する。
+# ──────────────────────────────────────────────────────────────────────
+
+_BLOCK_KEY_REWRITE_PATTERN = re.compile(r"(\.blocks\.)(\d+)(\.)")
+
+
+@dataclass(frozen=True)
+class BlockMapping:
+    """1つのoutput block位置に対する、Base/Secondary側の対応block index。
+
+    kindは以下のいずれか:
+        "native": Base/Secondary双方に、expand_manifestのbase_to_target対応に
+            基づく継承blockが存在する。
+        "inserted_no_counterpart": より小さいblock数側のモデルには存在しない、
+            アーキテクチャ拡張で新規挿入されたblock位置。
+    """
+
+    output_block: int
+    base_block: Optional[int]
+    secondary_block: Optional[int]
+    kind: str
+
+
+def extract_block_index_from_key(key: str) -> Optional[int]:
+    """テンソルキーから`.blocks.N.`のNを抽出する。
+
+    llm_adapter配下のキーは、将来的にAnima派生モデルが独自のblock構造
+    (メインのnet.blocksとは別物)を持つケースに備えた防御的除外として
+    対象外にする(anima_common.pyの`_is_llm_adapter_key`と同じ方針)。
+    `.blocks.N.`パターンを含まないキー(connector, embedder等)もNoneを返す。
+
+    Args:
+        key: テンソルキー文字列。
+
+    Returns:
+        block index。抽出できなければNone。
+    """
+    if "llm_adapter" in key.lower():
+        return None
+    match = _BLOCK_KEY_REWRITE_PATTERN.search(key)
+    if not match:
+        return None
+    return int(match.group(2))
+
+
+def rewrite_block_index_in_key(key: str, new_index: int) -> Optional[str]:
+    """テンソルキー内の`.blocks.N.`のNをnew_indexに書き換えたキーを返す。
+
+    extract_block_index_from_key()と同じ除外規則に従う(llm_adapter配下、
+    `.blocks.N.`パターン非該当はNone)。
+
+    Args:
+        key: 元のテンソルキー文字列。
+        new_index: 書き換え後のblock index。
+
+    Returns:
+        書き換え後のキー文字列。書き換え対象でなければNone。
+    """
+    if "llm_adapter" in key.lower():
+        return None
+    match = _BLOCK_KEY_REWRITE_PATTERN.search(key)
+    if not match:
+        return None
+    return key[: match.start()] + match.group(1) + str(new_index) + match.group(3) + key[match.end():]
+
+
+def build_block_mappings(base_num_blocks: int, secondary_num_blocks: int) -> tuple[list[BlockMapping], int]:
+    """Base/Secondaryのブロック総数から、architecture-awareなBlockMapping一覧を構築する。
+
+    出力architectureは常により大きいblock数側に合わせる(28+52なら52、
+    52+28なら52。同数の場合はこの関数を呼ぶ必要が無い、呼び出し側で
+    同一architecture用の既存経路を使うこと)。expand_manifestに存在しない
+    未知の組み合わせの場合は、推測でマージせずUnverifiedModelPairErrorを
+    送出して停止する。
+
+    Args:
+        base_num_blocks: Base側のブロック総数。
+        secondary_num_blocks: Secondary側のブロック総数(base_num_blocksと
+            異なる前提)。
+
+    Returns:
+        (mappings, output_num_blocks) のタプル。mappingsはoutput_block
+        昇順に output_num_blocks 件並ぶ。
+
+    Raises:
+        UnverifiedModelPairError: 対応するexpand_manifestが存在しない場合。
+    """
+    smaller_num_blocks = min(base_num_blocks, secondary_num_blocks)
+    larger_num_blocks = max(base_num_blocks, secondary_num_blocks)
+    correspondence = block_correspondence_map(smaller_num_blocks, larger_num_blocks)
+    inserted = inserted_block_positions(smaller_num_blocks, larger_num_blocks)
+    if correspondence is None or inserted is None:
+        raise UnverifiedModelPairError(
+            "未検証のblock数の組み合わせのためマージを中断しました "
+            f"({smaller_num_blocks}block <-> {larger_num_blocks}block)。"
+            "既知のexpand_manifest(28<->40<->52)が存在する組み合わせのみ"
+            "サポートします。"
+        )
+
+    base_is_larger = base_num_blocks == larger_num_blocks
+    inverse_correspondence = {large_idx: small_idx for small_idx, large_idx in correspondence.items()}
+
+    mappings: list[BlockMapping] = []
+    for output_idx in range(larger_num_blocks):
+        if output_idx in inserted:
+            mappings.append(
+                BlockMapping(
+                    output_block=output_idx,
+                    base_block=output_idx if base_is_larger else None,
+                    secondary_block=None if base_is_larger else output_idx,
+                    kind="inserted_no_counterpart",
+                )
+            )
+        else:
+            small_idx = inverse_correspondence[output_idx]
+            mappings.append(
+                BlockMapping(
+                    output_block=output_idx,
+                    base_block=output_idx if base_is_larger else small_idx,
+                    secondary_block=small_idx if base_is_larger else output_idx,
+                    kind="native",
+                )
+            )
+    return mappings, larger_num_blocks
+
+
+def build_cross_architecture_merge_plan(
+    base: dict[str, object],
+    secondary: dict[str, object],
+    base_num_blocks: int,
+    secondary_num_blocks: int,
+) -> tuple[list[tuple[str, object, object, str]], list[BlockMapping], int]:
+    """異なるblock数のBase/Secondary間で、architecture-awareなマージ計画を構築する。
+
+    block構造を持つキー(`.blocks.N.`)はBlockMapping(expand_manifest由来)に
+    従って対応付ける。block構造を持たないキー(final_layer/t_embedder/
+    x_embedder/llm_adapter/anima_v2_connector等)は、世代拡張の対象外の
+    共通コンポーネントであるため、shapeやblock indexとは無関係に
+    canonical_keyの一致でのみ対応付ける(従来通りの挙動)。
+
+    出力のキー集合は、より大きいblock数側(output architecture側)の
+    キー集合と一致する(小さい側だけが持つキーは出力に含まれない)。
+
+    Args:
+        base: Baseモデルのstate_dict。
+        secondary: Secondaryモデルのstate_dict。
+        base_num_blocks: Base側のブロック総数。
+        secondary_num_blocks: Secondary側のブロック総数(base_num_blocksと
+            異なる前提)。
+
+    Returns:
+        (plan, mappings, output_num_blocks) のタプル。
+        planは(output_key_source, base_side_tensor_or_None,
+        secondary_side_tensor_or_None, kind)のリストで、出力architecture側の
+        全キーを1件ずつ含む。output_key_sourceはoutput_key_name()適用前の
+        生キー。kindは "native"(block対応あり、通常のalphaブレンド対象) /
+        "native_missing_in_secondary"(block位置は対応するはずだが実際の
+        キーが見つからない) / "inserted_no_counterpart"(拡張で新規挿入
+        されたblock、片側の値をそのまま使う) / "non_block_matched"
+        (block構造を持たないキーで両側に対応物あり、通常のalphaブレンド
+        対象) / "non_block_unmatched"(block構造を持たないキーで片側にしか
+        存在しない、そのまま保持)のいずれか。
+
+    Raises:
+        UnverifiedModelPairError: 対応するexpand_manifestが存在しない場合。
+    """
+    mappings, output_num_blocks = build_block_mappings(base_num_blocks, secondary_num_blocks)
+    base_is_larger = base_num_blocks == output_num_blocks
+    larger = base if base_is_larger else secondary
+    smaller = secondary if base_is_larger else base
+
+    output_to_smaller_block = {
+        m.output_block: (m.secondary_block if base_is_larger else m.base_block)
+        for m in mappings
+        if m.kind == "native"
+    }
+    inserted_output_blocks = {m.output_block for m in mappings if m.kind == "inserted_no_counterpart"}
+    smaller_canonical_map = canonical_state_map(smaller)
+
+    plan: list[tuple[str, object, object, str]] = []
+    for larger_key, larger_tensor in larger.items():
+        block_idx = extract_block_index_from_key(larger_key)
+        if block_idx is None:
+            smaller_key = larger_key if larger_key in smaller else smaller_canonical_map.get(canonical_key(larger_key))
+            smaller_tensor = smaller.get(smaller_key) if smaller_key is not None else None
+            kind = "non_block_matched" if smaller_tensor is not None else "non_block_unmatched"
+        elif block_idx in inserted_output_blocks:
+            smaller_tensor = None
+            kind = "inserted_no_counterpart"
+        else:
+            smaller_block_idx = output_to_smaller_block.get(block_idx)
+            smaller_key = None
+            if smaller_block_idx is not None:
+                smaller_key = rewrite_block_index_in_key(larger_key, smaller_block_idx)
+                if smaller_key is not None and smaller_key not in smaller:
+                    smaller_key = smaller_canonical_map.get(canonical_key(smaller_key))
+            smaller_tensor = smaller.get(smaller_key) if smaller_key is not None else None
+            kind = "native" if smaller_tensor is not None else "native_missing_in_secondary"
+
+        if base_is_larger:
+            plan.append((larger_key, larger_tensor, smaller_tensor, kind))
+        else:
+            plan.append((larger_key, smaller_tensor, larger_tensor, kind))
+
+    return plan, mappings, output_num_blocks
+
+
+def format_block_mapping_log(mappings: list[BlockMapping]) -> list[str]:
+    """BlockMapping一覧を、ユーザー向けの人間可読なログ行(1block=1行)に整形する。
+
+    出力例:
+        output  0 <- base  0 / secondary  0
+        output  2 <- inserted (no counterpart)
+        output  3 <- base  3 / secondary  1
+
+    Args:
+        mappings: build_block_mappings()の戻り値。
+
+    Returns:
+        ログ行のリスト。
+    """
+    lines: list[str] = []
+    for mapping in mappings:
+        if mapping.kind == "inserted_no_counterpart":
+            lines.append(f"  output {mapping.output_block:2d} <- inserted (no counterpart)")
+        else:
+            lines.append(
+                f"  output {mapping.output_block:2d} <- base {mapping.base_block:2d} "
+                f"/ secondary {mapping.secondary_block:2d}"
+            )
+    return lines
+
+
+def validate_merged_architecture(merged: dict[str, object], expected_num_blocks: Optional[int]) -> None:
+    """マージ後の出力state_dictが期待するblock構成になっているか、保存前に検証する。
+
+    Args:
+        merged: マージ後のstate_dict。
+        expected_num_blocks: 期待されるブロック総数。Noneなら検証をスキップする
+            (Anima系と無関係な汎用マージの場合)。
+
+    Raises:
+        ValueError: 実際に検出されたブロック総数が期待値と一致しない場合。
+    """
+    if expected_num_blocks is None:
+        return
+    actual = count_dit_blocks_from_keys(merged.keys())
+    if actual != expected_num_blocks:
+        raise ValueError(
+            "マージ後のモデルのブロック総数が期待値と一致しないため、保存を中止しました "
+            f"(期待={expected_num_blocks}, 実際={actual})。"
+        )
+
+
 @dataclass
 class MergeReport:
     output_path: Path
@@ -583,6 +851,168 @@ def lora_down_key_for(up_key: str) -> str:
     return up_key
 
 
+# ──────────────────────────────────────────────────────────────────────
+# LoRAのblock index remapping(本体マージと同じexpand_manifestを再利用)
+#
+# LoRAキー(`blocks_N_`形式)が参照するblock indexは、そのLoRAが学習された
+# 時点のモデルのブロック総数に基づく。適用先モデルのブロック総数が異なる
+# 場合、merge_models()と同じexpand_manifest対応表を使って正しいblockへ
+# 変換する必要がある(単純な同一index対応では意味的に異なるblockへ
+# LoRAを適用してしまう)。
+# ──────────────────────────────────────────────────────────────────────
+
+_LORA_BLOCK_KEY_PATTERN = re.compile(r"(blocks_)(\d+)(_)")
+
+
+def count_lora_authoring_block_count(lora: dict[str, object]) -> Optional[int]:
+    """LoRAのstate_dictから、学習時点のモデルのブロック総数を推定する。
+
+    LoRAキー自体は`blocks_N_`(アンダースコア区切り)形式のため、
+    lora_target_candidates()が生成するdot区切り形式の代表キー
+    (`net.blocks.N.xxx.weight`)からblock indexを抽出する
+    (extract_block_index_from_key()を再利用)。
+
+    Args:
+        lora: LoRAのstate_dict。
+
+    Returns:
+        検出したブロック総数(最大index+1)。block構造を持つキーが
+        1件も無ければNone。
+    """
+    max_index: Optional[int] = None
+    for key in lora:
+        candidate = lora_target_candidates(key)[0]
+        index = extract_block_index_from_key(candidate)
+        if index is not None:
+            max_index = index if max_index is None else max(max_index, index)
+    return None if max_index is None else max_index + 1
+
+
+def remap_lora_block_index(
+    lora_own_index: int, lora_num_blocks: int, target_num_blocks: int
+) -> Optional[int]:
+    """LoRAが学習された時点のblock indexを、適用先のblock indexへ変換する。
+
+    lora_num_blocks < target_num_blocks(小さいblock数のモデルで学習した
+    LoRAをより大きいモデルへ適用する場合)は、expand_manifestの
+    base_to_target対応をそのまま使う。lora_num_blocks > target_num_blocks
+    (逆方向、より大きいモデルで学習したLoRAをより小さいモデルへ適用する
+    場合)は、対応表を逆引きする。本体マージ(merge_models)が双方向対応
+    である一貫性のため、LoRA側もこの逆方向を明示的にサポートする。
+
+    Args:
+        lora_own_index: LoRAのキーに書かれているblock index(学習時の
+            block空間でのindex)。
+        lora_num_blocks: LoRAが学習された時点のモデルのブロック総数。
+        target_num_blocks: 適用先モデルのブロック総数。
+
+    Returns:
+        適用先モデルでのblock index。適用先に対応物が無い場合
+        (逆方向remapで、lora_own_indexが拡張により新規挿入された
+        block由来の場合)はNone。
+
+    Raises:
+        UnverifiedModelPairError: lora_num_blocksとtarget_num_blocksの
+            組み合わせに対応するexpand_manifestが存在しない場合。
+    """
+    if lora_num_blocks == target_num_blocks:
+        return lora_own_index
+
+    smaller_n, larger_n = sorted((lora_num_blocks, target_num_blocks))
+    correspondence = block_correspondence_map(smaller_n, larger_n)
+    inserted = inserted_block_positions(smaller_n, larger_n)
+    if correspondence is None or inserted is None:
+        raise UnverifiedModelPairError(
+            "未検証のblock数の組み合わせのためLoRAのblock remapを中断しました "
+            f"(LoRA学習時={lora_num_blocks}block, 適用先={target_num_blocks}block)。"
+        )
+
+    if lora_num_blocks < target_num_blocks:
+        # 小(LoRA学習時) -> 大(適用先): 順方向の対応表をそのまま使う。
+        return correspondence.get(lora_own_index)
+
+    # 大(LoRA学習時) -> 小(適用先): 対応表を逆引きする。lora_own_indexが
+    # 挿入block(小さい側に対応物が無い)ならNone。
+    if lora_own_index in inserted:
+        return None
+    inverse = {large_idx: small_idx for small_idx, large_idx in correspondence.items()}
+    return inverse.get(lora_own_index)
+
+
+def describe_lora_block_count_from_path(path: Path) -> Optional[int]:
+    """LoRAファイルのヘッダのみを読み取り、学習時点のブロック総数を推定する。
+
+    テンソル本体は読み込まない(safetensorsのヘッダのキー一覧のみ走査)。
+    GUI側の「モデルを検出」ボタンなど、フルロード前の軽量な事前確認に
+    用いる。ckpt/bin形式はヘッダのみでの判定に対応していないため、
+    この関数はsafetensors形式のみを対象とする。
+
+    LoRAファイルは本体モデルと異なり"Anima 3.8B v1.0/v1.1"のような
+    バリアント区分を持たない(内蔵adapterの有無等はLoRA自体には無関係)
+    ため、describe_anima_model_variant_from_path()とは違い、返すのは
+    ブロック総数のみ。
+
+    Args:
+        path: LoRAファイルへのパス。
+
+    Returns:
+        検出したブロック総数(最大index+1)。safetensors以外の拡張子、
+        またはblock構造を持つキーを検出できない場合はNone。
+
+    Raises:
+        FileNotFoundError: pathが存在しない場合。
+        DependencyError: safetensorsパッケージが無い場合。
+    """
+    validate_model_path(path)
+    if path.suffix.lower() != ".safetensors":
+        return None
+
+    import importlib.util
+
+    if importlib.util.find_spec("safetensors") is None:
+        raise DependencyError("safetensors is required to inspect .safetensors files.")
+    from safetensors import safe_open
+
+    with safe_open(str(path), framework="pt") as handle:
+        keys = list(handle.keys())
+
+    return count_lora_authoring_block_count(keys)
+
+
+def remap_lora_key_block_index(
+    key: str, lora_num_blocks: Optional[int], target_num_blocks: Optional[int]
+) -> Optional[str]:
+    """LoRAキー内のblock indexを、学習時->適用先のblock空間へ変換する。
+
+    lora_num_blocks/target_num_blocksのいずれかが不明、または両者が
+    一致する場合はkeyをそのまま返す(remap不要)。block構造を持たない
+    キー(将来的な非block系LoRA、または解析できないキー)もそのまま返す。
+
+    Args:
+        key: 元のLoRAキー(`blocks_N_`形式のアンダースコア区切りを想定)。
+        lora_num_blocks: LoRAが学習された時点のブロック総数。
+        target_num_blocks: 適用先のブロック総数。
+
+    Returns:
+        block indexを書き換えた後のキー。remap不要ならkeyそのまま。
+        適用先に対応物が無ければNone(呼び出し側はこのLoRA layerの
+        適用をスキップすること)。
+
+    Raises:
+        UnverifiedModelPairError: 未検証のblock数の組み合わせの場合。
+    """
+    if lora_num_blocks is None or target_num_blocks is None or lora_num_blocks == target_num_blocks:
+        return key
+    match = _LORA_BLOCK_KEY_PATTERN.search(key)
+    if not match:
+        return key
+    lora_own_index = int(match.group(2))
+    new_index = remap_lora_block_index(lora_own_index, lora_num_blocks, target_num_blocks)
+    if new_index is None:
+        return None
+    return key[: match.start()] + match.group(1) + str(new_index) + match.group(3) + key[match.end():]
+
+
 def layer_alpha(name: str, options: MergeOptions, num_blocks: Optional[int] = None) -> float:
     if name in options.layer_overrides:
         return max(0.0, min(1.0, options.alpha * options.layer_overrides[name]))
@@ -727,9 +1157,49 @@ def merge_loras(
     base = load_state_dict(base_lora_path, device)
     log(f"Loading secondary LoRA: {secondary_lora_path.name}")
     other = load_state_dict(secondary_lora_path, device)
-    other_map = canonical_lora_state_map(other)
 
     report = MergeReport(output_path=output_path)
+
+    base_lora_num_blocks = count_lora_authoring_block_count(base)
+    secondary_lora_num_blocks = count_lora_authoring_block_count(other)
+    if (
+        base_lora_num_blocks is not None
+        and secondary_lora_num_blocks is not None
+        and base_lora_num_blocks != secondary_lora_num_blocks
+    ):
+        output_lora_num_blocks = max(base_lora_num_blocks, secondary_lora_num_blocks)
+        base_is_output_source = base_lora_num_blocks == output_lora_num_blocks
+        log(
+            "Cross block-count LoRA merge detected: "
+            f"base={base_lora_num_blocks}block, secondary={secondary_lora_num_blocks}block, "
+            f"output={output_lora_num_blocks}block"
+        )
+        _lora_no_counterpart = 0
+        if base_is_output_source:
+            remapped_other: dict[str, object] = {}
+            for key, tensor in other.items():
+                remapped_key = remap_lora_key_block_index(key, secondary_lora_num_blocks, base_lora_num_blocks)
+                if remapped_key is None:
+                    _lora_no_counterpart += 1
+                    continue
+                remapped_other[remapped_key] = tensor
+            other = remapped_other
+        else:
+            remapped_base: dict[str, object] = {}
+            for key, tensor in base.items():
+                remapped_key = remap_lora_key_block_index(key, base_lora_num_blocks, secondary_lora_num_blocks)
+                if remapped_key is None:
+                    _lora_no_counterpart += 1
+                    continue
+                remapped_base[remapped_key] = tensor
+            base = remapped_base
+        if _lora_no_counterpart:
+            report.warnings.append(
+                f"{_lora_no_counterpart} LoRA tensor(s) skipped: no counterpart at the "
+                "output architecture (block introduced by architecture expansion)."
+            )
+
+    other_map = canonical_lora_state_map(other)
     remapped_count = sum(1 for key in base if key not in other and canonical_lora_key(key) in other_map)
     if remapped_count:
         log(f"LoRA key remap enabled: {remapped_count} tensor key(s)")
@@ -983,67 +1453,192 @@ def merge_models(
         log(f"Detected variants: base={base_variant}, secondary={secondary_variant}")
 
     report = MergeReport(output_path=output_path)
-    compatibility_warnings = validate_compatible(
-        base,
-        other,
-        other_map,
-        is_expected_gap=lambda key: is_known_anima_architecture_gap(key, secondary_num_blocks),
+
+    # block数が一致しない場合(かつ双方がAnima系と判定できる場合)のみ、
+    # architecture-aware なblock mapping経路へ分岐する。片方でもblock数が
+    # 未検出(非Anima系汎用モデル)、または双方のblock数が一致する場合は、
+    # 既存のcanonical_key直接比較経路(変更なし)を使う。
+    same_architecture = (
+        base_num_blocks is None
+        or secondary_num_blocks is None
+        or base_num_blocks == secondary_num_blocks
     )
-    report.warnings.extend(compatibility_warnings[:100])
-    remapped_count = sum(1 for key in base if key not in other and canonical_key(key) in other_map)
-    if remapped_count:
-        log(f"Key prefix remap enabled: {remapped_count} tensor key(s)")
 
-    # 実マージ対象数を事前カウント（ログ分母を実態に合わせる）
-    _merge_targets = [
-        key for key, base_tensor in base.items()
-        if is_merge_target(key)
-        and not should_freeze_bias(key, options, base_num_blocks)
-        and hasattr(base_tensor, "detach")
-        and hasattr(base_tensor, "is_floating_point")
-        and base_tensor.is_floating_point()
-    ]
-    _total_merge = len(_merge_targets)
-    log(f"Merge target layers: {_total_merge} / total keys: {len(base)}")
+    if same_architecture:
+        # ── 既存の同一architecture間マージ経路(ロジック変更なし) ──
+        compatibility_warnings = validate_compatible(
+            base,
+            other,
+            other_map,
+            is_expected_gap=lambda key: is_known_anima_architecture_gap(key, secondary_num_blocks),
+        )
+        report.warnings.extend(compatibility_warnings[:100])
+        remapped_count = sum(1 for key in base if key not in other and canonical_key(key) in other_map)
+        if remapped_count:
+            log(f"Key prefix remap enabled: {remapped_count} tensor key(s)")
 
-    merged: dict[str, object] = {}
-    _merge_index = 0
-    _key_corrected_count = 0
-    for key, base_tensor in base.items():
-        report.total_tensors += 1
-        out_key = output_key_name(key, options)
-        if out_key != key:
-            _key_corrected_count += 1
-        other_key = key if key in other else other_map.get(canonical_key(key))
-        other_tensor = other.get(other_key) if other_key is not None else None
-        if (
-            other_tensor is None
-            or not is_merge_target(key)
-            or should_freeze_bias(key, options, base_num_blocks)
-            or getattr(base_tensor, "shape", None) != getattr(other_tensor, "shape", None)
-            or not hasattr(base_tensor, "detach")
-            or not hasattr(base_tensor, "is_floating_point")
-            or not base_tensor.is_floating_point()
-            or not hasattr(other_tensor, "is_floating_point")
-            or not other_tensor.is_floating_point()
-        ):
-            merged[out_key] = base_tensor.detach().to("cpu") if hasattr(base_tensor, "detach") else base_tensor
-            report.skipped_tensors += 1
-            continue
+        _merge_targets = [
+            key for key, base_tensor in base.items()
+            if is_merge_target(key)
+            and not should_freeze_bias(key, options, base_num_blocks)
+            and hasattr(base_tensor, "detach")
+            and hasattr(base_tensor, "is_floating_point")
+            and base_tensor.is_floating_point()
+        ]
+        _total_merge = len(_merge_targets)
+        log(f"Merge target layers: {_total_merge} / total keys: {len(base)}")
 
-        _merge_index += 1
-        alpha, corrected = corrected_alpha(torch, key, base_tensor, other_tensor, options, base_num_blocks)
-        base_d = base_tensor.detach().to(device)
-        other_d = other_tensor.detach().to(device)
-        merged_tensor = base_d * (1.0 - alpha) + other_d * alpha
-        merged[out_key] = merged_tensor.to(dtype=base_d.dtype).cpu()
-        report.merged_tensors += 1
-        if corrected:
-            report.auto_corrected_tensors += 1
-        if _merge_index % 100 == 0:
-            log(f"Merged tensors: {_merge_index}/{_total_merge}")
-    if _key_corrected_count:
-        log(f"Key normalization applied (anima-base-v1.0): {_key_corrected_count} key(s) renamed")
+        merged: dict[str, object] = {}
+        _merge_index = 0
+        _key_corrected_count = 0
+        for key, base_tensor in base.items():
+            report.total_tensors += 1
+            out_key = output_key_name(key, options)
+            if out_key != key:
+                _key_corrected_count += 1
+            other_key = key if key in other else other_map.get(canonical_key(key))
+            other_tensor = other.get(other_key) if other_key is not None else None
+            if (
+                other_tensor is None
+                or not is_merge_target(key)
+                or should_freeze_bias(key, options, base_num_blocks)
+                or getattr(base_tensor, "shape", None) != getattr(other_tensor, "shape", None)
+                or not hasattr(base_tensor, "detach")
+                or not hasattr(base_tensor, "is_floating_point")
+                or not base_tensor.is_floating_point()
+                or not hasattr(other_tensor, "is_floating_point")
+                or not other_tensor.is_floating_point()
+            ):
+                merged[out_key] = base_tensor.detach().to("cpu") if hasattr(base_tensor, "detach") else base_tensor
+                report.skipped_tensors += 1
+                continue
+
+            _merge_index += 1
+            alpha, corrected = corrected_alpha(torch, key, base_tensor, other_tensor, options, base_num_blocks)
+            base_d = base_tensor.detach().to(device)
+            other_d = other_tensor.detach().to(device)
+            merged_tensor = base_d * (1.0 - alpha) + other_d * alpha
+            merged[out_key] = merged_tensor.to(dtype=base_d.dtype).cpu()
+            report.merged_tensors += 1
+            if corrected:
+                report.auto_corrected_tensors += 1
+            if _merge_index % 100 == 0:
+                log(f"Merged tensors: {_merge_index}/{_total_merge}")
+        if _key_corrected_count:
+            log(f"Key normalization applied (anima-base-v1.0): {_key_corrected_count} key(s) renamed")
+
+        output_num_blocks_for_validation = base_num_blocks
+        metadata_source = base_metadata
+    else:
+        # ── 新規: architecture-aware block mapping による cross-architecture 経路 ──
+        log(
+            f"Cross-architecture merge detected: base={base_num_blocks}block, "
+            f"secondary={secondary_num_blocks}block"
+        )
+        plan, block_mappings, output_num_blocks = build_cross_architecture_merge_plan(
+            base, other, base_num_blocks, secondary_num_blocks
+        )
+        base_is_output_source = base_num_blocks == output_num_blocks
+        log(
+            f"Output architecture: {output_num_blocks}block "
+            f"({'base' if base_is_output_source else 'secondary'} side)"
+        )
+        smaller_n, larger_n = sorted((base_num_blocks, secondary_num_blocks))
+        if is_expansion_pair_official(smaller_n, larger_n) is False:
+            log(
+                "WARNING: the block-count expansion mapping used for this merge "
+                f"({smaller_n}->{larger_n}) is UNOFFICIAL (reconstructed via "
+                "cosine-similarity comparison, not a published manifest). "
+                "Review the block mapping log below carefully."
+            )
+        log("Block mapping:")
+        for line in format_block_mapping_log(block_mappings):
+            log(line)
+
+        native_count = sum(1 for m in block_mappings if m.kind == "native")
+        inserted_count = sum(1 for m in block_mappings if m.kind == "inserted_no_counterpart")
+        non_block_matched_count = sum(1 for _k, _b, _s, kind in plan if kind == "non_block_matched")
+        non_block_unmatched_count = sum(1 for _k, _b, _s, kind in plan if kind == "non_block_unmatched")
+        native_missing_count = sum(1 for _k, _b, _s, kind in plan if kind == "native_missing_in_secondary")
+        log(
+            "Architecture-aware key correspondence: "
+            f"native block pairs={native_count}, inserted (no counterpart)={inserted_count}, "
+            f"non-block matched={non_block_matched_count}, "
+            f"non-block unmatched={non_block_unmatched_count}, "
+            f"native block pairs missing expected tensor={native_missing_count}"
+        )
+        if native_missing_count:
+            report.warnings.append(
+                f"{native_missing_count} tensor(s) expected at a mapped native block position "
+                "were not found in the smaller-architecture model (kept from the larger side only)."
+            )
+
+        _total_merge = sum(
+            1
+            for out_key, base_t, other_t, _kind in plan
+            if base_t is not None
+            and other_t is not None
+            and is_merge_target(out_key)
+            and not should_freeze_bias(out_key, options, output_num_blocks)
+            and hasattr(base_t, "detach")
+            and hasattr(base_t, "is_floating_point")
+            and base_t.is_floating_point()
+        )
+        log(f"Merge target layers: {_total_merge} / total keys: {len(plan)}")
+
+        merged = {}
+        _merge_index = 0
+        _key_corrected_count = 0
+        for out_key_raw, base_tensor, other_tensor, _plan_kind in plan:
+            report.total_tensors += 1
+            out_key = output_key_name(out_key_raw, options)
+            if out_key != out_key_raw:
+                _key_corrected_count += 1
+
+            if base_tensor is None and other_tensor is None:
+                report.skipped_tensors += 1
+                continue
+            if base_tensor is None:
+                merged[out_key] = (
+                    other_tensor.detach().to("cpu") if hasattr(other_tensor, "detach") else other_tensor
+                )
+                report.skipped_tensors += 1
+                continue
+
+            eligible = (
+                other_tensor is not None
+                and is_merge_target(out_key_raw)
+                and not should_freeze_bias(out_key_raw, options, output_num_blocks)
+                and getattr(base_tensor, "shape", None) == getattr(other_tensor, "shape", None)
+                and hasattr(base_tensor, "detach")
+                and hasattr(base_tensor, "is_floating_point")
+                and base_tensor.is_floating_point()
+                and hasattr(other_tensor, "is_floating_point")
+                and other_tensor.is_floating_point()
+            )
+            if not eligible:
+                merged[out_key] = base_tensor.detach().to("cpu") if hasattr(base_tensor, "detach") else base_tensor
+                report.skipped_tensors += 1
+                continue
+
+            _merge_index += 1
+            alpha, corrected = corrected_alpha(
+                torch, out_key_raw, base_tensor, other_tensor, options, output_num_blocks
+            )
+            base_d = base_tensor.detach().to(device)
+            other_d = other_tensor.detach().to(device)
+            merged_tensor = base_d * (1.0 - alpha) + other_d * alpha
+            merged[out_key] = merged_tensor.to(dtype=base_d.dtype).cpu()
+            report.merged_tensors += 1
+            if corrected:
+                report.auto_corrected_tensors += 1
+            if _merge_index % 100 == 0:
+                log(f"Merged tensors: {_merge_index}/{_total_merge}")
+        if _key_corrected_count:
+            log(f"Key normalization applied (anima-base-v1.0): {_key_corrected_count} key(s) renamed")
+
+        output_num_blocks_for_validation = output_num_blocks
+        metadata_source = base_metadata if base_is_output_source else secondary_metadata
 
     if report.merged_tensors == 0:
         raise ValueError(
@@ -1055,8 +1650,10 @@ def merge_models(
         log("Running dry-run tensor validation")
         dry_run_check(torch, merged)
 
+    validate_merged_architecture(merged, output_num_blocks_for_validation)
+
     metadata = compose_output_metadata(
-        base_metadata,
+        metadata_source,
         {
             "anima_model_editor": "2.0-tab1",
             "merge_type": "model_to_model",
@@ -1113,8 +1710,19 @@ def fuse_lora_into_model(
         canonical_key(key): output_key_name(key, options)
         for key in base
     }
+    lora_num_blocks = count_lora_authoring_block_count(lora)
+    if (
+        lora_num_blocks is not None
+        and base_num_blocks is not None
+        and lora_num_blocks != base_num_blocks
+    ):
+        log(
+            f"LoRA block remap enabled: LoRA authored for {lora_num_blocks}block, "
+            f"target model is {base_num_blocks}block"
+        )
     used: set[str] = set()
     _fuse_index = 0
+    _fuse_no_counterpart = 0
     _fuse_total = sum(
         1 for key in lora
         if ("lora_up" in key or "lora_B" in key) and hasattr(lora[key], "detach")
@@ -1129,7 +1737,15 @@ def fuse_lora_into_model(
         if down is None or not hasattr(down, "detach"):
             continue
 
-        candidates = lora_target_candidates(key)
+        remapped_key = remap_lora_key_block_index(key, lora_num_blocks, base_num_blocks)
+        if remapped_key is None:
+            used.add(key)
+            used.add(down_key)
+            _fuse_no_counterpart += 1
+            report.skipped_tensors += 1
+            continue
+
+        candidates = lora_target_candidates(remapped_key)
         base_key = candidates[0]
         target_key = None
         for candidate in candidates:
@@ -1169,6 +1785,12 @@ def fuse_lora_into_model(
         _fuse_index += 1
         if _fuse_index % 100 == 0:
             log(f"Fused LoRA pairs: {_fuse_index}/{_fuse_total}")
+
+    if _fuse_no_counterpart:
+        report.warnings.append(
+            f"{_fuse_no_counterpart} LoRA layer(s) skipped: no counterpart at the target "
+            "architecture (block introduced by architecture expansion)."
+        )
 
     if report.merged_tensors == 0:
         raise ValueError(

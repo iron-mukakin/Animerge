@@ -1,0 +1,72 @@
+2026-09-10 18:47:21 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-10 18:47:40 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\Anima-3.8B-v1.1.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:48:33 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-10 18:49:14 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\Anima-3.8B.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:49:23 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:49:41 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\anima-base-v1.0.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:50:35 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-10 18:51:46 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\Anima-3.8B.safetensors
+  Method : Attention Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:51:50 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\Anima-3.8B.safetensors
+  Method : SVD Rank
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:55:01 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-10 18:55:07 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\Anima-3.8B-v1.1.safetensors
+  Method : Feature Map
+  Layer  : Matrix
+  Device : cuda
+
+2026-09-10 18:58:15 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-10 19:00:54 [Rescan Folders]
+  Checkpoints: 10
+  LoRA files : 2
+
+2026-09-10 19:01:12 [Analysis 開始]
+  Target : E:\Animerge\checkpoints\Anima-3.8B-v1.1.safetensors
+  Method : Feature Map
+  Layer  : Transformer
+  Device : cuda
+

@@ -1,15 +1,15 @@
 # Animerge
-- 現在はAnimaの派生バージョンに対応作業中です。
 - Anima3.8Bはtextencoderが大きいのでサンプル生成などで一瞬負荷が大きくなることがあります。
 - バージョン判別の為に必ず「モデルを検知」を押して下さい。
-- 異なるバージョンごとのマージ機能は未完成。
+- 異なるバージョンごとのマージ機能実装済み。
+- LoRAマージの2-2タブに"モデルを検出"が無い(バグ)
 
 | 項目 | 対応済みバージョン |
 | :--- | :--- |
 | 本体マージ | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
-| LoRAマージ | Anima Base 1.0 |
-| レイヤー分析 | Anima Base 1.0 |
-| 詳細分析 | Anima Base 1.0 |
+| LoRAマージ | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
+| レイヤー分析 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
+| 詳細分析 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
 | LoRA学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
 | LECO学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
 | ADDifT学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |

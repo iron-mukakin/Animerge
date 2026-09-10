@@ -33,6 +33,8 @@ from .merge import (
     canonical_lora_key,
     canonical_state_map,
     component_category,
+    count_dit_blocks_from_keys,
+    count_lora_authoring_block_count,
     is_merge_target,
     lora_target_candidates,
     transformer_group,
@@ -158,10 +160,15 @@ def _normalize_analysis_key(
     return canonical_key(key)
 
 
-def _group_label(norm_key: str, mode: str) -> str:
-    """正規化キーから表示グループ名を返す（adjustment_group と同ロジック）。"""
+def _group_label(norm_key: str, mode: str, num_blocks: int | None = None) -> str:
+    """正規化キーから表示グループ名を返す（adjustment_group と同ロジック）。
+
+    num_blocksを渡すことで、Anima実構成(28block=9/10/9分割、52block=
+    均等3分割)に基づいたInput/Middle/Output境界判定になる(Noneの場合は
+    従来の汎用ヒューリスティックにフォールバックする)。
+    """
     try:
-        return adjustment_group(norm_key, mode)
+        return adjustment_group(norm_key, mode, num_blocks)
     except Exception:
         return "Other"
 
@@ -176,6 +183,7 @@ def _iter_analysis_tensors(
     progress: Callable[[str], None],
     torch: Any,
     key_correction: bool = False,
+    num_blocks: int | None = None,
 ) -> Iterator[tuple[str, str, str, Any]]:
     """
     state_dict を 1テンソルずつ yield する段階的イテレータ。
@@ -215,19 +223,19 @@ def _iter_analysis_tensors(
         try:
             calc_tensor = tensor.detach().to(device).float()
         except Exception as exc:
-            progress(text=gettext("analysis_log_tensor_fail", key=orig_key, error=exc))
+            progress(gettext("analysis_log_tensor_fail", key=orig_key, error=exc))
             continue
 
-        group = _group_label(norm_key, layer_mode)
+        group = _group_label(norm_key, layer_mode, num_blocks)
         processed += 1
 
         if processed % 50 == 0 or processed == total:
             try:
                 if device.startswith("cuda") and hasattr(torch, "cuda"):
                     allocated = torch.cuda.memory_allocated() / (1024 ** 3)
-                    progress(text=gettext("analysis_log_analyzing_vram", done=processed, total=total, vram=allocated))
+                    progress(gettext("analysis_log_analyzing_vram", done=processed, total=total, vram=allocated))
                 else:
-                    progress(text=gettext("analysis_log_analyzing", done=processed, total=total))
+                    progress(gettext("analysis_log_analyzing", done=processed, total=total))
             except Exception:
                 progress(f"分析中 {processed}/{total} 層")
 
@@ -435,7 +443,7 @@ def _generate_auto_report(
         if all_means and block_means["Middle"] > 0:
             global_mean = sum(all_means) / len(all_means)
             if block_means["Middle"] > global_mean * 1.3:
-                lines.append(text=gettext("analysis_report_pattern_a"))
+                lines.append(gettext("analysis_report_pattern_a"))
 
     # ── 統計: 異常値レイヤー検出 ────────────────────────────────────────
     if method == "Statistical":
@@ -450,7 +458,7 @@ def _generate_auto_report(
             if outliers:
                 keys_str = ", ".join(r.key[:60] for r in outliers[:5])
                 lines.append(
-                    text=gettext("analysis_report_outlier", threshold=threshold, count=len(outliers),
+                    gettext("analysis_report_outlier", threshold=threshold, count=len(outliers),
                       keys=keys_str + ("..." if len(outliers) > 5 else ""))
                 )
 
@@ -459,15 +467,15 @@ def _generate_auto_report(
         high_decay = [r for r in records if r.svd_decay_rate < 0.05 and r.svd_effective_rank > 0]
         if high_decay:
             lines.append(
-                text=gettext("analysis_report_redundant", count=len(high_decay))
+                gettext("analysis_report_redundant", count=len(high_decay))
             )
 
     if not lines:
-        lines.append(text=gettext("analysis_report_no_issue"))
+        lines.append(gettext("analysis_report_no_issue"))
 
     # ── モデル特徴サマリー（マージ・学習共通ヒント） ──────────────
     lines.append("")
-    lines.append(text=gettext("analysis_report_model_feature"))
+    lines.append(gettext("analysis_report_model_feature"))
 
     if records and aggregated:
         total = len(records)
@@ -476,22 +484,22 @@ def _generate_auto_report(
         priority_groups, discard_groups = _rank_groups_by_score(aggregated, method)
         top_g = max(1, len(aggregated) // 3)
 
-        lines.append(text=gettext("analysis_report_merge_priority_group"))
+        lines.append(gettext("analysis_report_merge_priority_group"))
         for g in priority_groups[:top_g]:
             lines.append(f"  {g}")
 
-        lines.append(text=gettext("analysis_report_discard_group"))
+        lines.append(gettext("analysis_report_discard_group"))
         for g in discard_groups[:top_g]:
             lines.append(f"  {g}")
 
         # --- レイヤーレベル: マージ優先(full) / 破棄候補(full) ---
         lines.append("")
-        lines.append(text=gettext("analysis_report_merge_priority_full"))
+        lines.append(gettext("analysis_report_merge_priority_full"))
         merge_priority = _pick_merge_priority(records, method)
         for r in merge_priority:
             lines.append(f"  {r.key}  ({r.group})")
 
-        lines.append(text=gettext("analysis_report_discard_full"))
+        lines.append(gettext("analysis_report_discard_full"))
         discard_cands = _pick_discard_candidates(records, method)
         for r in discard_cands:
             lines.append(f"  {r.key}  ({r.group})")
@@ -500,8 +508,8 @@ def _generate_auto_report(
         if method == "SVD Rank":
             median_rank = sorted(r.svd_effective_rank for r in records)[total // 2]
             lines.append("")
-            lines.append(text=gettext("analysis_report_lora_rank", rank=median_rank))
-            lines.append(text=gettext("analysis_report_lora_rank_rec", rank=_recommend_lora_rank(median_rank)))
+            lines.append(gettext("analysis_report_lora_rank", rank=median_rank))
+            lines.append(gettext("analysis_report_lora_rank_rec", rank=_recommend_lora_rank(median_rank)))
 
     return lines
 
@@ -683,10 +691,10 @@ def _build_log_text(report: AnalysisReport, aggregated: dict[str, dict[str, floa
     if report.important_layer_keys or report.unimportant_layer_keys:
         lines.append("[MERGE_HINTS]")
         lines.append(_METADATA_SEPARATOR)
-        lines.append(text=gettext("analysis_report_merge_hint_priority"))
+        lines.append(gettext("analysis_report_merge_hint_priority"))
         for k in report.important_layer_keys:
             lines.append(f"PRIORITY(full): {k}")
-        lines.append(text=gettext("analysis_report_merge_hint_discard"))
+        lines.append(gettext("analysis_report_merge_hint_discard"))
         for k in report.unimportant_layer_keys:
             lines.append(f"DISCARD(full):  {k}")
         lines.append(_METADATA_SEPARATOR)
@@ -764,12 +772,12 @@ def load_analysis_log(log_path: Path) -> dict[str, Any]:
 
     # METADATA の存在確認（整合性検証）
     if "[METADATA]" not in text:
-        raise ValueError(text=gettext("log_format_err", path=log_path))
+        raise ValueError(gettext("log_format_err", path=log_path))
 
     # METADATA パース
     meta_lines = _extract_section("METADATA")
     if not meta_lines:
-        raise ValueError(text=gettext("log_metadata_empty", path=log_path))
+        raise ValueError(gettext("log_metadata_empty", path=log_path))
     metadata: dict[str, Any] = {}
     for line in meta_lines:
         if ": " in line:
@@ -778,7 +786,7 @@ def load_analysis_log(log_path: Path) -> dict[str, Any]:
 
     if metadata.get("format_version") != _LOG_FORMAT_VERSION:
         raise ValueError(
-            text=gettext("log_version_mismatch",
+            gettext("log_version_mismatch",
               expected=_LOG_FORMAT_VERSION,
               got=metadata.get('format_version'),
               path=log_path)
@@ -861,20 +869,20 @@ def run_analysis(
     from .model_io import require_torch
 
     if method not in ANALYSIS_METHODS:
-        raise ValueError(text=gettext("analysis_warn_bad_method", method=method, choices=ANALYSIS_METHODS))
+        raise ValueError(gettext("analysis_warn_bad_method", method=method, choices=ANALYSIS_METHODS))
     if layer_mode not in LAYER_DISPLAY_MODES:
-        raise ValueError(text=gettext("analysis_warn_bad_mode", mode=layer_mode, choices=LAYER_DISPLAY_MODES))
+        raise ValueError(gettext("analysis_warn_bad_mode", mode=layer_mode, choices=LAYER_DISPLAY_MODES))
 
     log = progress or (lambda _: None)
     torch = require_torch()
 
     # CUDA フォールバック
     if device.startswith("cuda") and (not hasattr(torch, "cuda") or not torch.cuda.is_available()):
-        log(text=gettext("analysis_warn_cuda_fallback"))
+        log(gettext("analysis_warn_cuda_fallback"))
         device = "cpu"
 
     validate_model_path(model_path)
-    log(text=gettext("analysis_log_loading", name=model_path.name))
+    log(gettext("analysis_log_loading", name=model_path.name))
     state_dict = load_state_dict(model_path, device)
 
     is_lora = _is_lora_state_dict(state_dict)
@@ -882,7 +890,17 @@ def run_analysis(
     model_name = model_path.stem
     timestamp = datetime.datetime.now().isoformat(timespec="seconds")
 
-    log(text=gettext("analysis_log_sha256"))
+    # Anima実ブロック数を検出する(Anima系と判定できなければNone、その場合は
+    # _group_label()側で従来の汎用ヒューリスティックにフォールバックする)。
+    num_blocks = (
+        count_lora_authoring_block_count(state_dict)
+        if is_lora
+        else count_dit_blocks_from_keys(state_dict.keys())
+    )
+    if num_blocks is not None:
+        log(gettext("analysis_log_detected_blocks", count=num_blocks))
+
+    log(gettext("analysis_log_sha256"))
     sha = sha256_file(model_path)
 
     report = AnalysisReport(
@@ -895,15 +913,16 @@ def run_analysis(
         timestamp=timestamp,
     )
 
-    log(text=gettext("analysis_log_start", method=method, mode=layer_mode, type=model_type, name=model_name))
+    log(gettext("analysis_log_start", method=method, mode=layer_mode, type=model_type, name=model_name))
 
     if key_correction:
-        log(text=gettext("analysis_log_key_correct"))
+        log(gettext("analysis_log_key_correct"))
 
     # 段階的レイヤー分析
     for orig_key, norm_key, group, cpu_tensor in _iter_analysis_tensors(
         state_dict, is_lora, layer_mode, device, log, torch,
         key_correction=key_correction,
+        num_blocks=num_blocks,
     ):
         shape = tuple(cpu_tensor.shape)
 
@@ -917,7 +936,7 @@ def run_analysis(
         try:
             result = _run_method(torch, method, cpu_tensor, norm_key)
         except Exception as exc:
-            report.warnings.append(text=gettext("analysis_log_fail", key=orig_key, error=exc))
+            report.warnings.append(gettext("analysis_log_fail", key=orig_key, error=exc))
             continue
 
         # 結果をレコードに書き込む
@@ -933,20 +952,20 @@ def run_analysis(
         torch.cuda.empty_cache()
 
     if not report.records:
-        raise ValueError(text=gettext("analysis_warn_no_tensors"))
+        raise ValueError(gettext("analysis_warn_no_tensors"))
 
-    log(text=gettext("analysis_log_aggregate", count=len(report.records)))
+    log(gettext("analysis_log_aggregate", count=len(report.records)))
     aggregated = _aggregate_groups(report.records, method, torch)
 
-    log(text=gettext("analysis_log_report"))
+    log(gettext("analysis_log_report"))
     report.auto_report_lines = _generate_auto_report(report.records, method, aggregated)
     imp_keys, unimp_keys = _collect_important_keys(report.records, method)
     report.important_layer_keys = imp_keys
     report.unimportant_layer_keys = unimp_keys
 
-    log(text=gettext("analysis_log_saving"))
+    log(gettext("analysis_log_saving"))
     log_path = save_analysis_log(report, log_dir, aggregated)
     report.log_path = log_path
-    log(text=gettext("analysis_log_saved", name=log_path.name))
+    log(gettext("analysis_log_saved", name=log_path.name))
 
     return report

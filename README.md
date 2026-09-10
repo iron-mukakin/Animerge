@@ -2,17 +2,17 @@
 
 日本語は→ [README_ja.md](./docs/README_ja.md).
 
-- We are currently working on support for derivative versions of Anima.
 - Since Anima 3.8B has a large text encoder, temporary high system loads may occur during tasks like sample generation.
 - Please make sure to click "Detect Model" for accurate version identification.
-- The merge function for different versions is incomplete.
+- Merge functionality for different versions has been implemented.
+- "Detect Model" is missing from the LoRA Merge "2-2" tab (bug).
 
 | item | Supported Versions |
 | :--- | :--- |
 | Model Merge | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
-| LoRA Merge| Anima Base 1.0 |
-| Layer Analysis | Anima Base 1.0 |
-| Detailed Analysis | Anima Base 1.0 |
+| LoRA Merge| Anima Base 1.0,Anima3.8B v1.0, Anima3.8B v1.1 |
+| Layer Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
+| Detailed Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LoRA Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LECO Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | ADDifT Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
