@@ -5,7 +5,7 @@
 - Since Anima 3.8B has a large text encoder, temporary high system loads may occur during tasks like sample generation.
 - Please make sure to click "Detect Model" for accurate version identification.
 - Merge functionality for different versions has been implemented.
-- "Detect Model" is missing from the LoRA Merge "2-2" tab (bug).
+- Changed the merge function to use the GPU.
 
 | item | Supported Versions |
 | :--- | :--- |

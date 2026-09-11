@@ -245,10 +245,14 @@ class AnimaModelEditor(tk.Tk):
         # Global System
         system = ttk.LabelFrame(parent, text=gettext("global_system"))
         system.pack(fill=tk.X)
-        _mode_text = gettext("gpu_mode") if self._mode == "cuda" else gettext("cpu_mode")
-        _mode_fg = "#22C55E" if self._mode == "cuda" else "#64748B"
         ttk.Label(system, text=gettext("device_label")).grid(row=0, column=0, padx=8, pady=8, sticky=tk.W)
-        ttk.Label(system, text=_mode_text, foreground=_mode_fg, font=("TkDefaultFont", 10, "bold")).grid(row=0, column=1, columnspan=2, padx=4, pady=8, sticky=tk.W)
+        self._mode_label_var = tk.StringVar(value="")
+        self._mode_label_widget = ttk.Label(
+            system, textvariable=self._mode_label_var, font=("TkDefaultFont", 10, "bold")
+        )
+        self._mode_label_widget.grid(row=0, column=1, columnspan=2, padx=4, pady=8, sticky=tk.W)
+        self._refresh_mode_label()
+        self.device_var.trace_add("write", lambda *_args: self._refresh_mode_label())
         ttk.Button(system, text=gettext("rescan_folders"), command=self.refresh_files).grid(row=0, column=3, padx=8)
         ttk.Button(system, text=gettext("unload_models"), command=self.unload_models).grid(row=0, column=4, padx=8)
         ttk.Label(system, text=f"checkpoints: {self.paths.checkpoints}").grid(row=1, column=0, columnspan=5, padx=8, sticky=tk.W)
@@ -427,14 +431,23 @@ class AnimaModelEditor(tk.Tk):
         self.extract_target_combo = self._model_file_row(
             tab, 1, "target_model", self.secondary_model_var, self.paths.checkpoints
         )
-        self._output_controls(tab, 2)
-        ttk.Label(tab, text=gettext("lora_rank")).grid(row=3, column=0, sticky=tk.W, pady=6)
-        ttk.Spinbox(tab, from_=1, to=256, textvariable=self.extract_rank_var, width=8).grid(row=3, column=1, sticky=tk.W, padx=8)
+        _detect_row_le = ttk.Frame(tab)
+        _detect_row_le.grid(row=2, column=1, sticky=tk.W, pady=(0, 6))
+        ttk.Button(
+            _detect_row_le,
+            text=gettext("merge_detect_button"),
+            command=self._on_detect_lora_extract_clicked,
+        ).pack(side=tk.LEFT)
+        self.lora_extract_detect_result_var = tk.StringVar(value="")
+        ttk.Label(_detect_row_le, textvariable=self.lora_extract_detect_result_var).pack(side=tk.LEFT, padx=(8, 0))
+        self._output_controls(tab, 3)
+        ttk.Label(tab, text=gettext("lora_rank")).grid(row=4, column=0, sticky=tk.W, pady=6)
+        ttk.Spinbox(tab, from_=1, to=256, textvariable=self.extract_rank_var, width=8).grid(row=4, column=1, sticky=tk.W, padx=8)
         _bf_le = ttk.Frame(tab)
-        _bf_le.grid(row=4, column=1, sticky=tk.E, pady=12)
+        _bf_le.grid(row=5, column=1, sticky=tk.E, pady=12)
         ttk.Button(_bf_le, text=gettext("stop_btn"), command=self._stop_merge).pack(side=tk.LEFT, padx=(0,6))
         ttk.Button(_bf_le, text=gettext("run_diff_extract"), style="Run.TButton", command=self.start_lora_extract).pack(side=tk.LEFT)
-        self._run_log_row(tab, 5, "lora_extract")
+        self._run_log_row(tab, 6, "lora_extract")
         tab.columnconfigure(1, weight=1)
 
     # --- Preset Tab ---------------------------------------------------
@@ -1084,6 +1097,17 @@ class AnimaModelEditor(tk.Tk):
         except (tk.TclError, ValueError):
             pass
 
+    def _refresh_mode_label(self) -> None:
+        """メインタブのモード表示ラベルを、現在のself.device_varに合わせて更新する。
+
+        起動時の固定値(self._mode)ではなく、実行時に変更可能な
+        self.device_varを唯一の情報源とする(どのタブでデバイスを
+        切り替えても、この表示が即座に追従するようにするため)。
+        """
+        is_cuda = self.device_var.get() == "cuda"
+        self._mode_label_var.set(gettext("gpu_mode") if is_cuda else gettext("cpu_mode"))
+        self._mode_label_widget.configure(foreground="#22C55E" if is_cuda else "#64748B")
+
     def _sync_device_var(self, resolved: str) -> None:
         """CUDAフォールバック時にGUI device_var をCPUへ同期する。"""
         if resolved != self.device_var.get():
@@ -1420,6 +1444,29 @@ class AnimaModelEditor(tk.Tk):
                 "lora_merge_detect_result_pair",
                 base_blocks=base_blocks if base_blocks is not None else "?",
                 secondary_blocks=secondary_blocks if secondary_blocks is not None else "?",
+            )
+        )
+
+    def _on_detect_lora_extract_clicked(self) -> None:
+        """差分抽出タブの「モデルを検出」ボタン: Base/Targetのバリアントをヘッダのみで判定し表示する。"""
+        base_text = self.base_model_var.get()
+        target_text = self.secondary_model_var.get()
+        if not base_text or not target_text:
+            self.lora_extract_detect_result_var.set(gettext("merge_detect_result_missing_path"))
+            return
+        try:
+            base_variant, base_num_blocks, _base_v2 = describe_anima_model_variant_from_path(Path(base_text))
+            target_variant, target_num_blocks, _target_v2 = describe_anima_model_variant_from_path(Path(target_text))
+        except (DependencyError, FileNotFoundError, ValueError) as exc:
+            self.lora_extract_detect_result_var.set(gettext("merge_detect_result_error", error=str(exc)))
+            return
+        self.lora_extract_detect_result_var.set(
+            gettext(
+                "merge_detect_result_pair",
+                base_variant=base_variant,
+                base_blocks=base_num_blocks if base_num_blocks is not None else "?",
+                secondary_variant=target_variant,
+                secondary_blocks=target_num_blocks if target_num_blocks is not None else "?",
             )
         )
 
