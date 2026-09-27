@@ -11,6 +11,8 @@ from tkinter import filedialog, messagebox, ttk
 
 from .config import AppPaths, MergeOptions
 from .i18n import gettext, load_language
+# apply_fix_078: GUI入力値の自動キャッシュ(gui_cash)用I/O(lora_train.py等と共通)。
+from .gui_cash_io import read_gui_cash_section, write_gui_cash_section
 from .merge import (
     adjustment_group,
     describe_anima_model_variant_from_path,
@@ -52,6 +54,10 @@ class AnimaModelEditor(tk.Tk):
         self.title("Animerge v3.0")
         self.geometry("1120x820")
         self.minsize(980, 720)
+
+        # apply_fix_076: ウィンドウクローズ時に、実行中プロセスの確認と
+        # gui_cash(GUI入力値の自動キャッシュ)保存を行う。
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.log_queue: queue.Queue[str] = queue.Queue()
         self._merge_stop_event = threading.Event()
         self._analysis_stop_event = threading.Event()
@@ -78,6 +84,25 @@ class AnimaModelEditor(tk.Tk):
         self.layer_mode_var = tk.StringVar(value="Matrix")
         self.parameter_vars: dict[str, tk.DoubleVar] = {}
         self.loaded_layers: list[tuple[str, str]] = []
+
+        # apply_fix_079: 本体マージ(1-1)・LoRAフューズ(1-2)・LoRAマージ(2-1)・
+        # 差分抽出(2-2)を完全に個別分離する。alpha等の"現在値"は
+        # self.alpha_var等(単一のTk変数、既存のウィジェットは全てこれを
+        # 直接参照し続ける)に、"非アクティブな残り3タブ分の値"は
+        # self._merge_snapshots(キー別辞書)に保持する。サブタブが切り替わる
+        # たびに_sync_active_merge_subtab()が両者の内容を入れ替える。
+        # 制約: self.loaded_layers(Load Base Structureの結果)はキー別に
+        # 分離していない(既存設計を踏襲し、直近に読み込んだ1つのみを保持)。
+        # そのため、Transformer/Componentモードで「どのスライダーが存在するか」
+        # は4タブ間で共有されるが、各スライダーの値自体はタブごとに独立する。
+        self._MERGE_SUBTAB_GROUPS: dict = {
+            "model": ("model_merge", "lora_fuse"),
+            "lora": ("lora_merge", "lora_extract"),
+        }
+        self._merge_snapshots: dict = {}
+        self._active_merge_subtab_key: "str | None" = None
+        self._pending_merge_gui_cache_scales_by_key: dict = {}
+        self._merge_preset_refresh: dict = {}
 
         # タブごとに独立したウィジェット参照を保持する辞書
         # キー: tab_type ("model" / "lora")
@@ -211,15 +236,40 @@ class AnimaModelEditor(tk.Tk):
         self.log_text = tk.Text(log_frame, height=5, wrap=tk.WORD)
         self.log_text.pack(fill=tk.BOTH, expand=True)
 
+        # apply_fix_078: 本体マージ/LoRAフューズ/LoRAマージ/差分抽出タブの
+        # gui_cash自動復元。self.log_textが既に生成された後(=このメソッドの
+        # 末尾)で行うため、apply_fix_077のようなafter_idle遅延は不要。
+        # apply_fix_079: gui_cashの4サブタブ個別復元。各キーのデータは
+        # self._merge_snapshotsへ保持しておき、起動直後に表示されている
+        # "model_merge"(1-1)分だけを即座にライブ変数へ反映する。残り3タブ分は
+        # ユーザーがそのタブへ切り替えた瞬間に_sync_active_merge_subtab()が
+        # 反映する。
+        _merge_cached = read_gui_cash_section(self.paths.root, "merge")
+        if _merge_cached is not None:
+            try:
+                for _key, _data in _merge_cached.items():
+                    if isinstance(_data, dict):
+                        self._merge_snapshots[_key] = _data
+                self._active_merge_subtab_key = "model_merge"
+                self._apply_merge_snapshot("model_merge")
+                self.log("[GuiCache] Restored previous session inputs (Merge).")
+            except Exception as exc:
+                self.log(f"[GuiCache] restore failed (ignored, Merge): {exc}")
+        else:
+            self._active_merge_subtab_key = "model_merge"
+
     def _on_main_tab_changed(self, _event: tk.Event) -> None:
-        """主タブ切り替え時にアクティブなタブの参照を更新し、レイヤーを再描画。"""
+        """主タブ切り替え時にアクティブなタブの参照を更新し、レイヤーを再描画。
+
+        apply_fix_079: 出力パスの初期化・レイヤー再構築は
+        _sync_active_merge_subtab()(→_apply_merge_snapshot())が行うため、
+        ここでは self._active_tab_type の更新と呼び出しのみを行う。
+        """
         idx = self.main_notebook.index("current")
         if idx == 0:
             self._active_tab_type = "model"
-            self.output_var.set(self._default_output_model)
         elif idx == 1:
             self._active_tab_type = "lora"
-            self.output_var.set(self._default_output_lora)
         elif idx == 2:
             self._active_tab_type = "analysis"
             return  # 分析タブは merge 系のコントロール再構築不要
@@ -238,7 +288,7 @@ class AnimaModelEditor(tk.Tk):
         elif idx == 7:
             self._active_tab_type = "settings"
             return  # 設定タブは merge 系のコントロール再構築不要
-        self.rebuild_parameter_controls()
+        self._sync_active_merge_subtab()
 
     def _build_main_tab_content(self, parent: ttk.Frame, tab_type: str) -> None:
         """主タブ内に共通エリア + 副タブを構築する。ウィジェット参照はタブ別に保存。"""
@@ -338,6 +388,12 @@ class AnimaModelEditor(tk.Tk):
             self._build_lora_merge_tab(sub_notebook)
             self._build_lora_extract_tab(sub_notebook)
             self._build_preset_tab(sub_notebook, tab_type="lora", label=" 2-3 Preset ")
+
+        # apply_fix_079: サブタブ(1-1/1-2/1-3 または 2-1/2-2/2-3)切替の検知。
+        # 全ての子タブ追加が完了した後でbindするため、Tkの仕様上「最初の子
+        # タブ追加時に自動発火する」イベントの影響は受けない
+        # (Xvfb実機検証済み)。
+        sub_notebook.bind("<<NotebookTabChanged>>", lambda _e: self._sync_active_merge_subtab())
 
     # ─── アクティブタブのウィジェット取得ヘルパー ────────────
     def _tw(self, key: str):
@@ -471,11 +527,15 @@ class AnimaModelEditor(tk.Tk):
         ttk.Entry(btn_row, textvariable=name_var, width=24).pack(side=tk.LEFT, padx=(4, 8))
 
         def _refresh_list() -> None:
+            # apply_fix_079: 保存先を、現在アクティブな本体マージ/LoRAフューズ/
+            # LoRAマージ/差分抽出キーごとに分離する。
             preset_listbox.delete(0, tk.END)
-            _preset_dir = self.paths.root / "preset" / "merge"
+            _preset_dir = self._merge_preset_dir()
             _preset_dir.mkdir(parents=True, exist_ok=True)
             for p in sorted(_preset_dir.glob("*.json")):
                 preset_listbox.insert(tk.END, p.stem)
+
+        self._merge_preset_refresh[tab_type] = _refresh_list
 
         def _save_preset() -> None:
             pname = name_var.get().strip()
@@ -496,7 +556,7 @@ class AnimaModelEditor(tk.Tk):
                 },
             }
             safe = "".join(c if c.isalnum() or c in "-_ " else "_" for c in pname)
-            _preset_dir = self.paths.root / "preset" / "merge"
+            _preset_dir = self._merge_preset_dir()
             _preset_dir.mkdir(parents=True, exist_ok=True)
             dest = _preset_dir / f"{safe}.json"
             dest.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -511,7 +571,7 @@ class AnimaModelEditor(tk.Tk):
                 messagebox.showerror("Preset", gettext("preset_error_select"))
                 return
             pname = preset_listbox.get(sel[0])
-            src = self.paths.root / "preset" / "merge" / f"{pname}.json"
+            src = self._merge_preset_dir() / f"{pname}.json"
             try:
                 data = json.loads(src.read_text(encoding="utf-8"))
             except Exception as exc:
@@ -541,7 +601,7 @@ class AnimaModelEditor(tk.Tk):
             if not sel:
                 return
             pname = preset_listbox.get(sel[0])
-            src = self.paths.root / "preset" / "merge" / f"{pname}.json"
+            src = self._merge_preset_dir() / f"{pname}.json"
             if messagebox.askyesno("Preset", gettext("preset_confirm_delete", name=pname)):
                 src.unlink(missing_ok=True)
                 _refresh_list()
@@ -555,9 +615,9 @@ class AnimaModelEditor(tk.Tk):
                 messagebox.showerror("Preset", gettext("preset_error_select_export"))
                 return
             pname = preset_listbox.get(sel[0])
-            src = self.paths.root / "preset" / "merge" / f"{pname}.json"
+            src = self._merge_preset_dir() / f"{pname}.json"
             dest = filedialog.asksaveasfilename(
-                initialdir=str(self.paths.root / "preset" / "merge"),
+                initialdir=str(self._merge_preset_dir()),
                 initialfile=f"{pname}.json",
                 filetypes=(("JSON", "*.json"),),
             )
@@ -570,13 +630,13 @@ class AnimaModelEditor(tk.Tk):
 
         def _import_preset() -> None:
             src = filedialog.askopenfilename(
-                initialdir=str(self.paths.root / "preset" / "merge"),
+                initialdir=str(self._merge_preset_dir()),
                 filetypes=(("JSON", "*.json"),),
             )
             if not src:
                 return
             pname = Path(src).stem
-            _preset_dir = self.paths.root / "preset" / "merge"
+            _preset_dir = self._merge_preset_dir()
             _preset_dir.mkdir(parents=True, exist_ok=True)
             dest = _preset_dir / f"{pname}.json"
             import shutil
@@ -1251,6 +1311,20 @@ class AnimaModelEditor(tk.Tk):
         self.loaded_layers = rows
         self._tw("status_var").set(gettext("status_loaded", count=len(rows)))
         self.rebuild_parameter_controls()
+
+        # apply_fix_079: gui_cash復元時に保留していたTransformer/Component
+        # モードのparameter_scalesを、構造読み込み完了後に反映する
+        # (現在アクティブなキーの分のみ。他の3タブ分はそのタブへ切り替えた
+        # 時点でLoad Base Structureを再実行するまで反映されない)。
+        _key = self._active_merge_subtab_key
+        _pending = self._pending_merge_gui_cache_scales_by_key.get(_key) if _key else None
+        if _pending:
+            for _k, _v in _pending.items():
+                if _k in self.parameter_vars:
+                    self.parameter_vars[_k].set(_v)
+            self._pending_merge_gui_cache_scales_by_key.pop(_key, None)
+            self.log("[GuiCache] Applied cached layer scales after structure load (Merge).")
+
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([
             f"{now} [Load Base Structure]",
@@ -1357,6 +1431,156 @@ class AnimaModelEditor(tk.Tk):
             dry_run=bool(self.dry_run_var.get()),
             output_name=Path(self.output_var.get()).name,
         )
+
+    def _collect_merge_gui_cache(self) -> dict:
+        """apply_fix_078: 本体マージ/LoRAフューズ/LoRAマージ/差分抽出の4サブ
+        タブが共有する入力値をgui_cash用に集める(_save_preset()と同じ項目
+        一式 + 4サブタブのモデル/LoRAパス変数)。
+        """
+        return {
+            "alpha": float(self.alpha_var.get()),
+            "cosine_threshold": float(self.cosine_var.get()),
+            "auto_correction": bool(self.auto_var.get()),
+            "dry_run": bool(self.dry_run_var.get()),
+            "freeze_bias_input": bool(self.freeze_input_var.get()),
+            "freeze_bias_middle": bool(self.freeze_middle_var.get()),
+            "freeze_bias_output": bool(self.freeze_output_var.get()),
+            "layer_display_mode": self.layer_mode_var.get(),
+            "parameter_scales": {
+                k: float(v.get()) for k, v in self.parameter_vars.items()
+            },
+            "base_model": self.base_model_var.get(),
+            "secondary_model": self.secondary_model_var.get(),
+            "lora": self.lora_var.get(),
+            "secondary_lora": self.secondary_lora_var.get(),
+            "extract_rank": int(self.extract_rank_var.get()),
+        }
+
+    def _default_merge_snapshot(self, key: str) -> dict:
+        """apply_fix_079: 未保存のキーに使う初期値。既存の__init__での
+        デフォルト値、および旧_on_main_tab_changed()が行っていた出力パスの
+        自動初期化(グループごとにself._default_output_model/lora)を踏襲する。
+        """
+        is_model_group = key in ("model_merge", "lora_fuse")
+        return {
+            "alpha": 0.5,
+            "cosine_threshold": 0.4,
+            "auto_correction": True,
+            "dry_run": True,
+            "freeze_bias_input": False,
+            "freeze_bias_middle": False,
+            "freeze_bias_output": False,
+            "layer_display_mode": "Matrix",
+            "parameter_scales": {},
+            "base_model": "",
+            "secondary_model": "",
+            "lora": "",
+            "secondary_lora": "",
+            "extract_rank": 16,
+            "output": self._default_output_model if is_model_group else self._default_output_lora,
+        }
+
+    def _capture_merge_snapshot(self, key: str) -> None:
+        """apply_fix_079: 現在ライブのself.alpha_var等の値をkeyのスナップ
+        ショットへ書き込む(_collect_merge_gui_cache()を流用)。
+        """
+        data = self._collect_merge_gui_cache()
+        data["output"] = self.output_var.get()
+        self._merge_snapshots[key] = data
+
+    def _apply_merge_snapshot(self, key: str) -> None:
+        """apply_fix_079: keyのスナップショットをself.alpha_var等のライブ
+        変数へ反映する(_load_preset()と同じ手順)。未保存のキーは
+        _default_merge_snapshot()の値を使う。
+        """
+        data = self._merge_snapshots.get(key) or self._default_merge_snapshot(key)
+
+        self.base_model_var.set(data.get("base_model", ""))
+        self.secondary_model_var.set(data.get("secondary_model", ""))
+        self.lora_var.set(data.get("lora", ""))
+        self.secondary_lora_var.set(data.get("secondary_lora", ""))
+        self.extract_rank_var.set(int(data.get("extract_rank", 16)))
+        self.output_var.set(data.get("output", self.output_var.get()))
+
+        self.alpha_var.set(float(data.get("alpha", 0.5)))
+        self.cosine_var.set(float(data.get("cosine_threshold", 0.4)))
+        self.auto_var.set(bool(data.get("auto_correction", True)))
+        self.dry_run_var.set(bool(data.get("dry_run", True)))
+        self.freeze_input_var.set(bool(data.get("freeze_bias_input", False)))
+        self.freeze_middle_var.set(bool(data.get("freeze_bias_middle", False)))
+        self.freeze_output_var.set(bool(data.get("freeze_bias_output", False)))
+
+        new_mode = data.get("layer_display_mode", "Matrix")
+        if new_mode not in ("Matrix", "Transformer", "Component"):
+            new_mode = "Matrix"
+        self.layer_mode_var.set(new_mode)
+        self.rebuild_parameter_controls()
+
+        scales = data.get("parameter_scales", {})
+        if new_mode != "Matrix":
+            # Transformer/Componentはself.loaded_layers依存。今すぐ反映できる
+            # 分だけ反映し、残りは「Load Base Structure」完了後に反映される
+            # よう保留する(_set_loaded_structure()側のフック参照)。
+            self._pending_merge_gui_cache_scales_by_key[key] = scales
+        for k, v in scales.items():
+            if k in self.parameter_vars:
+                self.parameter_vars[k].set(v)
+
+    def _resolve_current_merge_subtab_key(self) -> "str | None":
+        """apply_fix_079: 現在のメイン/サブタブ選択状態から、対応する
+        本体マージ/LoRAフューズ/LoRAマージ/差分抽出のキーを1つ求める。
+        プリセットタブ(1-3/2-3)やmerge系以外のメインタブを見ている場合は
+        Noneを返す(=直前のキーをそのまま維持する合図)。プリセットタブを
+        見ている場合は、そのタブのプリセット一覧を最新のアクティブキーで
+        更新する副作用も行う。
+        """
+        try:
+            main_idx = self.main_notebook.index("current")
+        except Exception:
+            return None
+        if main_idx == 0:
+            group = "model"
+        elif main_idx == 1:
+            group = "lora"
+        else:
+            return None
+        sub_notebook = self._sub_notebooks.get(group)
+        if sub_notebook is None:
+            return None
+        try:
+            sub_idx = sub_notebook.index("current")
+        except Exception:
+            return None
+        keys = self._MERGE_SUBTAB_GROUPS[group]
+        if sub_idx >= len(keys):
+            # プリセットタブ(このグループの3番目の子)を見ている。
+            _refresh = self._merge_preset_refresh.get(group)
+            if callable(_refresh):
+                try:
+                    _refresh()
+                except Exception:
+                    pass
+            return None
+        return keys[sub_idx]
+
+    def _sync_active_merge_subtab(self) -> None:
+        """apply_fix_079: メイン/サブタブの選択変化を検知し、旧キーの現在値を
+        スナップショットへ退避、新キーの値をライブ変数へ反映する。
+        """
+        new_key = self._resolve_current_merge_subtab_key()
+        if new_key is None or new_key == self._active_merge_subtab_key:
+            return
+        if self._active_merge_subtab_key is not None:
+            self._capture_merge_snapshot(self._active_merge_subtab_key)
+        self._active_merge_subtab_key = new_key
+        self._apply_merge_snapshot(new_key)
+
+    def _merge_preset_dir(self) -> Path:
+        """apply_fix_079: 名前付きプリセットの保存先を、現在アクティブな
+        本体マージ/LoRAフューズ/LoRAマージ/差分抽出キーごとに分離する。
+        """
+        key = self._active_merge_subtab_key or "model_merge"
+        return self.paths.root / "preset" / "merge" / key
 
     def _on_detect_merge_models_clicked(self) -> None:
         """本体マージタブの「モデルを検出」ボタン: Base/Secondaryのバリアントをヘッダのみで判定し表示する。"""
@@ -1661,6 +1885,73 @@ class AnimaModelEditor(tk.Tk):
         self._write_action_log([f"{now} [Stop Analysis] 停止要求送信", ""])
         self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
         self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_stopped")))
+
+    def _on_close(self) -> None:
+        """ウィンドウクローズ処理(apply_fix_076)。
+
+        LoRA/LECO/ADDifTのいずれかの学習プロセスが実行中なら確認ダイアログを
+        出し(仕様B)、キャンセルされたら何もしない。続行する場合は実行中
+        プロセスを終了させてから、3タブのgui_cashを保存してウィンドウを閉じる。
+        """
+        _train_states = [
+            ("_lora_train_state", "LoRA"),
+            ("_leco_train_state", "LECO"),
+            ("_addift_train_state", "ADDifT"),
+        ]
+
+        _running: list[tuple[str, object]] = []
+        for _attr, _label in _train_states:
+            _state = getattr(self, _attr, None)
+            if _state is None:
+                continue
+            _proc = getattr(_state, "_proc", None)
+            if _proc is not None and _proc.poll() is None:
+                _running.append((_label, _proc))
+
+        if _running:
+            _names = ", ".join(name for name, _ in _running)
+            if not messagebox.askyesno(
+                "Animerge",
+                f"以下の学習プロセスが実行中です: {_names}\n"
+                f"終了すると学習は中断されます。ウィンドウを閉じますか？",
+            ):
+                return
+            for _label, _proc in _running:
+                try:
+                    import os, signal
+                    try:
+                        os.kill(_proc.pid, signal.CTRL_BREAK_EVENT)
+                    except Exception:
+                        _proc.terminate()
+                    _proc.wait(timeout=10)
+                except Exception as exc:
+                    self.log(f"[Close] failed to stop {_label} process: {exc}")
+
+        for _attr, _label in _train_states:
+            _state = getattr(self, _attr, None)
+            if _state is None:
+                continue
+            _save_gui_cache = getattr(_state, "_save_gui_cache", None)
+            if callable(_save_gui_cache):
+                try:
+                    _save_gui_cache()
+                except Exception as exc:
+                    self.log(f"[Close] gui_cash save failed for {_label}: {exc}")
+
+        # apply_fix_079: 本体マージ/LoRAフューズ/LoRAマージ/差分抽出タブの
+        # gui_cashを、4サブタブ個別のセクションとして保存する。
+        try:
+            if self._active_merge_subtab_key is not None:
+                self._capture_merge_snapshot(self._active_merge_subtab_key)
+            _all_merge_keys = ("model_merge", "lora_fuse", "lora_merge", "lora_extract")
+            _merge_payload = {
+                k: self._merge_snapshots[k] for k in _all_merge_keys if k in self._merge_snapshots
+            }
+            write_gui_cash_section(self.paths.root, "merge", _merge_payload)
+        except Exception as exc:
+            self.log(f"[Close] gui_cash save failed for Merge: {exc}")
+
+        self.destroy()
 
     def log(self, message: str) -> None:
         self.log_text.insert(tk.END, message + "\n")

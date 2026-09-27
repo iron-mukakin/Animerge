@@ -28,6 +28,31 @@ except ImportError:
         _sys.path.insert(0, str(_app_dir))
     from i18n import gettext, load_language  # type: ignore[no-redef]
 
+# apply_fix_069: sd-scripts/optimizer・sd-scripts/scheduler配下のカスタムクラス自動検出。
+try:
+    from .optim_scheduler_discovery import discover_custom_optimizers, discover_custom_schedulers
+except ImportError:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from optim_scheduler_discovery import (  # type: ignore[no-redef]
+        discover_custom_optimizers,
+        discover_custom_schedulers,
+    )
+
+# apply_fix_073: GUI入力値の自動キャッシュ(gui_cash)用I/O。
+try:
+    from .gui_cash_io import read_gui_cash_section, write_gui_cash_section
+except ImportError:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from gui_cash_io import read_gui_cash_section, write_gui_cash_section  # type: ignore[no-redef]
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 定数 (anima_train_utils.py / anima_train_network.py 由来)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -120,6 +145,31 @@ class _TrainState:
         self.paths = paths
         self.log_fn = log_fn
         self.get_model_choices = get_model_choices
+
+        # apply_fix_069: sd-scripts/optimizer・sd-scripts/scheduler配下のカスタム
+        # Optimizer/LRSchedulerクラスを検出し、GUIプルダウン用の選択肢リストと
+        # 「表示名→完全修飾パス」の対応表を作る。検出は起動時に一度だけ行われる
+        # (このプロセス内でファイルを追加しても再起動するまで反映されない)。
+        self._sd_scripts_root = Path(paths.root) / "sd-scripts"
+        self.optimizer_type_map: dict[str, str] = discover_custom_optimizers(self._sd_scripts_root)
+        self.scheduler_type_map: dict[str, str] = discover_custom_schedulers(self._sd_scripts_root)
+        self.optimizer_choices: list[str] = list(OPTIMIZERS) + [
+            name for name in self.optimizer_type_map if name not in OPTIMIZERS
+        ]
+        self.scheduler_choices: list[str] = list(LR_SCHEDULERS) + [
+            name for name in self.scheduler_type_map if name not in LR_SCHEDULERS
+        ]
+
+        # apply_fix_073: GUI入力値の自動キャッシュ(gui_cash)関連の状態。
+        # _pending_gui_cash_layer_scales: 起動時復元でTransformerモードの
+        #   layer_parameter_varsが即時反映できなかった場合の保留データ
+        #   (「モデルを検出」成功後に_on_detect_model_clicked()が反映する)。
+        # _save_gui_cache: _build_train_preset_tab()内で実体が設定される
+        #   保存用コールバック(gui.py側のウィンドウクローズ処理から呼ばれる)。
+        self._pending_gui_cash_layer_scales: "dict | None" = None
+        self._pending_gui_cash_layer_block_count: "int | None" = None
+        self._save_gui_cache: "Callable[[], None] | None" = None
+
         self._proc: subprocess.Popen | None = None
         self._log_queue: queue.Queue[str] = queue.Queue()
         self._monitor_queue: queue.Queue[str] = queue.Queue()
@@ -604,6 +654,28 @@ def _on_detect_model_clicked(s: "_TrainState") -> None:
     if hasattr(s, "layer_canvas") and hasattr(s, "layer_inner"):
         _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
 
+    # apply_fix_073: gui_cash復元時に保留していたTransformerモードの
+    # layer_parameter_varsを、検出確定後のブロック数へ反映する。
+    _pending = getattr(s, "_pending_gui_cash_layer_scales", None)
+    if num_blocks is not None and _pending:
+        _saved_block_count = getattr(s, "_pending_gui_cash_layer_block_count", None)
+        _scales_to_apply = _pending
+        if isinstance(_saved_block_count, int) and _saved_block_count != num_blocks:
+            _scales_to_apply = _remap_layer_block_scales(_pending, _saved_block_count, num_blocks)
+            s.log_fn(
+                f"[GuiCache] Remapped cached Transformer layer scales: "
+                f"{_saved_block_count} blocks -> {num_blocks} blocks."
+            )
+        for _k, _v in _scales_to_apply.items():
+            if _k in s.layer_parameter_vars:
+                try:
+                    s.layer_parameter_vars[_k].set(float(_v))
+                except (ValueError, tk.TclError):
+                    pass
+        s._pending_gui_cash_layer_scales = None
+        s._pending_gui_cash_layer_block_count = None
+        s.log_fn("[GuiCache] Applied cached Transformer layer scales after model detection.")
+
 
 def _on_model_path_changed(s: "_TrainState") -> None:
     """DiTパスが変更されたら検出状態を無効化する(古い検出結果のまま学習開始
@@ -825,7 +897,7 @@ def _build_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=0, column=1, sticky=tk.W, padx=(0, 12), pady=3)
     ttk.Label(lf, text="lr_scheduler", width=16, anchor=tk.W).grid(
         row=0, column=2, sticky=tk.W, padx=(0, 2), pady=3)
-    ttk.Combobox(lf, textvariable=s.lr_scheduler, values=LR_SCHEDULERS,
+    ttk.Combobox(lf, textvariable=s.lr_scheduler, values=s.scheduler_choices,
                  state="readonly", width=22).grid(
         row=0, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
@@ -836,7 +908,7 @@ def _build_train_tab(parent: ttk.Frame, s: _TrainState) -> None:
         row=1, column=1, sticky=tk.W, padx=(0, 12), pady=3)
     ttk.Label(lf, text="optimizer", width=16, anchor=tk.W).grid(
         row=1, column=2, sticky=tk.W, padx=(0, 2), pady=3)
-    ttk.Combobox(lf, textvariable=s.optimizer, values=OPTIMIZERS,
+    ttk.Combobox(lf, textvariable=s.optimizer, values=s.optimizer_choices,
                  state="readonly", width=22).grid(
         row=1, column=3, sticky=tk.W, padx=(0, 4), pady=3)
 
@@ -2159,6 +2231,52 @@ def _build_train_preset_tab(parent: ttk.Frame, s: _TrainState) -> None:
 
     _refresh_list()
 
+    # ── GUIキャッシュ(gui_cash) ──────────────────────────────────
+    # 名前付きプリセット(上記)とは独立した自動キャッシュ。起動時に前回入力を
+    # 復元し、ウィンドウクローズ時にgui.py側からs._save_gui_cache()が呼ばれる
+    # (apply_fix_073)。
+    def _save_gui_cache() -> None:
+        try:
+            write_gui_cash_section(s.paths.root, "lora_train", _collect())
+        except Exception as exc:
+            s.log_fn(f"[GuiCache] save failed: {exc}")
+
+    s._save_gui_cache = _save_gui_cache
+
+    _cached = read_gui_cash_section(s.paths.root, "lora_train")
+    if _cached is not None:
+        try:
+            _pre_mode = _cached.get("layer_display_mode", "Matrix")
+            if _pre_mode not in LAYER_TRAIN_MODES:
+                _pre_mode = "Matrix"
+            if _pre_mode == "Transformer":
+                # ブロック数依存のため、この時点(モデル未検出の可能性が高い)では
+                # 反映せず保留する。「モデルを検出」成功後にフックが反映する。
+                s._pending_gui_cash_layer_scales = _cached.get("layer_parameter_vars", {})
+                s._pending_gui_cash_layer_block_count = _cached.get("layer_block_count")
+            s.layer_train_enabled.set(bool(_cached.get("layer_train_enabled", False)))
+            s.layer_display_mode.set(_pre_mode)
+            if s.layer_canvas is not None and s.layer_inner is not None:
+                _refresh_layer_controls(s, s.layer_canvas, s.layer_inner)
+            _apply(_cached, target_block_count=None)
+            # apply_fix_077: この時点ではself.log_text(gui.py)がまだ生成
+            # されておらず、s.log_fn()を直接呼ぶとAttributeErrorでアプリ
+            # 起動自体がクラッシュする。parent.after_idle()でTkのイベント
+            # ループ開始後(=_build_ui()完了後)まで遅延させる。
+            try:
+                parent.after_idle(
+                    lambda: s.log_fn("[GuiCache] Restored previous session inputs.")
+                )
+            except Exception:
+                pass
+        except Exception as exc:
+            try:
+                parent.after_idle(
+                    lambda _exc=exc: s.log_fn(f"[GuiCache] restore failed (ignored): {_exc}")
+                )
+            except Exception:
+                pass
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 実行パネル（主要な中タブ下部）
@@ -2328,9 +2446,7 @@ def _build_command(s: _TrainState) -> list[str]:
         "--network_dim",   str(s.network_dim.get()),
         "--network_alpha", str(s.network_alpha.get()),
         "--learning_rate", s.lr.get(),
-        "--lr_scheduler",  s.lr_scheduler.get(),
-        "--lr_warmup_steps", str(s.lr_warmup_steps.get()),
-        "--optimizer_type", s.optimizer.get(),
+        "--optimizer_type", s.optimizer_type_map.get(s.optimizer.get(), s.optimizer.get()),
         "--max_train_epochs", str(s.max_train_epochs.get()),
         "--save_every_n_epochs", str(s.save_every_n_epochs.get()),
         "--mixed_precision", s.mixed_precision.get(),
@@ -2346,6 +2462,26 @@ def _build_command(s: _TrainState) -> list[str]:
         "--t5_max_token_length", str(s.t5_max_token_length.get()),
         "--max_data_loader_n_workers", "0",
     ]
+
+    # apply_fix_069: カスタムスケジューラ選択時は --lr_scheduler_type
+    # (train_util.get_scheduler_fix()の動的import分岐、非空なら--lr_schedulerは
+    # 無視される)を使う。get_scheduler_fix()はlr_scheduler_type使用時も
+    # lr_warmup_stepsの非0値を許容しないため、0へ強制しログに警告を出す
+    # (GUI上のlr_warmup_steps変数自体は書き換えない。標準スケジューラへ戻した
+    # 際に元の値が残るようにするため)。
+    _scheduler_name = s.lr_scheduler.get()
+    if _scheduler_name in s.scheduler_type_map:
+        if s.lr_warmup_steps.get() != 0:
+            s.log_fn(
+                f"[Warning] Custom lr_scheduler selected ({_scheduler_name}); "
+                f"lr_warmup_steps forced to 0 (was {s.lr_warmup_steps.get()}), "
+                f"because get_scheduler_fix() rejects non-zero warmup for custom schedulers."
+            )
+        cmd += ["--lr_scheduler_type", s.scheduler_type_map[_scheduler_name]]
+        cmd += ["--lr_warmup_steps", "0"]
+    else:
+        cmd += ["--lr_scheduler", _scheduler_name]
+        cmd += ["--lr_warmup_steps", str(s.lr_warmup_steps.get())]
 
     # オプション引数
     if s.seed.get():
