@@ -3,14 +3,15 @@
 - バージョン判別の為に必ず「モデルを検知」を押して下さい。
 - 異なるバージョンごとのマージ機能実装済み。
 - マージ機能をGPU使用に変更しました。
+- DiTの階層仕様はBase=28層, 2.9B=40層, 3.8B=52層です。
 
 | 項目 | 対応済みバージョン |
 | :--- | :--- |
-| 本体マージ | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
-| LoRAマージ | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
+| 本体マージ | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
+| LoRAマージ | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
 | レイヤー分析 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
 | 詳細分析 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
-| LoRA学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
+| LoRA学習 | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
 | LECO学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
 | ADDifT学習 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
 

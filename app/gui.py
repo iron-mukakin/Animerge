@@ -20,6 +20,7 @@ from .merge import (
     extract_lora_difference,
     fuse_lora_into_model,
     is_merge_target,
+    is_verified_anima_variant_pair,
     merge_loras,
     merge_models,
 )
@@ -1608,17 +1609,12 @@ class AnimaModelEditor(tk.Tk):
             )
         )
 
-        if base_variant == "unknown" and secondary_variant == "unknown":
-            return
-        verified_pairs = {
-            frozenset({"anima-base-v1.0", "anima-base-v1.0"}),
-            frozenset({"anima-base-v1.0", "anima-3.8b-v1.0"}),
-            frozenset({"anima-base-v1.0", "anima-3.8b-v1.1"}),
-            frozenset({"anima-3.8b-v1.0", "anima-3.8b-v1.0"}),
-            frozenset({"anima-3.8b-v1.1", "anima-3.8b-v1.1"}),
-            frozenset({"anima-3.8b-v1.0", "anima-3.8b-v1.1"}),
-        }
-        if frozenset({base_variant, secondary_variant}) not in verified_pairs:
+        # apply_fix_081: 検証済みペアの定義をここで複製せず、merge.py側の
+        # is_verified_anima_variant_pair()を単一の真実の情報源として使う
+        # (旧: ローカルのverified_pairs frozenset。merge.py側の
+        # _VERIFIED_ANIMA_VARIANT_PAIRSが更新されてもここが追従しない
+        # 二重管理バグだったため apply_fix_080 と合わせて解消)。
+        if not is_verified_anima_variant_pair(base_variant, secondary_variant):
             messagebox.showwarning(
                 gettext("merge_detect_unverified_title"),
                 gettext(

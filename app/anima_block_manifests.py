@@ -212,3 +212,26 @@ def inserted_block_positions(old_block_count: int, new_block_count: int) -> Opti
     if manifest is None:
         return None
     return frozenset(manifest["insertion_positions"])
+
+
+def inserted_block_source_map(old_block_count: int, new_block_count: int) -> Optional[dict[int, int]]:
+    """挿入blockが初期化時にどのbaseブロックからコピーされたか({target_idx: base_idx})を返す。
+
+    **標準マージのblock対応には使わないこと**(block_correspondence_map()を使う)。
+    これは初期化時の系譜(inserted_to_source)をそのまま公開するアクセサであり、
+    用途はComfyUI版の実験的extend_ratio機能、および本アプリではGUIスケール
+    プリセット変換(新規挿入blockのスケール初期値を、挿入直前の既存blockの
+    値から引き継ぐ近似)に限定される。
+
+    Args:
+        old_block_count: 変換元(より少ないblock数)のブロック総数。
+        new_block_count: 変換先(より多いblock数)のブロック総数。
+
+    Returns:
+        {target_idx(挿入block): base_idx(コピー元)}の辞書、または未知の組み合わせなら
+        None。
+    """
+    manifest = KNOWN_EXPANSION_MANIFESTS.get((old_block_count, new_block_count))
+    if manifest is None:
+        return None
+    return dict(manifest["inserted_to_source"])

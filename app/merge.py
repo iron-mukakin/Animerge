@@ -64,7 +64,7 @@ _ANIMA_BLOCK_KEY_PATTERN = re.compile(r"(?:^|\.)blocks\.(\d+)(?:\.|$)")
 _ANIMA_CONNECTOR_V2_KEY_MARKER = "anima_v2_connector."
 _ANIMA_CONNECTOR_V2_METADATA_KEY = "anima_v2_adapter_architecture"
 _ANIMA_CONNECTOR_V2_METADATA_VALUE = "anima_qwen35_quality_anchored_semantic_connector_v2"
-_KNOWN_ANIMA_DIT_BLOCK_COUNTS = (28, 52)
+_KNOWN_ANIMA_DIT_BLOCK_COUNTS = (28, 40, 52)
 
 # 実測・確認済みのAnimaモデルバリアントの組み合わせのみマージを許可する。
 # それ以外(未検証のblock数の組み合わせ)はUnverifiedModelPairErrorで停止する。
@@ -77,6 +77,10 @@ _VERIFIED_ANIMA_VARIANT_PAIRS = frozenset(
         ("anima-3.8b-v1.0", "anima-3.8b-v1.0"),
         ("anima-3.8b-v1.1", "anima-3.8b-v1.1"),
         ("anima-3.8b-v1.0", "anima-3.8b-v1.1"),
+        ("anima-2.9b-v1.0", "anima-2.9b-v1.0"),
+        ("anima-base-v1.0", "anima-2.9b-v1.0"),
+        ("anima-2.9b-v1.0", "anima-3.8b-v1.0"),
+        ("anima-2.9b-v1.0", "anima-3.8b-v1.1"),
     )
 )
 
@@ -142,27 +146,45 @@ def classify_anima_model_variant(num_blocks: Optional[int], is_connector_v2: boo
         is_connector_v2: detect_connector_v2_from_keys_and_metadata()の判定結果。
 
     Returns:
-        "anima-base-v1.0"(28block) / "anima-3.8b-v1.1"(52block、connector
-        内蔵) / "anima-3.8b-v1.0"(52block、connector無し。外付け
-        Progressive Cross Adapter想定だが、当該外部ファイルは本体マージの
-        対象外) / "unknown"(28/52以外、またはblocks.N.パターン非検出で
-        Anima系と判定できない)のいずれか。
+        "anima-base-v1.0"(28block) / "anima-2.9b-v1.0"(40block) /
+        "anima-3.8b-v1.1"(52block、connector内蔵) / "anima-3.8b-v1.0"
+        (52block、connector無し。外付けProgressive Cross Adapter想定だが、
+        当該外部ファイルは本体マージの対象外) / "unknown"(28/40/52以外、
+        またはblocks.N.パターン非検出でAnima系と判定できない)のいずれか。
     """
     if num_blocks == 28:
         return "anima-base-v1.0"
+    if num_blocks == 40:
+        return "anima-2.9b-v1.0"
     if num_blocks == 52:
         return "anima-3.8b-v1.1" if is_connector_v2 else "anima-3.8b-v1.0"
     return "unknown"
 
 
+def is_verified_anima_variant_pair(base_variant: str, secondary_variant: str) -> bool:
+    """Base/Secondaryの組み合わせが検証済みか判定する(例外を送出しない問い合わせ用)。
+
+    両方が"unknown"(=どちらもAnima系と判定できない、Anima以外の汎用モデルの
+    マージと推定される)組み合わせも検証済み扱いとする(既存の汎用マージ動作を
+    そのまま許可するため)。GUI側の「モデルを検出」プレビュー(gui.py)からも、
+    検証済みペアの定義を複製せずこの関数を単一の真実の情報源として参照すること。
+
+    Args:
+        base_variant: classify_anima_model_variant()の戻り値(Base側)。
+        secondary_variant: 同(Secondary側)。
+
+    Returns:
+        検証済みの組み合わせ、またはどちらも"unknown"ならTrue。
+    """
+    if base_variant == "unknown" and secondary_variant == "unknown":
+        return True
+    return frozenset({base_variant, secondary_variant}) in _VERIFIED_ANIMA_VARIANT_PAIRS
+
+
 def verify_anima_variant_pair_if_applicable(base_variant: str, secondary_variant: str) -> None:
     """Base/Secondaryの組み合わせが検証済みか確認し、未検証なら例外で処理を停止する。
 
-    両方が"unknown"(=どちらもAnima系と判定できない、Anima以外の汎用モデルの
-    マージと推定される)場合は検証をスキップし、既存の汎用マージ動作を
-    そのまま許可する。片方のみAnima系と判定された場合、または既知でない
-    組み合わせの場合は、推測でのマージを避けるためUnverifiedModelPairErrorを
-    送出して停止する。
+    判定そのものはis_verified_anima_variant_pair()に委譲する。
 
     Args:
         base_variant: classify_anima_model_variant()の戻り値(Base側)。
@@ -171,15 +193,14 @@ def verify_anima_variant_pair_if_applicable(base_variant: str, secondary_variant
     Raises:
         UnverifiedModelPairError: 未検証の組み合わせの場合。
     """
-    if base_variant == "unknown" and secondary_variant == "unknown":
+    if is_verified_anima_variant_pair(base_variant, secondary_variant):
         return
-    if frozenset({base_variant, secondary_variant}) not in _VERIFIED_ANIMA_VARIANT_PAIRS:
-        raise UnverifiedModelPairError(
-            "未検証のモデル組み合わせのためマージを中断しました "
-            f"(base={base_variant}, secondary={secondary_variant})。"
-            "検証済みの組み合わせは AnimaBase v1.0(28block) と "
-            "Anima 3.8B v1.0/v1.1(52block) の間のみです。"
-        )
+    raise UnverifiedModelPairError(
+        "未検証のモデル組み合わせのためマージを中断しました "
+        f"(base={base_variant}, secondary={secondary_variant})。"
+        "検証済みの組み合わせは AnimaBase v1.0(28block)・Anima 2.9B(40block)・"
+        "Anima 3.8B v1.0/v1.1(52block) の間のみです。"
+    )
 
 
 def anima_block_category_layout(num_blocks: int) -> list[str]:

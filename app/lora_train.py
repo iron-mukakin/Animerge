@@ -42,6 +42,21 @@ except ImportError:
         discover_custom_schedulers,
     )
 
+# apply_fix_083: block数拡張(28/40/52)のblock対応表をanima_block_manifests.py
+# (merge.py側の本体マージ・LoRAマージと同一の正本データ)から取得する。
+try:
+    from .anima_block_manifests import block_correspondence_map, inserted_block_source_map
+except ImportError:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _app_dir = _Path(__file__).resolve().parent
+    if str(_app_dir) not in _sys.path:
+        _sys.path.insert(0, str(_app_dir))
+    from anima_block_manifests import (  # type: ignore[no-redef]
+        block_correspondence_map,
+        inserted_block_source_map,
+    )
+
 # apply_fix_073: GUI入力値の自動キャッシュ(gui_cash)用I/O。
 try:
     from .gui_cash_io import read_gui_cash_section, write_gui_cash_section
@@ -427,35 +442,47 @@ def _anima_block_categories(num_blocks: int) -> list[str]:
     return ["Input"] * third + ["Middle"] * (third + remainder) + ["Output"] * third
 
 
-# Anima 3.8B: 旧DiT(40ブロック、Anima-2.9B系)を新DiT(52ブロック、3.8B v1.0/v1.1共通)へ
-# LLaMA-Pro方式で拡張した際の実際の挿入位置(safetensors metadataから実測済み)。
-# 3.8B v1.0/v1.1はどちらもこの52ブロック構造を共有するため、同じ表を両方に使う。
-_LLAMA_PRO_40_TO_52_INSERTION_POSITIONS = (3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47)
-
-
 def _llama_pro_block_index_map(old_block_count: int, new_block_count: int) -> Optional[dict[int, int]]:
     """LLaMA-Pro方式のブロック挿入による{new_index: old_index}対応表を返す。
 
-    挿入で新規追加されたブロック(旧モデルに対応物が無いブロック)は、挿入直前の
-    (クローン元の)旧ブロック番号を割り当てる。
+    app/anima_block_manifests.py(merge.py側の本体マージ・LoRAマージと
+    同一の正本データ)に登録済みのペア(28<->40, 40<->52, 28<->52)を
+    双方向でサポートする。それ以外の未知の組み合わせはNoneを返す
+    (推測による誤ったマッピングを避けるため)。old==newの場合は
+    恒等写像を返す。
 
-    既知の変換(現状old=40, new=52のみ)以外はNoneを返す(推測による誤ったマッピングを
-    避けるため)。old==newの場合は恒等写像を返す。
+    拡大方向(old<new): 継承blockはblock_correspondence_map()の対応を
+    逆引きする。挿入blockは対応物が無いため、inserted_block_source_map()
+    が返す初期化時の系譜(=挿入直前の既存blockの値)をそのまま使う
+    (旧40->52専用実装が行っていた近似と同じ意図)。
+
+    縮小方向(old>new): new側は常により少ないblock数の側になるため、
+    block_correspondence_map()の対応表(={new_idx: old_idx})を
+    そのまま使える(new側の全indexが継承block、対応物が無いケースは
+    発生しない)。
     """
     if old_block_count == new_block_count:
         return {i: i for i in range(new_block_count)}
-    if old_block_count == 40 and new_block_count == 52:
-        inserted_positions = set(_LLAMA_PRO_40_TO_52_INSERTION_POSITIONS)
-        mapping: dict[int, int] = {}
-        old_index = 0
-        for new_index in range(new_block_count):
-            if new_index in inserted_positions:
-                mapping[new_index] = max(old_index - 1, 0)
-            else:
-                mapping[new_index] = old_index
-                old_index += 1
-        return mapping
-    return None
+
+    smaller_n, larger_n = sorted((old_block_count, new_block_count))
+    base_to_target = block_correspondence_map(smaller_n, larger_n)
+    inserted_sources = inserted_block_source_map(smaller_n, larger_n)
+    if base_to_target is None or inserted_sources is None:
+        return None
+
+    if new_block_count == smaller_n:
+        # 縮小方向: {smaller_idx: larger_idx} = {new_idx: old_idx} そのもの
+        return dict(base_to_target)
+
+    # 拡大方向: 継承blockは逆引き、挿入blockは初期化時の系譜を使う
+    inverse = {target_idx: base_idx for base_idx, target_idx in base_to_target.items()}
+    mapping: dict[int, int] = {}
+    for new_index in range(new_block_count):
+        if new_index in inverse:
+            mapping[new_index] = inverse[new_index]
+        else:
+            mapping[new_index] = inserted_sources[new_index]
+    return mapping
 
 
 def _remap_layer_block_scales(
@@ -1310,14 +1337,21 @@ def _convert_preset_scales(
     scales: dict[str, float],
     preset_mode: str,
     target_mode: str,
+    num_blocks: int = 28,
 ) -> dict[str, float]:
     """プリセットの parameter_scales を target_mode のキー形式に疑似コンバートする。
+
+    num_blocksは「モデルを検出」ボタンで検出された実際のDiTブロック総数
+    (s.detected_num_blocks)を呼び出し側から渡すこと。28/40/52いずれにも
+    対応する(_anima_block_categories()を使用)。未指定時のデフォルト28は
+    後方互換のためのみに残しており、実際の呼び出し元(_load_layer_preset)
+    では必ず検出済みの値を明示的に渡す(apply_fix_084)。
 
     同一モード: そのまま返す。
     Component → Matrix: Component スケールを全 Block に展開。
         blocks.N_Attention 系キーはブロックカテゴリ別に平均して
         Input_Attention / Middle_Attention / Output_Attention に変換。
-    Component → Transformer: 全コンポーネント平均を28ブロックに展開。
+    Component → Transformer: 全コンポーネント平均をnum_blocksブロックに展開。
     Matrix → Component: Block 次元を平均してコンポーネントに集約。
         Attention は Input/Middle/Output の平均を "Attention" キーに集約。
     Matrix → Transformer: ブロックカテゴリ内の全コンポーネント平均を各ブロックに展開。
@@ -1331,6 +1365,8 @@ def _convert_preset_scales(
 
     # ── Component プリセットの Attention キー抽出ヘルパー ──────────
     # merge.py の Component モードは Attention を "blocks.N_Attention" 形式で保存する
+    categories = _anima_block_categories(num_blocks)
+
     def _attn_by_block_cat(scales: dict) -> dict[str, float]:
         """blocks.N_Attention キーをブロックカテゴリ別に平均して返す。
         戻り値: {"Input": 0.8, "Middle": 0.7, "Output": 0.6}
@@ -1340,8 +1376,8 @@ def _convert_preset_scales(
             m = _re.match(r"blocks\.(\d+)_Attention$", k)
             if m:
                 n = int(m.group(1))
-                if 0 <= n < 28:
-                    cat = _BLOCK_CAT[n]
+                if 0 <= n < num_blocks:
+                    cat = categories[n]
                     cat_vals[cat].append(float(v))
         return {
             cat: (sum(vals) / len(vals) if vals else 1.0)
@@ -1362,8 +1398,8 @@ def _convert_preset_scales(
     if preset_mode == "Component" and target_mode == "Transformer":
         attn_by_cat = _attn_by_block_cat(scales)
         result = {}
-        for i in range(28):
-            cat = _BLOCK_CAT[i]
+        for i in range(num_blocks):
+            cat = categories[i]
             comp_vals = [attn_by_cat[cat]]
             comp_vals += [float(scales.get(c, 1.0)) for c in ("MLP", "Norm", "ResNet", "Timestep", "Other")]
             result[f"blocks.{i}"] = sum(comp_vals) / len(comp_vals)
@@ -1383,8 +1419,8 @@ def _convert_preset_scales(
     # ── Matrix → Transformer ─────────────────────────────────────
     if preset_mode == "Matrix" and target_mode == "Transformer":
         result = {}
-        for i in range(28):
-            cat = _BLOCK_CAT[i]
+        for i in range(num_blocks):
+            cat = categories[i]
             comp_vals = [float(scales.get(f"{cat}_{c}", 1.0)) for c in MATRIX_COMPONENTS]
             result[f"blocks.{i}"] = sum(comp_vals) / len(comp_vals)
         return result
@@ -1394,7 +1430,7 @@ def _convert_preset_scales(
         # ブロックカテゴリの平均を Block_Component 全てに適用
         cat_avg: dict[str, float] = {}
         for cat in MATRIX_BLOCKS:
-            idxs = [i for i, c in enumerate(_BLOCK_CAT) if c == cat]
+            idxs = [i for i, c in enumerate(categories) if c == cat]
             vals = [float(scales.get(f"blocks.{i}", 1.0)) for i in idxs]
             cat_avg[cat] = sum(vals) / len(vals)
         result = {}
@@ -1405,7 +1441,7 @@ def _convert_preset_scales(
 
     # ── Transformer → Component ──────────────────────────────────
     if preset_mode == "Transformer" and target_mode == "Component":
-        avg = sum(float(scales.get(f"blocks.{i}", 1.0)) for i in range(28)) / 28
+        avg = sum(float(scales.get(f"blocks.{i}", 1.0)) for i in range(num_blocks)) / num_blocks
         return {c: avg for c in COMPONENT_GROUPS}
 
     # フォールバック: 変換不能の場合はそのまま返す
@@ -1439,9 +1475,17 @@ def _load_layer_preset(s: _TrainState, canvas: tk.Canvas, inner: ttk.Frame) -> N
 
     scales = data.get("parameter_scales", {})
 
+    # apply_fix_084: モード変換はブロック単位のカテゴリ判定を伴うため、
+    # 「モデルを検出」未実行(num_blocks不明)のままでは正しく変換できない。
+    if new_mode != s.layer_display_mode.get() and s.detected_num_blocks is None:
+        from tkinter import messagebox
+        messagebox.showerror(gettext("lora_layer_preset_error"), gettext("lora_layer_hint_detect_needed"))
+        return
+
     # Component プリセット → 現在モードへの疑似コンバート
     converted = _convert_preset_scales(
-        scales, preset_mode=new_mode, target_mode=s.layer_display_mode.get()
+        scales, preset_mode=new_mode, target_mode=s.layer_display_mode.get(),
+        num_blocks=s.detected_num_blocks if s.detected_num_blocks is not None else 28,
     )
 
     for k, v in converted.items():

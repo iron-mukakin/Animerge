@@ -6,3 +6,19 @@
   Checkpoints: 7
   LoRA files : 2
 
+2026-09-27 18:34:31 [Rescan Folders]
+  Checkpoints: 8
+  LoRA files : 2
+
+2026-09-27 18:35:27 [Load Base Structure]
+  Layers: 928
+
+2026-09-27 18:35:37 [本体マージ開始]
+  Model A : E:/Animerge/checkpoints/Anima-2.9B-preview-v1.safetensors
+  Model B : E:\Animerge\checkpoints\Anima-3.8B-v1.1.safetensors
+  Alpha   : 0.5
+  Dry-run : True
+  Device  : cuda
+  Output  : merged_model.safetensors
+2026-09-27 18:36:52 [Unload Models] VRAM/RAM cache cleared
+

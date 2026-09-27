@@ -6,14 +6,15 @@
 - Please make sure to click "Detect Model" for accurate version identification.
 - Merge functionality for different versions has been implemented.
 - Changed the merge function to use the GPU.
+- The layer specifications for DiT are 28 layers for Base, 40 layers for 2.9B, and 52 layers for 3.8B.
 
 | item | Supported Versions |
 | :--- | :--- |
-| Model Merge | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
-| LoRA Merge| Anima Base 1.0,Anima3.8B v1.0, Anima3.8B v1.1 |
+| Model Merge | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
+| LoRA Merge| Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 | Layer Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | Detailed Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
-| LoRA Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
+| LoRA Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LECO Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | ADDifT Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 
