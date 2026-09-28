@@ -15,8 +15,8 @@
 | Layer Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | Detailed Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LoRA Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
-| LECO Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
-| ADDifT Training | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
+| LECO Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
+| ADDifT Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 
 Animerge is a desktop GUI tool for working with Anima model checkpoints and LoRA files. The current build is centered on `app/gui.py`, with merge, analysis, model I/O, and LoRA training support split into related modules under `app/`.
 
