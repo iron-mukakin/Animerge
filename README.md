@@ -12,8 +12,8 @@
 | :--- | :--- |
 | Model Merge | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LoRA Merge| Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
-| Layer Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
-| Detailed Analysis | Anima Base 1.0, Anima3.8B v1.0, Anima3.8B v1.1 |
+| Layer Analysis | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
+| Detailed Analysis | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LoRA Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 | LECO Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |
 | ADDifT Training | Anima Base 1.0, Anima2.9B-preview-v1, Anima3.8B v1.0, Anima3.8B v1.1 |

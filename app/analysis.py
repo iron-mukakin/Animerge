@@ -109,6 +109,9 @@ class AnalysisReport:
     # 重要層 / 非重要層キー（GUI 色分け用）
     important_layer_keys: list[str] = field(default_factory=list)
     unimportant_layer_keys: list[str] = field(default_factory=list)
+    # apply_fix_089: 検出したDiT/LoRA学習時のブロック総数(Anima系と判定できなければNone)。
+    # ログのMETADATAへ書き出し、詳細分析のレポート比較でblocks.Nの対応付けに使う。
+    num_blocks: int | None = None
 
 
 # ─── キー正規化ユーティリティ ──────────────────────────────────────────────────
@@ -163,8 +166,8 @@ def _normalize_analysis_key(
 def _group_label(norm_key: str, mode: str, num_blocks: int | None = None) -> str:
     """正規化キーから表示グループ名を返す（adjustment_group と同ロジック）。
 
-    num_blocksを渡すことで、Anima実構成(28block=9/10/9分割、52block=
-    均等3分割)に基づいたInput/Middle/Output境界判定になる(Noneの場合は
+    num_blocksを渡すことで、Anima実構成(28block=9/10/9分割、40/52block=
+    3分割で余りはMiddleへ)に基づいたInput/Middle/Output境界判定になる(Noneの場合は
     従来の汎用ヒューリスティックにフォールバックする)。
     """
     try:
@@ -623,6 +626,10 @@ def _build_log_text(report: AnalysisReport, aggregated: dict[str, dict[str, floa
         "record_count": len(report.records),
         "warnings_count": len(report.warnings),
     }
+    # apply_fix_089: ブロック数はAnima系と判定できた場合のみ記録する
+    # (旧ログとの互換のため、Noneならキー自体を書かない)。
+    if report.num_blocks is not None:
+        meta["num_blocks"] = report.num_blocks
     lines.append("[METADATA]")
     lines.append(_METADATA_SEPARATOR)
     for k, v in meta.items():
@@ -912,6 +919,7 @@ def run_analysis(
         sha256=sha,
         timestamp=timestamp,
     )
+    report.num_blocks = num_blocks
 
     log(gettext("analysis_log_start", method=method, mode=layer_mode, type=model_type, name=model_name))
 

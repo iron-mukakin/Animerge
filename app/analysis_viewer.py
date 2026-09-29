@@ -809,11 +809,13 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
 
         gs_a = da.get("group_summary", {})
         gs_b = db.get("group_summary", {})
+        # apply_fix_090: ブロック数が異なる場合はblocks.Nを対応表で整列する
+        gs_a, gs_b, align_notes = _align_group_summaries_by_block(gs_a, gs_b, meta_a, meta_b)
         metric = _method_metric(method_a)
 
         groups_a = set(gs_a.keys())
         groups_b = set(gs_b.keys())
-        common = sorted(groups_a & groups_b)
+        common = sorted(groups_a & groups_b, key=_natural_sort_key)
 
         vals_a = [gs_a[g].get(metric, 0.0) for g in common]
         vals_b = [gs_b[g].get(metric, 0.0) for g in common]
@@ -866,6 +868,7 @@ def _build_compare_tab(parent: ttk.Frame, log_dir: Path, log_fn: Callable) -> No
             meta_a, meta_b, method_a,
             gs_a, gs_b, common, vals_a, vals_b,
             hi_idx, overall_sim, diffs,
+            align_notes=align_notes,
         )
 
         compat_text.config(state=tk.NORMAL)
@@ -889,6 +892,7 @@ def _generate_compat_report(
     hi_idx: list[int],
     overall_sim: float,
     diffs: list[float],
+    align_notes: list[str] | None = None,
 ) -> list[str]:
     """
     2つのログから相性・マージ適性レポートを生成する。
@@ -912,6 +916,9 @@ def _generate_compat_report(
         gettext("compat_common_groups", count=len(common)),
         "",
     ]
+    if align_notes:
+        lines.extend(align_notes)
+        lines.append("")
 
     # ── 総合近似度スコア ────────────────────────────────────────────────
     sim_pct = overall_sim * 100
@@ -1016,6 +1023,106 @@ def _generate_compat_report(
 
 
 # ─── グラフデータ構築ユーティリティ ──────────────────────────────────────────
+
+_BLOCK_GROUP_PATTERN = re.compile(r"^blocks\.(\d+)(_.+)?$")
+
+
+def _natural_sort_key(text: str) -> list:
+    """数字部分を数値として比較する並べ替えキー(blocks.2 < blocks.10)。"""
+    return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", text)]
+
+
+def _read_num_blocks_from_metadata(metadata: dict) -> int | None:
+    """分析ログのMETADATAからnum_blocksを読み取る(旧ログ・不正値はNone)。"""
+    raw = metadata.get("num_blocks")
+    if raw is None:
+        return None
+    try:
+        value = int(str(raw).strip())
+    except ValueError:
+        return None
+    return value if value > 0 else None
+
+
+def _align_group_summaries_by_block(
+    gs_a: dict, gs_b: dict, meta_a: dict, meta_b: dict,
+) -> tuple[dict, dict, list[str]]:
+    """ブロック数の異なる2ログのblocks.N系グループを、対応表に基づき整列する。
+
+    両ログのnum_blocksが判明していて異なる場合、anima_block_manifests.py の
+    block_correspondence_map()(継承block同士の正しい対応)で、大きい側の
+    blocks.Nを小さい側のindexへ付け替える。大きい側にのみ存在する
+    (拡張で挿入された)blockは対応物が無いため比較対象から除外する。
+    blocks.N形式でないグループ(Matrix/ComponentのInput_Attention等)は
+    そのまま維持する。
+
+    Args:
+        gs_a: ログAのgroup_summary。
+        gs_b: ログBのgroup_summary。
+        meta_a: ログAのMETADATA。
+        meta_b: ログBのMETADATA。
+
+    Returns:
+        (整列後gs_a, 整列後gs_b, レポートへ出す注記行のリスト)。
+        整列不要・不能の場合は入力をそのまま返す。
+    """
+    blocks_a = _read_num_blocks_from_metadata(meta_a)
+    blocks_b = _read_num_blocks_from_metadata(meta_b)
+    if blocks_a is None or blocks_b is None or blocks_a == blocks_b:
+        return gs_a, gs_b, []
+    if not any(_BLOCK_GROUP_PATTERN.match(name) for name in (*gs_a, *gs_b)):
+        return gs_a, gs_b, []
+
+    try:
+        try:
+            from .anima_block_manifests import block_correspondence_map, is_expansion_pair_official
+        except ImportError:
+            from anima_block_manifests import (  # type: ignore[no-redef]
+                block_correspondence_map,
+                is_expansion_pair_official,
+            )
+    except ImportError:
+        return gs_a, gs_b, []
+
+    smaller, larger = sorted((blocks_a, blocks_b))
+    mapping = block_correspondence_map(smaller, larger)
+    if mapping is None:
+        note = gettext("viewer_compare_block_align_unknown", blocks_a=blocks_a, blocks_b=blocks_b)
+        return gs_a, gs_b, [note]
+
+    inverse = {large_idx: small_idx for small_idx, large_idx in mapping.items()}
+    skipped_indices: set[int] = set()
+
+    def _rekey_to_smaller(group_summary: dict, own_blocks: int) -> dict:
+        if own_blocks == smaller:
+            return dict(group_summary)
+        rekeyed: dict = {}
+        for name, value in group_summary.items():
+            matched = _BLOCK_GROUP_PATTERN.match(name)
+            if matched is None:
+                rekeyed[name] = value
+                continue
+            large_idx = int(matched.group(1))
+            if large_idx in inverse:
+                rekeyed[f"blocks.{inverse[large_idx]}{matched.group(2) or ''}"] = value
+            else:
+                skipped_indices.add(large_idx)
+        return rekeyed
+
+    aligned_a = _rekey_to_smaller(gs_a, blocks_a)
+    aligned_b = _rekey_to_smaller(gs_b, blocks_b)
+
+    notes = [
+        gettext(
+            "viewer_compare_block_align_applied",
+            blocks_a=blocks_a, blocks_b=blocks_b,
+            matched=len(mapping), skipped=len(skipped_indices),
+        )
+    ]
+    if is_expansion_pair_official(smaller, larger) is False:
+        notes.append(gettext("viewer_compare_block_align_unofficial"))
+    return aligned_a, aligned_b, notes
+
 
 def _method_metric(method_tag: str) -> str:
     for tag, metric in _METHOD_METRICS.items():

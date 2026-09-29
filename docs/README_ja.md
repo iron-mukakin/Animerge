@@ -9,8 +9,8 @@
 | :--- | :--- |
 | 本体マージ | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
 | LoRAマージ | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
-| レイヤー分析 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
-| 詳細分析 | Anima Base 1.0、Anima3.8B v1.0、Anima3.8B v1.1 |
+| レイヤー分析 | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
+| 詳細分析 | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
 | LoRA学習 | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
 | LECO学習 | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
 | ADDifT学習 | Anima Base 1.0、Anima2.9B-preview-v1、Anima3.8B v1.0、Anima3.8B v1.1 |
