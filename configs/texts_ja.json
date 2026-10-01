@@ -713,5 +713,7 @@
   "lora_validate_fp8_scaled_blocks_to_swap": "fp8_scaled は blocks_to_swap と併用できません(scale_weightがスワップされず逆量子化が破綻します)。",
   "viewer_compare_block_align_applied": "ブロック数が異なるため、拡張マニフェストの対応表でblocks.Nを整列して比較しました(A: {blocks_a}block / B: {blocks_b}block、比較対象 {matched}block、対応物が無く除外 {skipped}block)。",
   "viewer_compare_block_align_unknown": "ブロック数が異なります(A: {blocks_a}block / B: {blocks_b}block)が、検証済みの対応表がありません。blocks.Nの単純一致で比較するため、結果は参考値です。",
-  "viewer_compare_block_align_unofficial": "注意: 40→52ブロックの対応表は、実チェックポイント同士の比較(cosine類似度)に基づくもので、公式マニフェストは未公開です。"
+  "viewer_compare_block_align_unofficial": "注意: 40→52ブロックの対応表は、実チェックポイント同士の比較(cosine類似度)に基づくもので、公式マニフェストは未公開です。",
+  "busy_running": "処理中...",
+  "busy_stalled": "応答なし(フリーズの可能性)"
 }

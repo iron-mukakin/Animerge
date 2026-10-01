@@ -108,7 +108,9 @@ def build_lora_train_tab(
 
     state = _TrainState(paths, log_fn, get_model_choices)
 
-    nb = ttk.Notebook(parent)
+    # apply_fix_095: 本体マージ/LECO学習と同じ副タブ配色に統一する。
+    _ensure_subtab_style(parent)
+    nb = ttk.Notebook(parent, style="SubTab.TNotebook")
     nb.pack(fill=tk.BOTH, expand=True)
 
     # ── タブ構成 ──────────────────────────────────────────────────────────
@@ -440,6 +442,32 @@ def _anima_block_categories(num_blocks: int) -> list[str]:
     third = num_blocks // 3
     remainder = num_blocks - third * 3
     return ["Input"] * third + ["Middle"] * (third + remainder) + ["Output"] * third
+
+
+def _ensure_subtab_style(widget: tk.Misc) -> None:
+    """gui.py の副タブ配色(SubTab.TNotebook.Tab)をこのウィジェット上で保証する。
+
+    gui.py 側で既に登録済みなら上書き再設定するだけで実害はない
+    (ttk.Style.configure は冪等)。leco_train.py の同名ヘルパーと同一内容
+    (apply_fix_095でlora_train.py側にも移植)。lora_train.py 単体テスト
+    実行時など gui.py の _apply_styles() を経由しないケースのフォールバックも兼ねる。
+
+    Args:
+        widget: スタイル登録に使う tkinter ウィジェット(ルート取得用)。
+    """
+    style = ttk.Style(widget)
+    style.configure(
+        "SubTab.TNotebook.Tab",
+        font=("TkDefaultFont", 9, "bold"),
+        padding=(10, 4),
+        background="#475569",
+        foreground="black",
+    )
+    style.map(
+        "SubTab.TNotebook.Tab",
+        background=[("selected", "#334155"), ("active", "#64748B")],
+        foreground=[("selected", "green"), ("active", "purple")],
+    )
 
 
 def _llama_pro_block_index_map(old_block_count: int, new_block_count: int) -> Optional[dict[int, int]]:
@@ -2354,11 +2382,17 @@ def _build_run_panel(parent: ttk.Frame, s: _TrainState) -> None:
         command=lambda: _start_training(s, cmd_text),
     ).pack(side=tk.RIGHT, padx=4)
 
+    # apply_fix_102: 実行中スピナー(s._procの生存確認のみ、ログ非依存)。
+    _busy_var = tk.StringVar(value="")
+    ttk.Label(btn_row, textvariable=_busy_var, foreground="#2563EB").pack(side=tk.LEFT, padx=(8, 0))
+    _tick_alive_spinner(btn_row, _busy_var, s, [0])
+
     # ログ出力
     log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
 
-    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
+    # apply_fix_095: モニターグラフタブのログ(TkFixedFont 12)に合わせて拡大する。
+    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 12))
     log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
     log_text.configure(yscrollcommand=log_scroll.set)
     log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -2828,6 +2862,32 @@ def _start_training(s: _TrainState, cmd_text: tk.Text) -> None:
             s._proc = None
 
     threading.Thread(target=_worker, daemon=True).start()
+
+
+_ALIVE_SPINNER_FRAMES = ("\u280b", "\u2819", "\u2839", "\u2838", "\u283c",
+                         "\u2834", "\u2826", "\u2827", "\u2807", "\u280f")
+
+
+def _tick_alive_spinner(widget: tk.Misc, var: tk.StringVar, s: "_TrainState", frame: list[int]) -> None:
+    """s._procの生存確認のみでスピナーを進める(ログ活動には依存しない)。
+
+    gui.py側の本体マージ/分析タブと同じ「生存確認ベース」の設計方針
+    (apply_fix_101)をsubprocess版として踏襲する(apply_fix_102)。
+    accelerate launch経由の孫プロセスのCPU/GPU実働までは見ず、
+    直接の子プロセス(s._proc)がまだ終了していないかのみを見る。
+
+    Args:
+        widget: after()のスケジューリングに使うtkinterウィジェット。
+        var: スピナー表示用のStringVar。
+        s: 学習状態(s._procを参照する)。
+        frame: 現在のコマ番号を保持する1要素のリスト(可変セル代わり)。
+    """
+    if s._proc is not None and s._proc.poll() is None:
+        frame[0] = (frame[0] + 1) % len(_ALIVE_SPINNER_FRAMES)
+        var.set(f"{_ALIVE_SPINNER_FRAMES[frame[0]]} {gettext('busy_running')}")
+    else:
+        var.set("")
+    widget.after(150, lambda: _tick_alive_spinner(widget, var, s, frame))
 
 
 def _stop_training(s: _TrainState) -> None:

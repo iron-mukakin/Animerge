@@ -1129,9 +1129,14 @@ def _build_run_panel(parent: ttk.Frame, s: _LecoTrainState) -> None:
     ttk.Button(btn_row, text=gettext("lora_start_btn"), style="Run.TButton",
                command=lambda: _start_training(s, cmd_text)).pack(side=tk.RIGHT, padx=4)
 
+    # apply_fix_103: 実行中スピナー(s._procの生存確認のみ、ログ非依存)。
+    _busy_var = tk.StringVar(value="")
+    ttk.Label(btn_row, textvariable=_busy_var, foreground="#2563EB").pack(side=tk.LEFT, padx=(8, 0))
+    _tick_alive_spinner(btn_row, _busy_var, s, [0])
+
     log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
-    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
+    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 12))
     log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
     log_text.configure(yscrollcommand=log_scroll.set)
     log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1476,6 +1481,32 @@ def _start_training(s: _LecoTrainState, cmd_text: tk.Text) -> None:
             s._proc = None
 
     threading.Thread(target=_worker, daemon=True).start()
+
+
+_ALIVE_SPINNER_FRAMES = ("\u280b", "\u2819", "\u2839", "\u2838", "\u283c",
+                         "\u2834", "\u2826", "\u2827", "\u2807", "\u280f")
+
+
+def _tick_alive_spinner(widget: tk.Misc, var: tk.StringVar, s: "_LecoTrainState", frame: list[int]) -> None:
+    """s._procの生存確認のみでスピナーを進める(ログ活動には依存しない)。
+
+    gui.py側の本体マージ/分析タブと同じ「生存確認ベース」の設計方針
+    (apply_fix_101)をsubprocess版として踏襲する(apply_fix_103)。
+    accelerate launch経由の孫プロセスのCPU/GPU実働までは見ず、
+    直接の子プロセス(s._proc)がまだ終了していないかのみを見る。
+
+    Args:
+        widget: after()のスケジューリングに使うtkinterウィジェット。
+        var: スピナー表示用のStringVar。
+        s: 学習状態(s._procを参照する)。
+        frame: 現在のコマ番号を保持する1要素のリスト(可変セル代わり)。
+    """
+    if s._proc is not None and s._proc.poll() is None:
+        frame[0] = (frame[0] + 1) % len(_ALIVE_SPINNER_FRAMES)
+        var.set(f"{_ALIVE_SPINNER_FRAMES[frame[0]]} {gettext('busy_running')}")
+    else:
+        var.set("")
+    widget.after(150, lambda: _tick_alive_spinner(widget, var, s, frame))
 
 
 def _stop_training(s: _LecoTrainState) -> None:
@@ -1871,7 +1902,7 @@ def _build_monitor_tab(parent: ttk.Frame, s: "_LecoTrainState") -> None:
 
     log_frame = ttk.LabelFrame(parent, text=gettext("lora_train_log"))
     log_frame.grid(row=1, column=0, sticky=tk.EW, pady=(4, 0))
-    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 8))
+    log_text = tk.Text(log_frame, height=8, wrap=tk.WORD, font=("TkFixedFont", 12))
     log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=log_text.yview)
     log_text.configure(yscrollcommand=log_scroll.set)
     log_scroll.pack(side=tk.RIGHT, fill=tk.Y)

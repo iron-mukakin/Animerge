@@ -5,6 +5,7 @@ import json
 import queue
 import re
 import threading
+import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
@@ -52,9 +53,11 @@ class AnimaModelEditor(tk.Tk):
         self.paths = paths or AppPaths.from_root()
         self.paths.ensure()
         self._mode = mode  # "cpu" or "cuda"
-        self.title("Animerge v3.0")
-        self.geometry("1120x820")
-        self.minsize(980, 720)
+        self.title("Animerge v4.0")
+        # apply_fix_094: 初期ウィンドウで最下部の実行ログが見切れていたため、
+        # 初期高さ/最小高さを拡大する。
+        self.geometry("1120x900")
+        self.minsize(980, 760)
 
         # apply_fix_076: ウィンドウクローズ時に、実行中プロセスの確認と
         # gui_cash(GUI入力値の自動キャッシュ)保存を行う。
@@ -117,6 +120,14 @@ class AnimaModelEditor(tk.Tk):
         self._mini_log_widgets: dict[str, tk.Text] = {}
         self._mini_log_queues: dict[str, queue.Queue] = {}
 
+        # apply_fix_099: ビジーインジケータ(処理中スピナー)の状態。
+        # 実行ログの実受信と連動させ、受信が途絶えたらスピナーも静止させる
+        # (フリーズ誤認防止のため、逆に本当のフリーズは静止で分かるようにする)。
+        self._busy_active: dict[str, bool] = {}
+        self._busy_last_activity: dict[str, float] = {}
+        self._busy_frame: dict[str, int] = {}
+        self._busy_vars: dict[str, tk.StringVar] = {}
+
         # メモリ上にロードされたモデル名を保持 (アンロード用)
         self._loaded_model_names: list[str] = []
 
@@ -136,6 +147,7 @@ class AnimaModelEditor(tk.Tk):
         self.refresh_files()
         self.rebuild_parameter_controls()
         self.after(100, self._drain_logs)
+        self.after(150, self._tick_busy_indicators)
 
     # ─── スタイル ────────────────────────────────────────────
     def _apply_styles(self) -> None:
@@ -234,7 +246,9 @@ class AnimaModelEditor(tk.Tk):
         # ログ（最下部）
         log_frame = ttk.LabelFrame(root, text=gettext("log_label"))
         log_frame.pack(fill=tk.X, pady=(8, 0))
-        self.log_text = tk.Text(log_frame, height=5, wrap=tk.WORD)
+        # apply_fix_094: LoRA学習モニターグラフのログ(TkFixedFont 12)に
+        # 合わせて拡大する。
+        self.log_text = tk.Text(log_frame, height=5, wrap=tk.WORD, font=("TkFixedFont", 12))
         self.log_text.pack(fill=tk.BOTH, expand=True)
 
         # apply_fix_078: 本体マージ/LoRAフューズ/LoRAマージ/差分抽出タブの
@@ -306,13 +320,21 @@ class AnimaModelEditor(tk.Tk):
         self.device_var.trace_add("write", lambda *_args: self._refresh_mode_label())
         ttk.Button(system, text=gettext("rescan_folders"), command=self.refresh_files).grid(row=0, column=3, padx=8)
         ttk.Button(system, text=gettext("unload_models"), command=self.unload_models).grid(row=0, column=4, padx=8)
-        ttk.Label(system, text=f"checkpoints: {self.paths.checkpoints}").grid(row=1, column=0, columnspan=5, padx=8, sticky=tk.W)
-        ttk.Label(system, text=f"lora: {self.paths.lora}").grid(row=2, column=0, columnspan=5, padx=8, sticky=tk.W)
+        # apply_fix_094: checkpoints/loraディレクトリ表示を専用の2行から
+        # Unloadボタン右側の1ラベル(2行テキスト)へ移動し、縦方向を圧縮する。
+        ttk.Label(
+            system,
+            text=f"checkpoints: {self.paths.checkpoints}\nlora: {self.paths.lora}",
+            justify=tk.LEFT,
+            font=("TkDefaultFont", 8),
+        ).grid(row=0, column=5, padx=(16, 8), pady=4, sticky=tk.W)
 
         # Merge Parameters
         params = ttk.LabelFrame(parent, text=gettext("merge_params"))
         params.pack(fill=tk.X, pady=(8, 0))
-        ttk.Label(params, text=gettext("alpha_label")).grid(row=0, column=0, padx=8, pady=6, sticky=tk.W)
+        # apply_fix_094: Layer Adjustment欄以外の行間paddingを詰めて
+        # 全体の縦方向を圧縮する(pady 6/4 -> 4/2)。
+        ttk.Label(params, text=gettext("alpha_label")).grid(row=0, column=0, padx=8, pady=4, sticky=tk.W)
         alpha_scale = ttk.Scale(params, from_=0.0, to=1.0, variable=self.alpha_var, orient=tk.HORIZONTAL)
         alpha_scale.grid(row=0, column=1, sticky=tk.EW)
         alpha_scale.bind("<ButtonRelease-1>", lambda e: self._snap_scale(self.alpha_var))
@@ -320,11 +342,11 @@ class AnimaModelEditor(tk.Tk):
         alpha_entry.grid(row=0, column=2, padx=8)
         alpha_entry.bind("<FocusOut>", lambda e: self._clamp_var(self.alpha_var))
         ttk.Checkbutton(params, text=gettext("cosine_auto"), variable=self.auto_var).grid(row=0, column=3, padx=8)
-        ttk.Label(params, text=gettext("cosine_threshold")).grid(row=1, column=0, padx=8, pady=6, sticky=tk.W)
+        ttk.Label(params, text=gettext("cosine_threshold")).grid(row=1, column=0, padx=8, pady=4, sticky=tk.W)
         ttk.Entry(params, textvariable=self.cosine_var, width=8).grid(row=1, column=1, sticky=tk.W)
         ttk.Checkbutton(params, text=gettext("dry_run"), variable=self.dry_run_var).grid(row=1, column=3, padx=8)
         freeze_bar = ttk.Frame(params)
-        freeze_bar.grid(row=2, column=0, columnspan=4, sticky=tk.W, padx=8, pady=4)
+        freeze_bar.grid(row=2, column=0, columnspan=4, sticky=tk.W, padx=8, pady=2)
         ttk.Checkbutton(freeze_bar, text=gettext("freeze_input"), variable=self.freeze_input_var).pack(side=tk.LEFT, padx=(0, 16))
         ttk.Checkbutton(freeze_bar, text=gettext("freeze_middle"), variable=self.freeze_middle_var).pack(side=tk.LEFT, padx=(0, 16))
         ttk.Checkbutton(freeze_bar, text=gettext("freeze_output"), variable=self.freeze_output_var).pack(side=tk.LEFT)
@@ -748,6 +770,11 @@ class AnimaModelEditor(tk.Tk):
             command=self.start_analysis,
         )
         self.analysis_run_btn.pack(side=tk.LEFT)
+        # apply_fix_099: 実行中スピナー(ログ受信と連動、途絶えると静止する)。
+        ttk.Label(
+            btn_frame_analysis, textvariable=self._register_busy_indicator("analysis"),
+            foreground="#2563EB",
+        ).pack(side=tk.LEFT, padx=(8, 0))
 
 
         # ── 結果表示エリア ────────────────────────────────────────────────
@@ -1110,7 +1137,13 @@ class AnimaModelEditor(tk.Tk):
         """
         frame = ttk.LabelFrame(parent, text=gettext("run_log_label"))
         frame.grid(row=row, column=0, columnspan=3, sticky=tk.EW, pady=(8, 0))
-        text = tk.Text(frame, height=4, wrap=tk.NONE, font=("TkDefaultFont", 9))
+        # apply_fix_099: 実行中スピナー(ログ受信と連動、途絶えると静止する)。
+        ttk.Label(frame, textvariable=self._register_busy_indicator(key), foreground="#2563EB").pack(
+            anchor=tk.W, padx=4, pady=(2, 0)
+        )
+        # apply_fix_094: LoRA学習モニターグラフのログ(TkFixedFont 12)に
+        # 合わせて拡大する。
+        text = tk.Text(frame, height=4, wrap=tk.NONE, font=("TkFixedFont", 12))
         text.pack(fill=tk.X, expand=True, padx=4, pady=4)
         text.configure(state=tk.DISABLED)
         self._mini_log_widgets[key] = text
@@ -1703,7 +1736,8 @@ class AnimaModelEditor(tk.Tk):
                 self.options(),
                 _dev,
                 self._make_progress_cb(_dev, "model_merge"),
-            )
+            ),
+            key="model_merge",
         )
 
     def start_lora_fuse(self) -> None:
@@ -1719,7 +1753,8 @@ class AnimaModelEditor(tk.Tk):
                 self.options(),
                 _dev,
                 self._make_progress_cb(_dev, "lora_fuse"),
-            )
+            ),
+            key="lora_fuse",
         )
 
     def start_lora_merge(self) -> None:
@@ -1735,7 +1770,8 @@ class AnimaModelEditor(tk.Tk):
                 self.options(),
                 _dev,
                 self._make_progress_cb(_dev, "lora_merge"),
-            )
+            ),
+            key="lora_merge",
         )
 
     def start_lora_extract(self) -> None:
@@ -1752,7 +1788,8 @@ class AnimaModelEditor(tk.Tk):
                 int(self.extract_rank_var.get()),
                 _dev,
                 self._make_progress_cb(_dev, "lora_extract"),
-            )
+            ),
+            key="lora_extract",
         )
 
     def start_analysis(self) -> None:
@@ -1768,6 +1805,8 @@ class AnimaModelEditor(tk.Tk):
 
         self.analysis_run_btn.config(state=tk.DISABLED)
         self.analysis_status_var.set(gettext("analysis_running"))
+        # apply_fix_099: 分析処理のビジーインジケータをON(終了はworker()側でOFF)。
+        self._set_busy_active("analysis")
         self.log(gettext("analysis_start_log", name=Path(target).name, method=method, mode=layer_mode))
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._write_action_log([
@@ -1781,50 +1820,61 @@ class AnimaModelEditor(tk.Tk):
 
         def worker() -> None:
             try:
-                report = run_analysis(
-                    model_path=Path(target),
-                    method=method,
-                    layer_mode=layer_mode,
-                    log_dir=self.paths.log_analysis,  # log_analysis フォルダ
-                    device=device,
-                    progress=self._make_progress_cb(device),
-                    key_correction=self.analysis_key_correction_var.get(),
-                )
-                self._analysis_result_report = report
-                self.after(0, lambda r=report: self._populate_analysis_result(r))
-            except DependencyError as exc:
-                message = str(exc)
-                self.log_queue.put(f"[Analysis] Dependency error: {message}")
-                self.after(0, lambda m=message: messagebox.showerror(gettext("analysis_dep_error_title"), m))
-                self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
-                self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_error_occurred")))
-            except Exception as exc:
-                message = str(exc)
-                self.log_queue.put(f"[Analysis] Error: {message}")
-                self.after(0, lambda m=message: messagebox.showerror(gettext("analysis_error_title"), m))
-                self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
-                self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_error_occurred")))
+                try:
+                    report = run_analysis(
+                        model_path=Path(target),
+                        method=method,
+                        layer_mode=layer_mode,
+                        log_dir=self.paths.log_analysis,  # log_analysis フォルダ
+                        device=device,
+                        progress=self._make_progress_cb(device),
+                        key_correction=self.analysis_key_correction_var.get(),
+                    )
+                    self._analysis_result_report = report
+                    self.after(0, lambda r=report: self._populate_analysis_result(r))
+                except DependencyError as exc:
+                    message = str(exc)
+                    self.log_queue.put(f"[Analysis] Dependency error: {message}")
+                    self.after(0, lambda m=message: messagebox.showerror(gettext("analysis_dep_error_title"), m))
+                    self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
+                    self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_error_occurred")))
+                except Exception as exc:
+                    message = str(exc)
+                    self.log_queue.put(f"[Analysis] Error: {message}")
+                    self.after(0, lambda m=message: messagebox.showerror(gettext("analysis_error_title"), m))
+                    self.after(0, lambda: self.analysis_run_btn.config(state=tk.NORMAL))
+                    self.after(0, lambda: self.analysis_status_var.set(gettext("analysis_error_occurred")))
+            finally:
+                # apply_fix_099: 成功/失敗どちらでも確実にビジーインジケータをOFFにする。
+                self.after(0, lambda: self._set_busy_inactive("analysis"))
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def _run_background(self, task) -> None:
+    def _run_background(self, task, key: str | None = None) -> None:
+        # apply_fix_099: keyが指定されていれば、開始時にビジー表示をONにし、
+        # 成功/失敗どちらの終了経路でも(try/finally)確実にOFFへ戻す。
+        self._set_busy_active(key)
+
         def worker() -> None:
             try:
-                report = task()
-                self.log_queue.put(
-                    f"Done: merged={report.merged_tensors}, skipped={report.skipped_tensors}, "
-                    f"auto_corrected={report.auto_corrected_tensors}, output={report.output_path}"
-                )
-                for warning in report.warnings[:20]:
-                    self.log_queue.put(f"Warning: {warning}")
-            except DependencyError as exc:
-                message = str(exc)
-                self.log_queue.put(f"Dependency error: {message}")
-                self.after(0, lambda message=message: messagebox.showerror(gettext("log_dep_error"), message))
-            except Exception as exc:
-                message = str(exc)
-                self.log_queue.put(f"Error: {message}")
-                self.after(0, lambda message=message: messagebox.showerror(gettext("log_merge_error"), message))
+                try:
+                    report = task()
+                    self.log_queue.put(
+                        f"Done: merged={report.merged_tensors}, skipped={report.skipped_tensors}, "
+                        f"auto_corrected={report.auto_corrected_tensors}, output={report.output_path}"
+                    )
+                    for warning in report.warnings[:20]:
+                        self.log_queue.put(f"Warning: {warning}")
+                except DependencyError as exc:
+                    message = str(exc)
+                    self.log_queue.put(f"Dependency error: {message}")
+                    self.after(0, lambda message=message: messagebox.showerror(gettext("log_dep_error"), message))
+                except Exception as exc:
+                    message = str(exc)
+                    self.log_queue.put(f"Error: {message}")
+                    self.after(0, lambda message=message: messagebox.showerror(gettext("log_merge_error"), message))
+            finally:
+                self.after(0, lambda: self._set_busy_inactive(key))
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -1952,6 +2002,71 @@ class AnimaModelEditor(tk.Tk):
     def log(self, message: str) -> None:
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.see(tk.END)
+
+    # apply_fix_099: ビジーインジケータ(処理中スピナー)ヘルパー群 ──────
+    _BUSY_SPINNER_FRAMES = ("\u280b", "\u2819", "\u2839", "\u2838", "\u283c",
+                            "\u2834", "\u2826", "\u2827", "\u2807", "\u280f")
+    _BUSY_STALL_SECONDS = 2.5
+
+    def _register_busy_indicator(self, key: str) -> tk.StringVar:
+        """keyに対応するビジーインジケータのStringVarを取得(無ければ新規作成)する。
+
+        タブ構築時に呼ぶため、既存の変数があればそれを再利用する
+        (_build_main_tab_contentは"model"/"lora"タブそれぞれで呼ばれるが、
+        キー自体は"model_merge"等でタブ間に重複が無いため通常は1回のみ生成される)。
+
+        Args:
+            key: ビジー状態を紐付けるキー("model_merge"等)。
+
+        Returns:
+            tk.StringVar: ラベル表示用の変数(空文字なら非アクティブ)。
+        """
+        if key not in self._busy_vars:
+            self._busy_vars[key] = tk.StringVar(value="")
+            self._busy_active[key] = False
+            self._busy_last_activity[key] = 0.0
+            self._busy_frame[key] = 0
+        return self._busy_vars[key]
+
+    def _set_busy_active(self, key: str | None) -> None:
+        """keyの処理を開始したことを記録し、最終活動時刻を現在時刻でリセットする。"""
+        if key is None:
+            return
+        self._register_busy_indicator(key)
+        self._busy_active[key] = True
+        self._busy_last_activity[key] = time.monotonic()
+        self._busy_frame[key] = 0
+
+    def _set_busy_inactive(self, key: str | None) -> None:
+        """keyの処理が終了したことを記録し、インジケータ表示を消す。"""
+        if key is None:
+            return
+        self._busy_active[key] = False
+        var = self._busy_vars.get(key)
+        if var is not None:
+            var.set("")
+
+    def _mark_busy_activity(self, key: str | None) -> None:
+        """keyについて実際にログを受信したことを記録する(スピナー継続進行の根拠)。"""
+        if key is not None and self._busy_active.get(key):
+            self._busy_last_activity[key] = time.monotonic()
+
+    def _tick_busy_indicators(self) -> None:
+        """アクティブな全キーのスピナー表示を更新する(apply_fix_101: 生存確認ベース)。
+
+        keyがactive(=対応する_run_background/start_analysisのワーカーが
+        まだ終了を報告していない)である間、無条件にコマを進め続ける。
+        ワーカーはtry/finallyで完了時に必ずself._set_busy_inactive(key)を
+        呼ぶため、生存確認としてはこれで十分(ログの有無には依存しない)。
+        """
+        for key, active in self._busy_active.items():
+            var = self._busy_vars.get(key)
+            if var is None or not active:
+                continue
+            self._busy_frame[key] = (self._busy_frame.get(key, 0) + 1) % len(self._BUSY_SPINNER_FRAMES)
+            frame_char = self._BUSY_SPINNER_FRAMES[self._busy_frame.get(key, 0)]
+            var.set(f"{frame_char} {gettext('busy_running')}")
+        self.after(150, self._tick_busy_indicators)
 
     def _drain_logs(self) -> None:
         while True:
