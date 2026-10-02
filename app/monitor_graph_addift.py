@@ -173,8 +173,23 @@ class AddifTMonitorGraph:
         self._tqdm_eta_sec: float | None = None
         # ── UI構築 ──────────────────────────────────────────────────
         self._build_ui(parent)
-        self._init_matplotlib()
+        # apply_fix_106: matplotlib初期化(起動時の最大の遅延要因だった)を、
+        # このタブが実際に初めて画面表示されるまで遅延する。
+        # self._mpl_okは_build_ui()より前で既にFalse初期化済み。
+        self._mpl_initialized = False
+        self._parent.bind("<Map>", self._on_first_mapped, add="+")
         parent.after(300, self._poll)
+
+    def _on_first_mapped(self, event=None) -> None:
+        """このタブが初めて画面表示された時点でmatplotlibを初期化する(apply_fix_106)。
+
+        <Map>は再表示のたびに複数回発火しうるため、_mpl_initializedで
+        一度だけ実行することを保証する。
+        """
+        if self._mpl_initialized:
+            return
+        self._mpl_initialized = True
+        self._init_matplotlib()
 
     # ─────────────────────────────────────────────────────────────────
     # UI構築

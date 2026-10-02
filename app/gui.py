@@ -9,6 +9,7 @@ import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
+from typing import Callable
 
 from .config import AppPaths, MergeOptions
 from .i18n import gettext, load_language
@@ -2153,10 +2154,21 @@ class AnimaModelEditor(tk.Tk):
         ).grid(row=2, column=0, columnspan=2, sticky=tk.W)
 
 
-def main() -> None:
+def main(on_ready: Callable[[], None] | None = None) -> None:
+    """アプリのエントリポイント。
+
+    Args:
+        on_ready: apply_fix_107で追加。AnimaModelEditorの構築が完了し、
+            mainloop()を開始する直前に一度だけ呼ばれる省略可能な
+            コールバック。run_app.py側のコンソールスピナーを、
+            ウィンドウが実際に使える状態になった正確なタイミングで
+            止めるために使う。
+    """
     import argparse
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--mode", choices=["cpu", "cuda"], default="cpu")
     args, _ = parser.parse_known_args()
     app = AnimaModelEditor(mode=args.mode)
+    if on_ready is not None:
+        on_ready()
     app.mainloop()

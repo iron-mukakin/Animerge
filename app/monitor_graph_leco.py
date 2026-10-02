@@ -93,8 +93,25 @@ class LecoMonitorGraph:
         self._tqdm_eta_sec: float | None = None
         # ── UI構築 ──────────────────────────────────────────────────
         self._build_ui(parent)
-        self._init_matplotlib()
+        # apply_fix_105: matplotlib初期化(起動時の最大の遅延要因だった)を、
+        # このタブが実際に初めて画面表示されるまで遅延する。
+        # _poll/_update_graphはself._mpl_okを見るため、ここでFalseに
+        # 明示初期化しておく必要がある。
+        self._mpl_ok = False
+        self._mpl_initialized = False
+        self._parent.bind("<Map>", self._on_first_mapped, add="+")
         parent.after(300, self._poll)
+
+    def _on_first_mapped(self, event=None) -> None:
+        """このタブが初めて画面表示された時点でmatplotlibを初期化する(apply_fix_105)。
+
+        <Map>は再表示のたびに複数回発火しうるため、_mpl_initializedで
+        一度だけ実行することを保証する。
+        """
+        if self._mpl_initialized:
+            return
+        self._mpl_initialized = True
+        self._init_matplotlib()
 
     # ─────────────────────────────────────────────────────────────────
     # UI構築
